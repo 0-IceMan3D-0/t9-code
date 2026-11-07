@@ -5,9 +5,10 @@ import android.content.Context
 class LocalServerOptions(context: Context) {
   private val preferences = context.getSharedPreferences("t3_local_server", Context.MODE_PRIVATE)
 
-  var startAtBoot: Boolean
-    get() = preferences.getBoolean("startAtBoot", false)
-    set(value) = preferences.edit().putBoolean("startAtBoot", value).apply()
+  /** Read natively when the app process starts, so the server starts before any screen opens. */
+  var startOnAppOpen: Boolean
+    get() = preferences.getBoolean("startOnAppOpen", false)
+    set(value) = preferences.edit().putBoolean("startOnAppOpen", value).apply()
 
   var sharedStorage: Boolean
     get() = preferences.getBoolean("sharedStorage", false)

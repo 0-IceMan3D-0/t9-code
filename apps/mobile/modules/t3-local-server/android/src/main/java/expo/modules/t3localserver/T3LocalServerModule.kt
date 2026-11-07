@@ -23,6 +23,8 @@ private const val SHELL_EXIT_EVENT = "onShellExit"
 private const val DOWNLOAD_PROGRESS_EVENT = "onDownloadProgress"
 private const val USB_DEVICES_EVENT = "onUsbDevices"
 
+private var appOpenHandled = false
+
 class T3LocalServerModule : Module() {
   private val context: Context
     get() = appContext.reactContext ?: throw Exceptions.ReactContextLost()
@@ -49,6 +51,19 @@ class T3LocalServerModule : Module() {
     if (retired.exists()) thread(name = "t3-remove-retired") { RuntimeInstaller.removeTree(retired) }
   }
 
+  // Once per app process: a JS reload or a second React context must not undo a manual Stop.
+  private fun startOnAppOpen(app: Context) {
+    if (appOpenHandled) return
+    appOpenHandled = true
+    val idle = LocalServerStatusStore.current?.state.let {
+      it == null || it == LocalServerState.STOPPED || it == LocalServerState.FAILED
+    }
+    if (idle && LocalServerOptions(app).startOnAppOpen && GuestRuntime(app).isInstalled) {
+      runCatching { LocalServerService.start(app) }
+        .onFailure { LocalServerStatusStore.publish(LocalServerStatus(LocalServerState.FAILED, "Could not start: ${it.message}")) }
+    }
+  }
+
   private fun openLinuxShell(cols: Int, rows: Int): ShellSession {
     val infoPath = "/tmp/.t3-shell-tty"
     guest.nameGroups()
@@ -70,7 +85,7 @@ class T3LocalServerModule : Module() {
     "detail" to status.detail,
     "progress" to status.progress,
     "port" to LocalServerService.PORT,
-    "startAtBoot" to options.startAtBoot,
+    "startOnAppOpen" to options.startOnAppOpen,
     "sharedStorage" to options.sharedStorage,
     "sharedStorageGranted" to storageGranted(),
   )
@@ -95,7 +110,10 @@ class T3LocalServerModule : Module() {
 
     OnCreate {
       LocalServerStatusStore.addListener(statusListener)
-      appContext.reactContext?.let { UsbBridge.start(it) }
+      appContext.reactContext?.let {
+        UsbBridge.start(it)
+        startOnAppOpen(it)
+      }
       UsbBridge.addListener(usbListener)
       removeRetiredTermux()
     }
@@ -112,7 +130,7 @@ class T3LocalServerModule : Module() {
     Function("takePairingUrl") {
       LocalServerStatusStore.pairingUrl.also { LocalServerStatusStore.pairingUrl = null }
     }
-    Function("setStartAtBoot") { value: Boolean -> options.startAtBoot = value }
+    Function("setStartOnAppOpen") { value: Boolean -> options.startOnAppOpen = value }
     Function("setSharedStorage") { value: Boolean -> options.sharedStorage = value }
 
     AsyncFunction("readLog") {

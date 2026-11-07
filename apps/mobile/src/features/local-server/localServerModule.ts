@@ -14,7 +14,7 @@ export interface LocalServerStatus {
   readonly detail: string;
   readonly progress: number;
   readonly port: number;
-  readonly startAtBoot: boolean;
+  readonly startOnAppOpen: boolean;
   readonly sharedStorage: boolean;
   readonly sharedStorageGranted: boolean;
 }
@@ -34,7 +34,7 @@ interface LocalServerNativeModule {
   start(): void;
   stop(): void;
   takePairingUrl(): string | null;
-  setStartAtBoot(value: boolean): void;
+  setStartOnAppOpen(value: boolean): void;
   setSharedStorage(value: boolean): void;
   readLog(): Promise<string>;
   reset(): Promise<void>;

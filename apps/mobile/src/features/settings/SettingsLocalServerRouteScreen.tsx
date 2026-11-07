@@ -283,9 +283,10 @@ export function SettingsLocalServerRouteScreen() {
 
         <SettingsSection title="Options">
           <SettingsSwitchRow
-            label="Start when phone turns on"
-            value={status.startAtBoot}
-            onValueChange={(value) => setOption(() => server.setStartAtBoot(value))}
+            label="Start when the app opens"
+            subtitle="Starts the built-in server each time the app launches. It does not start after the phone restarts until you open the app."
+            value={status.startOnAppOpen}
+            onValueChange={(value) => setOption(() => server.setStartOnAppOpen(value))}
           />
           <SettingsSwitchRow
             label="Shared project folder"

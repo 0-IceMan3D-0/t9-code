@@ -10,7 +10,7 @@ Use **Sign in to Claude** after the server starts. Finish in the browser, and pa
 
 - Private projects live in `/root/projects`.
 - **Shared project folder** adds `T3Projects` in phone storage as `/root/shared-projects`. Restart the server after changing it.
-- **Start when phone turns on** starts the server after the first unlock.
+- **Start when the app opens** starts the server each time the app launches, so you do not need to tap **Start**. It is off by default. It does not start the server after the phone restarts: open the app once. If you stop the server, it stays stopped until the app is closed and opened again.
 - **Delete environment** removes Linux, the Claude sign-in and every private project.
 
 **Open Linux shell** gives a root shell in the same environment. `apt` works there. It does not need the server, but without the server Android may pause it while the app is in the background.
