@@ -70,18 +70,27 @@ interface LocalServerNativeModule {
 
 export const localServer = requireOptionalNativeModule<LocalServerNativeModule>("T3LocalServer");
 
+// One store for every screen. Option writes change native state without a native event, so the
+// writer refreshes here and every subscriber hears it, not only the next screen that mounts.
 let snapshot: LocalServerStatus | null = localServer?.getStatus() ?? null;
+const statusListeners = new Set<() => void>();
+
+function publishStatus(next: LocalServerStatus | null): void {
+  snapshot = next;
+  for (const listener of statusListeners) listener();
+}
+
+localServer?.addListener("onStatus", publishStatus);
 
 export function refreshLocalServerStatus(): void {
-  snapshot = localServer?.getStatus() ?? null;
+  publishStatus(localServer?.getStatus() ?? null);
 }
 
 function subscribe(onChange: () => void) {
-  const subscription = localServer?.addListener("onStatus", (status) => {
-    snapshot = status;
-    onChange();
-  });
-  return () => subscription?.remove();
+  statusListeners.add(onChange);
+  return () => {
+    statusListeners.delete(onChange);
+  };
 }
 
 export function useLocalServerStatus(): LocalServerStatus | null {
