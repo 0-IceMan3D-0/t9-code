@@ -21,9 +21,6 @@ private const val STATUS_EVENT = "onStatus"
 private const val SHELL_OUTPUT_EVENT = "onShellOutput"
 private const val SHELL_EXIT_EVENT = "onShellExit"
 private const val DOWNLOAD_PROGRESS_EVENT = "onDownloadProgress"
-private const val TERMUX_STATUS_EVENT = "onTermuxStatus"
-private const val TERMUX_OUTPUT_EVENT = "onTermuxOutput"
-private const val TERMUX_EXIT_EVENT = "onTermuxExit"
 
 class T3LocalServerModule : Module() {
   private val context: Context
@@ -33,14 +30,11 @@ class T3LocalServerModule : Module() {
   private var login: ClaudeLogin? = null
   private var shell: ShellSession? = null
   private val statusListener: (LocalServerStatus) -> Unit = { sendEvent(STATUS_EVENT, snapshot(it)) }
-  private val termuxListener = object : TermuxListener {
-    override fun onStatus() = sendEvent(TERMUX_STATUS_EVENT, termuxSnapshot())
-    override fun onOutput(id: Int, data: String) = sendEvent(TERMUX_OUTPUT_EVENT, mapOf("id" to id, "data" to data))
-    override fun onExit(id: Int) = sendEvent(TERMUX_EXIT_EVENT, mapOf("id" to id))
-  }
 
-  private fun termuxSnapshot() = TermuxSessions.status(context).let {
-    mapOf("state" to it.state, "detail" to it.detail, "progress" to it.progress, "sessions" to TermuxSessions.ids())
+  // Frees the space of the Termux environment that earlier builds could install.
+  private fun removeRetiredTermux() {
+    val retired = File(appContext.reactContext?.filesDir ?: return, "termux")
+    if (retired.exists()) thread(name = "t3-remove-retired") { RuntimeInstaller.removeTree(retired) }
   }
 
   private fun openLinuxShell(cols: Int, rows: Int): ShellSession {
@@ -85,24 +79,13 @@ class T3LocalServerModule : Module() {
 
   override fun definition() = ModuleDefinition {
     Name("T3LocalServer")
-    Events(
-      STATUS_EVENT,
-      SHELL_OUTPUT_EVENT,
-      SHELL_EXIT_EVENT,
-      DOWNLOAD_PROGRESS_EVENT,
-      TERMUX_STATUS_EVENT,
-      TERMUX_OUTPUT_EVENT,
-      TERMUX_EXIT_EVENT,
-    )
+    Events(STATUS_EVENT, SHELL_OUTPUT_EVENT, SHELL_EXIT_EVENT, DOWNLOAD_PROGRESS_EVENT)
 
     OnCreate {
       LocalServerStatusStore.addListener(statusListener)
-      TermuxSessions.addListener(termuxListener)
+      removeRetiredTermux()
     }
-    OnDestroy {
-      LocalServerStatusStore.removeListener(statusListener)
-      TermuxSessions.removeListener(termuxListener)
-    }
+    OnDestroy { LocalServerStatusStore.removeListener(statusListener) }
 
     Function("getStatus") { snapshot() }
     Function("start") { LocalServerService.start(context) }
@@ -190,15 +173,6 @@ class T3LocalServerModule : Module() {
         )
       }
     }
-
-    Function("getTermuxStatus") { termuxSnapshot() }
-    Function("installTermux") { TermuxSessions.install(context) }
-    AsyncFunction("resetTermux") { TermuxSessions.reset(context) }
-    AsyncFunction("createTermuxSession") { cols: Int, rows: Int -> TermuxSessions.create(context, cols, rows) }
-    Function("termuxHistory") { id: Int -> TermuxSessions.get(id)?.history().orEmpty() }
-    Function("writeTermux") { id: Int, data: String -> TermuxSessions.get(id)?.write(data) }
-    Function("resizeTermux") { id: Int, cols: Int, rows: Int -> TermuxSessions.get(id)?.resize(cols, rows) }
-    Function("closeTermuxSession") { id: Int -> TermuxSessions.get(id)?.close() }
 
     Function("cancelClaudeLogin") {
       login?.cancel()

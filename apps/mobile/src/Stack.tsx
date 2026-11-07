@@ -54,7 +54,6 @@ import {
 import { ReviewCommentComposerSheet } from "./features/review/ReviewCommentComposerSheet";
 import { ReviewSheet } from "./features/review/ReviewSheet";
 import { LinuxShellRouteScreen } from "./features/local-server/LinuxShellRouteScreen";
-import { TermuxRouteScreen } from "./features/local-server/TermuxRouteScreen";
 import { ThreadTerminalRouteScreen } from "./features/terminal/ThreadTerminalRouteScreen";
 import { DevicePreviewRouteScreen } from "./features/devices/DevicePreviewRouteScreen";
 import { BrowserPreviewRouteScreen } from "./features/browser/BrowserPreviewRouteScreen";
@@ -619,11 +618,6 @@ const RootStackConfig = createWorkspaceStackNavigator({
       screen: LinuxShellRouteScreen,
       linking: "settings/this-phone/shell",
       options: pageRoute({ title: "Linux shell", header: "solid" }),
-    }),
-    Termux: createNativeStackScreen({
-      screen: TermuxRouteScreen,
-      linking: "settings/this-phone/termux",
-      options: pageRoute({ title: "Termux", header: "solid" }),
     }),
     ThreadTerminal: createNativeStackScreen({
       screen: ThreadTerminalRouteScreen,
