@@ -36,18 +36,7 @@ if the server has opted out. The browser app has no relay tracing toggle.
 
 ## Mobile app diagnostics
 
-When the iOS or Android app crashes or hits an error, it sends a report to T3 Code: the error
-message, the stack trace, the app version, and the device model and OS version. Each launch also
-sends startup timings, and every report carries a random ID for the install. Reports go through
-the T3 Connect relay to Axiom. They do not include your threads, prompts, or connection details,
-but an error message can quote a value the app was handling.
-
-To stop sending them, turn off **Send crash reports** in **Settings > About T3 Code > Diagnostics**.
-
-The mobile app also sends relay connection traces when its build has tracing configured. These
-carry an identifier for the current app session. **Send crash reports** does not control these
-traces, and the mobile app has no separate relay tracing toggle. Server environment variables and
-managed policy do not disable mobile tracing.
+This build of the mobile app sends no crash reports, startup timings or relay traces, and it does not tell the environments it connects to which account or device is connecting. Its built-in server runs with `T3CODE_TELEMETRY_ENABLED=false`, and Claude Code in that environment runs with `DISABLE_TELEMETRY` and `DISABLE_ERROR_REPORTING`. A remote server you connect to keeps its own telemetry setting.
 
 ## Agent activity for mobile notifications
 

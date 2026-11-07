@@ -2,7 +2,6 @@
 import "./src/features/development/render-counter-entry";
 import "./src/features/development/behavior-probe-entry";
 // Next, so errors thrown while the rest of the app loads are recorded too.
-import "./src/features/observability/observe";
 import { registerRootComponent } from "expo";
 import "react-native-gesture-handler";
 import { LogBox } from "react-native";

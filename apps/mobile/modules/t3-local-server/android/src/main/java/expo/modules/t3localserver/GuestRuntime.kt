@@ -44,6 +44,12 @@ class GuestRuntime(context: Context) {
         // proot's root is fake and the app sandbox holds, but Claude Code refuses to skip
         // permission prompts as root, which is what full-access threads ask for.
         "IS_SANDBOX=1",
+        // t3's product events and relay traces, then Claude Code's metrics and crash reports.
+        "T3CODE_TELEMETRY_ENABLED=false",
+        "T3CODE_OTEL_SDK_DISABLED=true",
+        "OTEL_SDK_DISABLED=true",
+        "DISABLE_TELEMETRY=1",
+        "DISABLE_ERROR_REPORTING=1",
       ),
     )
     arguments.addAll(command)
