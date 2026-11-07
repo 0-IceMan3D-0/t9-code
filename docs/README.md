@@ -17,6 +17,7 @@
 - [Import browser sessions](./user/browser-import.md)
 - [Use T3 Code as your default browser](./user/default-browser.md)
 - [Devices](./user/devices.md)
+- [This phone (Android)](./user/this-phone.md)
 - [Usage and limits](./user/usage.md)
 - [Secrets](./user/secrets.md)
 - [Product usage data](./user/telemetry.md)
