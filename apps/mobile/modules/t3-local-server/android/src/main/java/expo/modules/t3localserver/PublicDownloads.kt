@@ -15,6 +15,7 @@ import java.net.URL
 
 private const val FOLDER = "T3² code"
 private const val PROGRESS_STEP_BYTES = 1L shl 20
+private const val MAX_NAME_ATTEMPTS = 50
 
 /** MediaStore needs no storage permission for an app's own Downloads, and it uniquifies the name. */
 @RequiresApi(Build.VERSION_CODES.Q)
@@ -35,15 +36,7 @@ object PublicDownloads {
         throw IOException("The server answered ${connection.responseCode}.")
       }
       val total = connection.contentLengthLong
-      val item = resolver.insert(
-        MediaStore.Downloads.EXTERNAL_CONTENT_URI,
-        ContentValues().apply {
-          put(MediaStore.Downloads.DISPLAY_NAME, fileName)
-          put(MediaStore.Downloads.MIME_TYPE, mimeType(fileName))
-          put(MediaStore.Downloads.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/$FOLDER")
-          put(MediaStore.Downloads.IS_PENDING, 1)
-        },
-      ) ?: throw IOException("Android could not create the file in Downloads.")
+      val item = insert(context, fileName)
       try {
         val written = copy(connection, resolver.openOutputStream(item), total, onProgress)
         if (total >= 0 && written != total) throw IOException("The connection ended early.")
@@ -56,6 +49,29 @@ object PublicDownloads {
     } finally {
       connection.disconnect()
     }
+  }
+
+  // MediaStore uniquifies against files on disk, so a row left by a file deleted behind its back
+  // makes the insert fail for that name.
+  private fun insert(context: Context, fileName: String): Uri {
+    repeat(MAX_NAME_ATTEMPTS) { attempt ->
+      val values = ContentValues().apply {
+        put(MediaStore.Downloads.DISPLAY_NAME, numberedName(fileName, attempt))
+        put(MediaStore.Downloads.MIME_TYPE, mimeType(fileName))
+        put(MediaStore.Downloads.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/$FOLDER")
+        put(MediaStore.Downloads.IS_PENDING, 1)
+      }
+      runCatching { context.contentResolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values) }
+        .getOrNull()
+        ?.let { return it }
+    }
+    throw IOException("Android could not create the file in Downloads.")
+  }
+
+  private fun numberedName(fileName: String, number: Int): String {
+    if (number == 0) return fileName
+    val dot = fileName.lastIndexOf('.').takeIf { it > 0 } ?: fileName.length
+    return "${fileName.substring(0, dot)} ($number)${fileName.substring(dot)}"
   }
 
   private fun copy(

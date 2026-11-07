@@ -41,6 +41,9 @@ class GuestRuntime(context: Context) {
         "TERM=xterm-256color",
         "TMPDIR=/tmp",
         "PATH=/opt/node/bin:/root/.local/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+        // proot's root is fake and the app sandbox holds, but Claude Code refuses to skip
+        // permission prompts as root, which is what full-access threads ask for.
+        "IS_SANDBOX=1",
       ),
     )
     arguments.addAll(command)
