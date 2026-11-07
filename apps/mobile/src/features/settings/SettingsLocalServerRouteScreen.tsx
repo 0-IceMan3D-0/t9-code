@@ -12,6 +12,7 @@ import {
   localServer,
   refreshLocalServerStatus,
   useLocalServerStatus,
+  useUsbDevices,
   type LocalServerStatus,
 } from "../local-server/localServerModule";
 import {
@@ -138,6 +139,38 @@ function ClaudeSection() {
   );
 }
 
+const usbId = (value: number) => value.toString(16).padStart(4, "0");
+
+function UsbSection() {
+  const devices = useUsbDevices();
+  return (
+    <SettingsSection
+      title="USB devices"
+      footer="Allowed devices work with adb and fastboot in the Linux shell and for agents. Install them with apt install adb fastboot."
+    >
+      {devices.length === 0 ? (
+        <View className="p-4">
+          <Text className="text-sm text-foreground-muted">
+            Nothing attached. Connect a device with a USB OTG adapter or cable.
+          </Text>
+        </View>
+      ) : (
+        devices.map((device) => (
+          <SettingsActionRow
+            key={device.name}
+            icon="cable.connector"
+            label={device.label}
+            description={`${usbId(device.vendorId)}:${usbId(device.productId)}`}
+            detail={device.allowed ? "Allowed" : "Allow"}
+            disabled={device.allowed}
+            onPress={() => localServer?.allowUsbDevice(device.name)}
+          />
+        ))
+      )}
+    </SettingsSection>
+  );
+}
+
 export function SettingsLocalServerRouteScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
@@ -240,6 +273,8 @@ export function SettingsLocalServerRouteScreen() {
             />
           </SettingsSection>
         )}
+
+        {state === "notInstalled" || state === "installing" ? null : <UsbSection />}
 
         <SettingsSection title="Options">
           <SettingsSwitchRow

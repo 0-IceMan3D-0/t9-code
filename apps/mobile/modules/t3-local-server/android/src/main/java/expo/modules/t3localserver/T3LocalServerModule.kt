@@ -21,6 +21,7 @@ private const val STATUS_EVENT = "onStatus"
 private const val SHELL_OUTPUT_EVENT = "onShellOutput"
 private const val SHELL_EXIT_EVENT = "onShellExit"
 private const val DOWNLOAD_PROGRESS_EVENT = "onDownloadProgress"
+private const val USB_DEVICES_EVENT = "onUsbDevices"
 
 class T3LocalServerModule : Module() {
   private val context: Context
@@ -30,6 +31,17 @@ class T3LocalServerModule : Module() {
   private var login: ClaudeLogin? = null
   private var shell: ShellSession? = null
   private val statusListener: (LocalServerStatus) -> Unit = { sendEvent(STATUS_EVENT, snapshot(it)) }
+  private val usbListener: () -> Unit = { sendEvent(USB_DEVICES_EVENT, mapOf("devices" to usbDevices())) }
+
+  private fun usbDevices() = UsbBridge.devices().map {
+    mapOf(
+      "name" to it.usb.deviceName,
+      "vendorId" to it.usb.vendorId,
+      "productId" to it.usb.productId,
+      "label" to listOfNotNull(it.usb.manufacturerName, it.usb.productName).joinToString(" ").ifBlank { "USB device" },
+      "allowed" to it.allowed,
+    )
+  }
 
   // Frees the space of the Termux environment that earlier builds could install.
   private fun removeRetiredTermux() {
@@ -79,15 +91,22 @@ class T3LocalServerModule : Module() {
 
   override fun definition() = ModuleDefinition {
     Name("T3LocalServer")
-    Events(STATUS_EVENT, SHELL_OUTPUT_EVENT, SHELL_EXIT_EVENT, DOWNLOAD_PROGRESS_EVENT)
+    Events(STATUS_EVENT, SHELL_OUTPUT_EVENT, SHELL_EXIT_EVENT, DOWNLOAD_PROGRESS_EVENT, USB_DEVICES_EVENT)
 
     OnCreate {
       LocalServerStatusStore.addListener(statusListener)
+      appContext.reactContext?.let { UsbBridge.start(it) }
+      UsbBridge.addListener(usbListener)
       removeRetiredTermux()
     }
-    OnDestroy { LocalServerStatusStore.removeListener(statusListener) }
+    OnDestroy {
+      LocalServerStatusStore.removeListener(statusListener)
+      UsbBridge.removeListener(usbListener)
+    }
 
     Function("getStatus") { snapshot() }
+    Function("listUsbDevices") { usbDevices() }
+    Function("allowUsbDevice") { name: String -> UsbBridge.requestAccess(name) }
     Function("start") { LocalServerService.start(context) }
     Function("stop") { LocalServerService.stop(context) }
     Function("takePairingUrl") {

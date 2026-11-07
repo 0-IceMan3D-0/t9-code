@@ -2,13 +2,14 @@ package expo.modules.t3localserver
 
 import android.content.Context
 import android.os.Environment
+import android.util.Log
 import java.io.File
 
 /**
  * Starts commands inside the Linux environment. Apps targeting API 29+ cannot exec from their data
  * directory, so proot and its loader ship as native libraries and guest binaries load through them.
  */
-class GuestRuntime(context: Context) {
+class GuestRuntime(private val context: Context) {
   private val nativeDir = context.applicationInfo.nativeLibraryDir
   private val options = LocalServerOptions(context)
   val root = File(context.filesDir, "runtime")
@@ -19,6 +20,7 @@ class GuestRuntime(context: Context) {
 
   fun process(command: List<String>, workingDirectory: String = "/root"): ProcessBuilder {
     tmp.mkdirs()
+    installUsbSupport()
     val arguments = mutableListOf(
       "$nativeDir/libproot.so",
       "--kill-on-exit",
@@ -50,6 +52,7 @@ class GuestRuntime(context: Context) {
         "OTEL_SDK_DISABLED=true",
         "DISABLE_TELEMETRY=1",
         "DISABLE_ERROR_REPORTING=1",
+        "T3USB_SOCKET=${UsbBridge.socketName(context)}",
       ),
     )
     arguments.addAll(command)
@@ -63,6 +66,40 @@ class GuestRuntime(context: Context) {
       )
     }
   }
+
+  /**
+   * Copies the USB bridge from the APK into the rootfs on every start, so an app update updates it.
+   * adb and fastboot get wrappers that preload it; /usr/bin stays apt's.
+   */
+  private fun installUsbSupport() = runCatching {
+    UsbBridge.start(context)
+    if (!File(rootfs, "usr/local").isDirectory) return@runCatching
+    syncFile(File(nativeDir, "libt3usb.so").readBytes(), File(rootfs, "usr/local/lib/t3/libt3usb.so"))
+    syncFile(File(nativeDir, "libt3usb_cli.so").readBytes(), File(rootfs, "usr/local/bin/t3-usb"))
+    for (tool in listOf("adb", "fastboot")) {
+      syncFile(usbWrapper(tool).toByteArray(), File(rootfs, "usr/local/bin/$tool"))
+    }
+  }.onFailure { Log.w("T3GuestRuntime", "USB support not installed", it) }
+
+  private fun syncFile(content: ByteArray, target: File) {
+    if (target.isFile && target.length() == content.size.toLong() && target.readBytes().contentEquals(content)) return
+    target.parentFile?.mkdirs()
+    val temporary = File(target.parentFile, ".${target.name}.new")
+    temporary.writeBytes(content)
+    temporary.setExecutable(true, false)
+    temporary.renameTo(target)
+  }
+
+  private fun usbWrapper(tool: String) = """
+    |#!/bin/sh
+    |# Added by T3² code: runs $tool with USB devices the app is allowed to use. See t3-usb.
+    |real=/usr/bin/$tool
+    |if [ ! -x "${'$'}real" ]; then
+    |  echo "$tool is not installed. Install it with: apt install $tool" >&2
+    |  exit 127
+    |fi
+    |LD_PRELOAD="/usr/local/lib/t3/libt3usb.so${'$'}{LD_PRELOAD:+:${'$'}LD_PRELOAD}" exec "${'$'}real" "${'$'}@"
+    |""".trimMargin()
 
   /** Names Android's supplementary groups, or every login shell complains about them. */
   fun nameGroups() {

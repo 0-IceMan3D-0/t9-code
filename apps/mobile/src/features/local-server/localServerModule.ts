@@ -19,8 +19,18 @@ export interface LocalServerStatus {
   readonly sharedStorageGranted: boolean;
 }
 
+export interface UsbDevice {
+  readonly name: string;
+  readonly vendorId: number;
+  readonly productId: number;
+  readonly label: string;
+  readonly allowed: boolean;
+}
+
 interface LocalServerNativeModule {
   getStatus(): LocalServerStatus;
+  listUsbDevices(): ReadonlyArray<UsbDevice>;
+  allowUsbDevice(name: string): void;
   start(): void;
   stop(): void;
   takePairingUrl(): string | null;
@@ -44,6 +54,10 @@ interface LocalServerNativeModule {
     listener: (event: { readonly data: string }) => void,
   ): EventSubscription;
   addListener(event: "onShellExit", listener: () => void): EventSubscription;
+  addListener(
+    event: "onUsbDevices",
+    listener: (event: { readonly devices: ReadonlyArray<UsbDevice> }) => void,
+  ): EventSubscription;
   addListener(
     event: "onDownloadProgress",
     listener: (event: {
@@ -72,4 +86,18 @@ function subscribe(onChange: () => void) {
 
 export function useLocalServerStatus(): LocalServerStatus | null {
   return useSyncExternalStore(subscribe, () => snapshot);
+}
+
+let usbDevices: ReadonlyArray<UsbDevice> = localServer?.listUsbDevices() ?? [];
+
+function subscribeUsb(onChange: () => void) {
+  const subscription = localServer?.addListener("onUsbDevices", (event) => {
+    usbDevices = event.devices;
+    onChange();
+  });
+  return () => subscription?.remove();
+}
+
+export function useUsbDevices(): ReadonlyArray<UsbDevice> {
+  return useSyncExternalStore(subscribeUsb, () => usbDevices);
 }
