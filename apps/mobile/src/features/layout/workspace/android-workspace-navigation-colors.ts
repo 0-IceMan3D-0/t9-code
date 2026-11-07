@@ -19,6 +19,20 @@ function floatingContainerColor(colors: MobileThemeVariables) {
   );
 }
 
+export function androidGlassTabColors(colors: MobileThemeVariables) {
+  return {
+    // The lens draws the tint, so a filled surface here would wash out its refracted rim.
+    containerColor: "transparent",
+    tintColor: colors["--color-glass-surface"],
+    indicatorColor: colors["--color-subtle-strong"],
+    selectedColor: colors["--color-primary-text"],
+    unselectedColor: colors["--color-foreground"],
+    rimColor: isDarkThemeColor(colors["--color-screen"])
+      ? "rgba(255, 255, 255, 0.06)"
+      : "rgba(255, 255, 255, 0.12)",
+  };
+}
+
 export function androidWorkspaceNavigationColors(
   colors: MobileThemeVariables,
   rail: boolean,

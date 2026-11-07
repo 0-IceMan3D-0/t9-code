@@ -16,8 +16,12 @@ import {
 } from "@t3tools/shared/themePreview";
 
 export const DEFAULT_MOBILE_THEME_ID = MOBILE_DEFAULT_THEME_ID;
-export const MOBILE_THEME_IDS = [...SHARED_MOBILE_THEME_IDS, "material-you"] as const;
-export type MobileThemeId = SharedMobileThemeId | "material-you";
+export const MOBILE_THEME_IDS = [
+  ...SHARED_MOBILE_THEME_IDS,
+  "material-you",
+  "liquid-glass",
+] as const;
+export type MobileThemeId = SharedMobileThemeId | "material-you" | "liquid-glass";
 export type MobileThemeAppearance = ThemeAppearance;
 export type MobileThemeMode = MobileThemeAppearance | "system";
 export type MobileThemeIds = Readonly<Record<MobileThemeAppearance, MobileThemeId>>;
@@ -28,11 +32,30 @@ export const MOBILE_THEME_OPTIONS: ReadonlyArray<{
 }> = [
   { id: DEFAULT_MOBILE_THEME_ID, label: "T3 Code" },
   { id: "material-you", label: "Material You" },
+  { id: "liquid-glass", label: "Liquid Glass" },
   ...BUILT_IN_THEMES.map((theme) => ({ id: theme.id as MobileThemeId, label: theme.label })),
 ];
 
 export type MobileThemeVariable = keyof ReturnType<typeof createMobileThemeVariables>;
 export type MobileThemeVariables = Readonly<Record<MobileThemeVariable, string>>;
+
+export function isMobileThemeAvailable(
+  themeId: MobileThemeId,
+  platform: string,
+  systemColorsAvailable: boolean,
+): boolean {
+  if (themeId === "material-you") return systemColorsAvailable;
+  // iOS already renders the system material under every theme.
+  if (themeId === "liquid-glass") return platform === "android";
+  return true;
+}
+
+/** Runtime-only themes override the default palette instead of generating their own. */
+export function mobileThemePaletteId(themeId: MobileThemeId): SharedMobileThemeId {
+  return themeId === "material-you" || themeId === "liquid-glass"
+    ? DEFAULT_MOBILE_THEME_ID
+    : themeId;
+}
 
 function normalizeMobileThemeId(value: unknown): MobileThemeId {
   return typeof value === "string" && (MOBILE_THEME_IDS as readonly string[]).includes(value)
@@ -506,7 +529,15 @@ export function getMobileThemePreviewColors(
   themeId: MobileThemeId,
   appearance: MobileThemeAppearance,
 ): ThemePreviewColors {
-  if (themeId === DEFAULT_MOBILE_THEME_ID || themeId === "material-you")
+  if (themeId === "liquid-glass") {
+    const dark = appearance === "dark";
+    return {
+      canvas: dark ? "#000000" : "#F2F2F7",
+      accent: dark ? "#0091FF" : "#0088FF",
+      messageAction: dark ? "#0074D9" : "#006DCC",
+    };
+  }
+  if (mobileThemePaletteId(themeId) === DEFAULT_MOBILE_THEME_ID)
     return STANDARD_THEME_PREVIEW_COLORS[appearance];
   const theme = BUILT_IN_THEMES.find((candidate) => candidate.id === themeId) ?? T3_CHAT_THEME;
   const colors = getThemeColorsForAppearance(theme, appearance) ?? theme.colors;

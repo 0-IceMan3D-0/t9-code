@@ -18,6 +18,7 @@ import { useAdaptiveWorkspaceLayout } from "../AdaptiveWorkspaceLayout";
 import { WorkspaceSettledContentWidthContext } from "../workspace-content-width";
 import { AndroidWorkspaceNavigation, FloatingWorkspaceTabs } from "./AndroidWorkspaceNavigation";
 import { FLOATING_TABS } from "./floating-workspace-tabs";
+import { GlassTabTarget, useGlassTabTarget } from "./GlassTabTarget";
 import { WorkspaceTabsContext, useWorkspaceTabs } from "./WorkspaceTabsContext";
 import { WorkspaceTabPanes } from "./WorkspaceTabPanes";
 import { WorkspaceAppBarScope } from "../../../components/ui/WorkspaceAppBar.android";
@@ -49,6 +50,59 @@ function WorkspaceRoot() {
           : 16,
   };
   const tab = workspace.state.selectedTab;
+  const blurTarget = useGlassTabTarget(floatingTabsEnabled && !layout.usesSplitView);
+  const panes = (
+    <SafeAreaInsetsContext
+      value={
+        layout.usesSplitView
+          ? insets
+          : floatingTabsEnabled
+            ? tab === "usage"
+              ? { ...insets, bottom: context.bottomClearance }
+              : insets
+            : { ...insets, bottom: 0 }
+      }
+    >
+      {enabled.length === 0 ? (
+        layout.usesSplitView ? (
+          <View className="flex-1 bg-screen" />
+        ) : (
+          <WorkspaceNoTabs />
+        )
+      ) : (
+        <WorkspaceAppBarScope enabled={!layout.usesSplitView}>
+          <WorkspaceTabPanes
+            tabs={TABS}
+            selected={tab}
+            renderTab={(tab) =>
+              tab === "threads" ? (
+                <HomeRouteScreen />
+              ) : tab !== "pullRequests" ? (
+                <WorkspacePageFrame width={workspacePageWidth ?? null}>
+                  <WorkspaceExtraTab tab={tab} />
+                </WorkspacePageFrame>
+              ) : layout.usesSplitView ? (
+                <>
+                  <NativeStackScreenOptions options={{ headerShown: false }} />
+                  <AppBar embedded title="Pull requests" />
+                  <WorkspaceEmptyDetail tab="pullRequests" />
+                </>
+              ) : (
+                <PullRequestsScreen
+                  renderFrame={(filters, list) => (
+                    <>
+                      <PullRequestToolbar filters={filters} />
+                      <ScreenContent>{list}</ScreenContent>
+                    </>
+                  )}
+                />
+              )
+            }
+          />
+        </WorkspaceAppBarScope>
+      )}
+    </SafeAreaInsetsContext>
+  );
 
   return (
     <WorkspaceTabsContext value={context}>
@@ -56,58 +110,9 @@ function WorkspaceRoot() {
         {!layout.usesSplitView ? (
           <NativeStackScreenOptions options={{ headerShown: false }} />
         ) : null}
-        <SafeAreaInsetsContext
-          value={
-            layout.usesSplitView
-              ? insets
-              : floatingTabsEnabled
-                ? tab === "usage"
-                  ? { ...insets, bottom: context.bottomClearance }
-                  : insets
-                : { ...insets, bottom: 0 }
-          }
-        >
-          {enabled.length === 0 ? (
-            layout.usesSplitView ? (
-              <View className="flex-1 bg-screen" />
-            ) : (
-              <WorkspaceNoTabs />
-            )
-          ) : (
-            <WorkspaceAppBarScope enabled={!layout.usesSplitView}>
-              <WorkspaceTabPanes
-                tabs={TABS}
-                selected={tab}
-                renderTab={(tab) =>
-                  tab === "threads" ? (
-                    <HomeRouteScreen />
-                  ) : tab !== "pullRequests" ? (
-                    <WorkspacePageFrame width={workspacePageWidth ?? null}>
-                      <WorkspaceExtraTab tab={tab} />
-                    </WorkspacePageFrame>
-                  ) : layout.usesSplitView ? (
-                    <>
-                      <NativeStackScreenOptions options={{ headerShown: false }} />
-                      <AppBar embedded title="Pull requests" />
-                      <WorkspaceEmptyDetail tab="pullRequests" />
-                    </>
-                  ) : (
-                    <PullRequestsScreen
-                      renderFrame={(filters, list) => (
-                        <>
-                          <PullRequestToolbar filters={filters} />
-                          <ScreenContent>{list}</ScreenContent>
-                        </>
-                      )}
-                    />
-                  )
-                }
-              />
-            </WorkspaceAppBarScope>
-          )}
-        </SafeAreaInsetsContext>
+        <GlassTabTarget target={blurTarget}>{panes}</GlassTabTarget>
         {layout.usesSplitView ? null : floatingTabsEnabled ? (
-          <FloatingWorkspaceTabs fillWidth onNewThread={startNewTask} />
+          <FloatingWorkspaceTabs blurTarget={blurTarget} fillWidth onNewThread={startNewTask} />
         ) : (
           <AndroidWorkspaceNavigation onNewThread={startNewTask} />
         )}

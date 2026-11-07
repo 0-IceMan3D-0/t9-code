@@ -1,7 +1,10 @@
+import type { GlassTabTargetRef } from "./GlassTabTarget";
+
 export function AndroidWorkspaceNavigation(_props: {
   readonly onNewThread: () => void;
   readonly rail?: boolean;
   readonly floating?: boolean;
+  readonly blurTarget?: GlassTabTargetRef;
   readonly fillWidth?: boolean;
   readonly paneWidth?: number;
   readonly onSelect?: () => void;
@@ -13,6 +16,7 @@ export function AndroidWorkspaceNavigation(_props: {
 export const ANDROID_WORKSPACE_RAIL_WIDTH = 72;
 
 export function FloatingWorkspaceTabs(_props: {
+  readonly blurTarget?: GlassTabTargetRef;
   readonly fillWidth?: boolean;
   readonly onNewThread: () => void;
   readonly paneWidth?: number;

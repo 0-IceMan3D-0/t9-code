@@ -196,11 +196,6 @@ export function AppearancePreferencesProvider(props: { readonly children: ReactN
     () => resolveAppearancePreferences(storedPreferences),
     [storedPreferences],
   );
-  const androidNavigationStyle = resolveAndroidNavigationStyle(
-    storedPreferences?.androidNavigationStyle,
-    manufacturer,
-    process.env.EXPO_PUBLIC_T3_FLOATING_TABS === "1",
-  );
   const themeMode = normalizeMobileThemeMode(storedPreferences?.themeMode);
   const themeAppearance = themeMode === "system" ? systemColorScheme : themeMode;
   const resolvedThemeIds = resolveMobileThemeIds(storedPreferences ?? {});
@@ -209,6 +204,11 @@ export function AppearancePreferencesProvider(props: { readonly children: ReactN
     [resolvedThemeIds.dark, resolvedThemeIds.light],
   );
   const themeId = themeIds[themeAppearance];
+  const androidNavigationStyle = resolveAndroidNavigationStyle(
+    storedPreferences?.androidNavigationStyle,
+    manufacturer,
+    process.env.EXPO_PUBLIC_T3_FLOATING_TABS === "1" || themeId === "liquid-glass",
+  );
   const systemColorsActive = themeId === "material-you" && isSystemColorsAvailable;
   const systemColorPalettes = useAtomValue(systemColorPalettesAtom);
   const themeVariablesByAppearance = resolveThemeVariablesByAppearance(

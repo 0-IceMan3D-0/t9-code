@@ -3,12 +3,14 @@ import {
   DEFAULT_MOBILE_THEME_ID,
   flattenThemeColor,
   getMobileThemeVariables,
+  mobileThemePaletteId,
   themeColorWithAlpha,
   themeColorWithContrast,
   type MobileThemeAppearance,
   type MobileThemeId,
   type MobileThemeVariables,
 } from "./mobileTheme";
+import { liquidGlassThemeVariables } from "./liquidGlassTheme";
 
 const defaults = defaultThemeVariables as Readonly<
   Record<MobileThemeAppearance, MobileThemeVariables>
@@ -47,7 +49,10 @@ export function getMobileThemeRuntimeVariables(
   appearance: MobileThemeAppearance,
   platform: string,
 ): MobileThemeVariables {
-  return withVisibleSelection(platformThemeVariables(themeId, appearance, platform));
+  const variables = platformThemeVariables(themeId, appearance, platform);
+  return withVisibleSelection(
+    themeId === "liquid-glass" ? liquidGlassThemeVariables(appearance, variables) : variables,
+  );
 }
 
 function platformThemeVariables(
@@ -55,10 +60,11 @@ function platformThemeVariables(
   appearance: MobileThemeAppearance,
   platform: string,
 ): MobileThemeVariables {
-  const usesDefaultPalette = themeId === DEFAULT_MOBILE_THEME_ID || themeId === "material-you";
+  const paletteId = mobileThemePaletteId(themeId);
+  const usesDefaultPalette = paletteId === DEFAULT_MOBILE_THEME_ID;
   const variables = usesDefaultPalette
     ? defaults[appearance]
-    : getMobileThemeVariables(themeId, appearance);
+    : getMobileThemeVariables(paletteId, appearance);
   const frame = themeColorWithAlpha(
     variables[usesDefaultPalette ? "--color-row-hover" : "--color-drawer"],
     1,
