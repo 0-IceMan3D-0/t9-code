@@ -19,6 +19,7 @@ export function ThreadFileNavigatorPane(props: {
   readonly projectName: string;
   readonly selectedPath: string | null;
   readonly onSelectFile: (path: string) => void;
+  readonly onDownloadFile?: ((path: string) => void) | undefined;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const { themeAppearance: highlightTheme } = useAppearancePreferences();
@@ -49,6 +50,7 @@ export function ThreadFileNavigatorPane(props: {
   const fileTree = (
     <FileTreeBrowser
       key={JSON.stringify([props.environmentId, props.cwd])}
+      {...(props.onDownloadFile ? { onDownloadFile: props.onDownloadFile } : {})}
       revealSelection={entriesQuery.revealSelection}
       expandedPaths={entriesQuery.expandedPaths}
       setExpandedPaths={entriesQuery.setExpandedPaths}

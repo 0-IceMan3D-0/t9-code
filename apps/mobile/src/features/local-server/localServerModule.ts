@@ -54,12 +54,21 @@ interface LocalServerNativeModule {
   writeTermux(id: number, data: string): void;
   resizeTermux(id: number, cols: number, rows: number): void;
   closeTermuxSession(id: number): void;
+  saveToDownloads(id: string, url: string, fileName: string): Promise<string>;
   addListener(event: "onStatus", listener: (status: LocalServerStatus) => void): EventSubscription;
   addListener(
     event: "onShellOutput",
     listener: (event: { readonly data: string }) => void,
   ): EventSubscription;
   addListener(event: "onShellExit", listener: () => void): EventSubscription;
+  addListener(
+    event: "onDownloadProgress",
+    listener: (event: {
+      readonly id: string;
+      readonly written: number;
+      readonly total: number;
+    }) => void,
+  ): EventSubscription;
   addListener(event: "onTermuxStatus", listener: (status: TermuxStatus) => void): EventSubscription;
   addListener(
     event: "onTermuxOutput",

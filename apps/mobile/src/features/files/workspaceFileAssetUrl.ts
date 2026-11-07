@@ -1,8 +1,10 @@
 import type { AssetResource, EnvironmentId, ThreadId } from "@t3tools/contracts";
 import { useMemo } from "react";
 
+import { downloadFile } from "../../lib/fileDownload";
 import { useAssetUrlState, useRefreshAssetUrl } from "../../state/assets";
 import {
+  basename,
   isAbsolutePath,
   isAudioPreviewFile,
   isVideoPreviewFile,
@@ -43,4 +45,20 @@ export function useWorkspaceFileAssetUrlState(props: {
   const state = useAssetUrlState(props.environmentId, resource);
   const refresh = useRefreshAssetUrl(props.environmentId, resource);
   return { ...state, resource, refresh };
+}
+
+/** Only `media-file` with an attachment disposition skips the server's preview type allowlist. */
+export function downloadWorkspaceFile(props: {
+  readonly cwd: string;
+  readonly environmentId: EnvironmentId;
+  readonly relativePath: string;
+  readonly threadId: ThreadId;
+}) {
+  const path = resolveWorkspaceFilePath(props.cwd, props.relativePath);
+  if (path === null) return;
+  void downloadFile({
+    environmentId: props.environmentId,
+    resource: { _tag: "media-file", threadId: props.threadId, path, disposition: "attachment" },
+    name: basename(props.relativePath),
+  });
 }

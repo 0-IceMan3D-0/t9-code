@@ -39,8 +39,10 @@ const FileTreeRow = function FileTreeRow(props: {
   readonly onPressDirectory: (path: string, expand: boolean) => void;
   readonly onPreviewFile?: (path: string) => void;
   readonly onPressFile: (path: string) => void;
+  readonly onDownloadFile?: (path: string) => void;
 }) {
   const { node, depth } = props.item;
+  const { onDownloadFile } = props;
 
   return (
     <Pressable
@@ -92,6 +94,21 @@ const FileTreeRow = function FileTreeRow(props: {
       {node.kind === "directory" && props.expanded && props.loading ? (
         <AppActivityIndicator size="small" accessibilityLabel={`Loading ${node.name}`} />
       ) : null}
+      {node.kind === "file" && onDownloadFile ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Download ${node.name}`}
+          hitSlop={8}
+          onPress={() => onDownloadFile(node.path)}
+        >
+          <SymbolView
+            name="arrow.down"
+            size={17}
+            tintColorClassName="accent-icon-muted"
+            type="monochrome"
+          />
+        </Pressable>
+      ) : null}
     </Pressable>
   );
 };
@@ -115,6 +132,7 @@ export function FileTreeBrowser(props: {
   readonly onPreviewFile?: (path: string) => void;
   readonly onRefresh: () => void;
   readonly onSelectFile: (path: string) => void;
+  readonly onDownloadFile?: (path: string) => void;
 }) {
   const { expandedPaths, setExpandedPaths } = props;
   const [pendingSelection, setPendingSelection] = useState<{
@@ -126,6 +144,7 @@ export function FileTreeBrowser(props: {
     onLoadDirectory,
     onPreviewFile,
     onSelectFile,
+    onDownloadFile,
     loadingDirectories,
     selectedPath: controlledSelectedPath,
   } = props;
@@ -205,6 +224,7 @@ export function FileTreeBrowser(props: {
       onPressDirectory={toggleDirectory}
       onPreviewFile={onPreviewFile}
       onPressFile={handleSelectFile}
+      {...(onDownloadFile ? { onDownloadFile } : {})}
     />
   );
 

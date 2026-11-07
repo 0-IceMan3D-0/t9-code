@@ -15,10 +15,12 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.io.File
 import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
 
 private const val STATUS_EVENT = "onStatus"
 private const val SHELL_OUTPUT_EVENT = "onShellOutput"
 private const val SHELL_EXIT_EVENT = "onShellExit"
+private const val DOWNLOAD_PROGRESS_EVENT = "onDownloadProgress"
 private const val TERMUX_STATUS_EVENT = "onTermuxStatus"
 private const val TERMUX_OUTPUT_EVENT = "onTermuxOutput"
 private const val TERMUX_EXIT_EVENT = "onTermuxExit"
@@ -87,6 +89,7 @@ class T3LocalServerModule : Module() {
       STATUS_EVENT,
       SHELL_OUTPUT_EVENT,
       SHELL_EXIT_EVENT,
+      DOWNLOAD_PROGRESS_EVENT,
       TERMUX_STATUS_EVENT,
       TERMUX_OUTPUT_EVENT,
       TERMUX_EXIT_EVENT,
@@ -169,6 +172,24 @@ class T3LocalServerModule : Module() {
     }
     Function("writeShell") { data: String -> shell?.write(data) }
     Function("resizeShell") { cols: Int, rows: Int -> shell?.resize(cols, rows) }
+
+    AsyncFunction("saveToDownloads") { id: String, url: String, fileName: String, promise: Promise ->
+      if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+        promise.reject(CodedException("ERR_UNSUPPORTED", "Needs Android 10 or newer", null))
+        return@AsyncFunction
+      }
+      val app = context
+      thread(name = "t3-download") {
+        runCatching {
+          PublicDownloads.save(app, url, fileName) { written, total ->
+            sendEvent(DOWNLOAD_PROGRESS_EVENT, mapOf("id" to id, "written" to written, "total" to total))
+          }
+        }.fold(
+          { promise.resolve(it) },
+          { promise.reject(CodedException("ERR_DOWNLOAD", it.message ?: it.toString(), it)) },
+        )
+      }
+    }
 
     Function("getTermuxStatus") { termuxSnapshot() }
     Function("installTermux") { TermuxSessions.install(context) }

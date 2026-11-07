@@ -97,6 +97,7 @@ import { useProjects } from "../../state/entities";
 import { projectThreadContentPresentation } from "./threadContentPresentation";
 import { Inspector, useAdaptiveWorkspaceLayout } from "../layout/AdaptiveWorkspaceLayout";
 import { ThreadFileNavigatorPane } from "../files/thread-file-navigator-pane";
+import { downloadWorkspaceFile } from "../files/workspaceFileAssetUrl";
 import { InspectorSheetContext } from "../layout/workspace-inspector-sheet";
 import type { InspectorContent } from "../layout/inspector-panes";
 import {
@@ -591,6 +592,14 @@ function ThreadRouteContent(
             environmentId={selectedThread.environmentId}
             projectName={selectedThreadProject?.title ?? "Files"}
             selectedPath={null}
+            onDownloadFile={(relativePath) =>
+              downloadWorkspaceFile({
+                cwd: selectedThreadCwd,
+                environmentId: selectedThread.environmentId,
+                relativePath,
+                threadId: selectedThread.id,
+              })
+            }
             onSelectFile={(path) =>
               closeInspectorSheet
                 ? closeInspectorSheet(() => handleSelectInspectorFile(path))

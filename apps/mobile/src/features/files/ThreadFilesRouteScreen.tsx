@@ -63,7 +63,7 @@ import {
   isVideoPreviewFile,
   needsWorkspaceFileContents,
 } from "./filePath";
-import { useWorkspaceFileAssetUrlState } from "./workspaceFileAssetUrl";
+import { downloadWorkspaceFile, useWorkspaceFileAssetUrlState } from "./workspaceFileAssetUrl";
 
 function FilesBrowserHeader(props: {
   readonly projectName: string;
@@ -458,6 +458,11 @@ export function ThreadFilesTreeScreen(props: ThreadFilesRouteScreenProps) {
     }
   };
 
+  const handleDownloadFile =
+    environmentId !== null && cwd !== null && threadId !== null
+      ? (relativePath: string) =>
+          downloadWorkspaceFile({ cwd, environmentId, relativePath, threadId })
+      : undefined;
   const handleSelectFile = (path: string) => {
     if (environmentId === null || cwd === null) {
       return;
@@ -485,6 +490,7 @@ export function ThreadFilesTreeScreen(props: ThreadFilesRouteScreenProps) {
         projectName={projectName}
         selectedPath={null}
         onSelectFile={handleSelectFile}
+        onDownloadFile={handleDownloadFile}
       />
     ) : null;
   const handlePreviewFile = (relativePath: string) => {
@@ -563,6 +569,7 @@ export function ThreadFilesTreeScreen(props: ThreadFilesRouteScreenProps) {
           selectedPath={entriesQuery.selectedPath}
           onPreviewFile={handlePreviewFile}
           onRefresh={entriesQuery.refresh}
+          {...(handleDownloadFile ? { onDownloadFile: handleDownloadFile } : {})}
           onSelectFile={(path) => {
             entriesQuery.selectPath(path);
             handleSelectFile(path);
@@ -712,6 +719,11 @@ export function ThreadFileScreen(props: ThreadFileRouteScreenProps) {
   );
   const fileData = fileQuery.data as ProjectReadFileResult | null;
 
+  const handleDownloadFile =
+    environmentId !== null && cwd !== null && threadId !== null
+      ? (relativePath: string) =>
+          downloadWorkspaceFile({ cwd, environmentId, relativePath, threadId })
+      : undefined;
   const handleSelectFile = (path: string) => {
     const targetPath =
       directoryPath === null ? path : resolveWorkspaceFilePath(directoryPath, path);
@@ -746,6 +758,7 @@ export function ThreadFileScreen(props: ThreadFileRouteScreenProps) {
         environmentId={environmentId}
         projectName={directoryPath ?? projectName}
         selectedPath={directoryPath === null ? relativePath : null}
+        onDownloadFile={handleDownloadFile}
         onSelectFile={(path) => {
           if (directoryPath !== null) entriesQuery.selectPath(path);
           handleSelectFile(path);
@@ -825,6 +838,15 @@ export function ThreadFileScreen(props: ThreadFileRouteScreenProps) {
                 ),
             } as const,
           ]),
+      handleDownloadFile
+        ? ({
+            id: "download",
+            title: "Download",
+            icon: "arrow.down",
+            inline: false,
+            onPress: () => handleDownloadFile(relativePath),
+          } as const)
+        : null,
       fileData?.contents != null
         ? ({
             id: "copy-contents",
@@ -956,6 +978,7 @@ export function ThreadFileScreen(props: ThreadFileRouteScreenProps) {
             searchTruncated={entriesQuery.searchTruncated}
             selectedPath={entriesQuery.selectedPath}
             onRefresh={entriesQuery.refresh}
+            {...(handleDownloadFile ? { onDownloadFile: handleDownloadFile } : {})}
             onSelectFile={(path) => {
               entriesQuery.selectPath(path);
               handleSelectFile(path);
