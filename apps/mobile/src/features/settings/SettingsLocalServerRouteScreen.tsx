@@ -54,6 +54,9 @@ async function pairLocalServer(
   return (await pairEnvironment(pairingUrl)).error;
 }
 
+const signInErrorMessage = (cause: unknown) =>
+  cause instanceof Error ? cause.message : "Sign-in failed.";
+
 function ClaudeSection() {
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const [signingIn, setSigningIn] = useState(false);
@@ -67,18 +70,20 @@ function ClaudeSection() {
   useEffect(check, []);
 
   const start = async () => {
+    const server = localServer;
+    if (!server) return;
     setError(null);
     try {
-      const url = await localServer?.startClaudeLogin();
+      const url = await server.startClaudeLogin();
       if (!url) return;
       setSigningIn(true);
       await Linking.openURL(url);
-      await localServer?.waitForClaudeLogin();
+      await server.waitForClaudeLogin();
       setSigningIn(false);
       check();
     } catch (cause) {
       setSigningIn(false);
-      setError(cause instanceof Error ? cause.message : "Sign-in failed.");
+      setError(signInErrorMessage(cause));
     }
   };
 
