@@ -17,18 +17,19 @@ Use **Sign in to Claude** after the server starts. Finish in the browser, and pa
 
 ## USB devices
 
-The Linux environment can use USB devices plugged into the phone, for example another Android phone on a USB OTG cable. This is for `adb` and `fastboot`.
+The Linux environment can use USB devices plugged into the phone with a USB OTG adapter or cable, for example another phone for `adb` and `fastboot`, or a board for `openocd` or `dfu-util`.
 
-1. Run `apt install adb fastboot` in **Open Linux shell**.
-2. Plug the device in. It appears under **USB devices** in **Settings > This phone**.
-3. Tap the device and allow access in Android's prompt. `t3-usb allow` in the shell asks the same thing.
-4. Run `adb devices`. On the other phone, accept the USB debugging prompt.
+1. Plug the device in. It appears under **USB devices** in **Settings > This phone**.
+2. Tap the device and allow access in Android's prompt. `t3-usb allow` in **Open Linux shell** asks the same thing for every attached device.
+3. Use your tool as usual, for example `apt install adb fastboot usbutils`, then `adb devices` or `lsusb`.
 
-`adb` and `fastboot` work in the shell and for agents running on the built-in server. Android forgets the permission when a device is unplugged or restarts, and a phone that reboots into fastboot counts as a new device. After you allow a device once, the app asks again by itself whenever a device from the same maker is plugged in.
+Every program in the shell and every agent on the built-in server sees allowed devices, including programs that use libusb, such as `lsusb`, `fastboot`, `heimdall`, `openocd`, `dfu-util` and Python's `pyusb`. Android forgets the permission when a device is unplugged or restarts, and a phone that reboots into fastboot counts as a new device. After you allow a device once, the app asks again by itself whenever a device from the same maker is plugged in.
 
-- `t3-usb` lists attached devices and whether each one is allowed. `t3-usb selftest` checks the connection between Linux and the app.
+- `t3-usb` lists every attached device and whether it is allowed. `t3-usb selftest` checks the connection between Linux and the app.
 - Keep the app open, or the built-in server running, while you use USB. The app hands each device to Linux.
-- Run `adb` and `fastboot` by name. `/usr/bin/adb` does not see USB devices. Other USB tools, such as `lsusb`, do not see them either.
+- Devices that need a Linux kernel driver do not appear as kernel devices: a USB serial adapter gets no `/dev/ttyUSB0`, a USB drive is not a disk you can mount, and a USB network adapter is not a network interface. That needs root on the phone. Programs that talk to such devices through libusb still work, for example `pyusb` or libftdi.
+- `lsusb` shows allowed devices only. Their speed and their place in the USB tree are unknown, and `lsusb -t` does not show them.
+- Statically linked programs and programs built for musl, such as Alpine binaries, do not get USB access.
 - The `adb` server here listens on port 5037. Another app that runs its own `adb` server, such as Termux, uses the same port, so stop one before using the other.
 
 ## Download files

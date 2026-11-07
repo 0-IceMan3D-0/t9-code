@@ -68,38 +68,37 @@ class GuestRuntime(private val context: Context) {
   }
 
   /**
-   * Copies the USB bridge from the APK into the rootfs on every start, so an app update updates it.
-   * adb and fastboot get wrappers that preload it; /usr/bin stays apt's.
+   * Copies the USB bridge from the APK into the rootfs on every start, so an app update updates it,
+   * and lists it in /etc/ld.so.preload so every glibc program can use USB devices. That file, unlike
+   * LD_PRELOAD, survives env -i and sudo, and musl, static and nested-rootfs programs never read it.
    */
   private fun installUsbSupport() = runCatching {
     UsbBridge.start(context)
     if (!File(rootfs, "usr/local").isDirectory) return@runCatching
-    syncFile(File(nativeDir, "libt3usb.so").readBytes(), File(rootfs, "usr/local/lib/t3/libt3usb.so"))
+    val library = File(rootfs, USB_LIBRARY.removePrefix("/"))
+    syncFile(File(nativeDir, "libt3usb.so").readBytes(), library)
     syncFile(File(nativeDir, "libt3usb_cli.so").readBytes(), File(rootfs, "usr/local/bin/t3-usb"))
+    val preload = File(rootfs, "etc/ld.so.preload")
+    val lines = preload.readTextOrNull()?.lines()?.filter { it.isNotBlank() }.orEmpty()
+    if (library.isFile && USB_LIBRARY !in lines) {
+      val content = (lines + USB_LIBRARY).joinToString("\n", postfix = "\n")
+      syncFile(content.toByteArray(), preload, executable = false)
+    }
+    // Wrappers from builds that preloaded only adb and fastboot.
     for (tool in listOf("adb", "fastboot")) {
-      syncFile(usbWrapper(tool).toByteArray(), File(rootfs, "usr/local/bin/$tool"))
+      val wrapper = File(rootfs, "usr/local/bin/$tool")
+      if (wrapper.readTextOrNull()?.contains("# Added by T3² code") == true) wrapper.delete()
     }
   }.onFailure { Log.w("T3GuestRuntime", "USB support not installed", it) }
 
-  private fun syncFile(content: ByteArray, target: File) {
+  private fun syncFile(content: ByteArray, target: File, executable: Boolean = true) {
     if (target.isFile && target.length() == content.size.toLong() && target.readBytes().contentEquals(content)) return
     target.parentFile?.mkdirs()
     val temporary = File(target.parentFile, ".${target.name}.new")
     temporary.writeBytes(content)
-    temporary.setExecutable(true, false)
+    temporary.setExecutable(executable, false)
     temporary.renameTo(target)
   }
-
-  private fun usbWrapper(tool: String) = """
-    |#!/bin/sh
-    |# Added by T3² code: runs $tool with USB devices the app is allowed to use. See t3-usb.
-    |real=/usr/bin/$tool
-    |if [ ! -x "${'$'}real" ]; then
-    |  echo "$tool is not installed. Install it with: apt install $tool" >&2
-    |  exit 127
-    |fi
-    |LD_PRELOAD="/usr/local/lib/t3/libt3usb.so${'$'}{LD_PRELOAD:+:${'$'}LD_PRELOAD}" exec "${'$'}real" "${'$'}@"
-    |""".trimMargin()
 
   /** Names Android's supplementary groups, or every login shell complains about them. */
   fun nameGroups() {
@@ -131,6 +130,7 @@ class GuestRuntime(private val context: Context) {
     const val INSTALLED_MARKER = ".installed"
     const val RUNTIME_VERSION = "1"
     const val SHARED_PROJECTS_PATH = "/root/shared-projects"
+    private const val USB_LIBRARY = "/usr/local/lib/t3/libt3usb.so"
 
     private val FAKE_PROC = mapOf(
       "stat" to buildString {

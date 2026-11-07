@@ -151,7 +151,7 @@ function UsbSection() {
   return (
     <SettingsSection
       title="USB devices"
-      footer="Allowed devices work with adb and fastboot in the Linux shell and for agents. Install them with apt install adb fastboot."
+      footer="Allowed devices work with USB tools in the Linux shell and for agents, such as adb, fastboot, lsusb and libusb programs."
     >
       {devices.length === 0 ? (
         <View className="p-4">

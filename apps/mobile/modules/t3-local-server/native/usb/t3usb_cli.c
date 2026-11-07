@@ -1,5 +1,6 @@
 /* t3-usb: lists USB devices the T3 app can see, asks Android for access, and checks the bridge. */
 #define _GNU_SOURCE
+#include <dlfcn.h>
 #include <stdint.h>
 #include <sys/stat.h>
 
@@ -10,7 +11,7 @@ static int usage(void) {
           "Usage: t3-usb [list]           USB devices attached to the phone\n"
           "       t3-usb allow [BUS/DEV]  ask Android for access (all devices if none named)\n"
           "       t3-usb probe BUS/DEV    open a device and read its descriptor\n"
-          "       t3-usb selftest         check the connection to the app and the adb setup\n");
+          "       t3-usb selftest         check the connection to the app and the USB library\n");
   return 2;
 }
 
@@ -141,18 +142,18 @@ static int selftest(void) {
   const char *preload = "/usr/local/lib/t3/libt3usb.so";
   printf("%s  %s\n", file_exists(preload) ? "ok  " : "FAIL", preload);
   failed |= !file_exists(preload);
-  const char *tools[] = {"adb", "fastboot"};
-  for (int index = 0; index < 2; index++) {
-    char wrapper[64], target[64];
-    snprintf(wrapper, sizeof(wrapper), "/usr/local/bin/%s", tools[index]);
-    snprintf(target, sizeof(target), "/usr/bin/%s", tools[index]);
-    if (!file_exists(target)) printf("note  %s is not installed (apt install %s)\n", tools[index], tools[index]);
-    else if (!file_exists(wrapper)) {
-      printf("FAIL  %s is missing, so %s cannot see USB devices\n", wrapper, tools[index]);
-      failed = 1;
-    }
-    else printf("ok    %s runs %s with USB access\n", wrapper, target);
+  int listed = 0;
+  FILE *preloads = fopen("/etc/ld.so.preload", "re");
+  if (preloads) {
+    char entry[256];
+    while (!listed && fgets(entry, sizeof(entry), preloads)) listed = strncmp(entry, preload, strlen(preload)) == 0;
+    fclose(preloads);
   }
+  printf("%s  /etc/ld.so.preload loads it into every program\n", listed ? "ok  " : "FAIL");
+  failed |= !listed;
+  int loaded = dlsym(RTLD_DEFAULT, "t3usb_preloaded") != NULL;
+  printf("%s  loaded in this process\n", loaded ? "ok  " : "FAIL");
+  failed |= !loaded;
   return failed;
 }
 

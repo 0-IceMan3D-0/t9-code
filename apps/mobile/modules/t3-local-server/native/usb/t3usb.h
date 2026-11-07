@@ -32,13 +32,13 @@
 #define T3USB_LINE_MAX 1024
 
 static const char *t3usb_root(void) {
-  const char *root = getenv("T3USB_ROOT");
+  const char *root = secure_getenv("T3USB_ROOT");
   return root && *root ? root : T3USB_DEFAULT_ROOT;
 }
 
 /* The app passes the socket name in the environment; the file covers shells that dropped it. */
 static int t3usb_socket_name(char *name, size_t size) {
-  const char *env = getenv("T3USB_SOCKET");
+  const char *env = secure_getenv("T3USB_SOCKET");
   if (env && *env) {
     snprintf(name, size, "%s", env);
     return 0;

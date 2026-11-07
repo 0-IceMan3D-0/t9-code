@@ -2,12 +2,14 @@
 # Checks the USB bridge against fake_broker.py and a descriptor file that looks like a phone in
 # fastboot mode, plus a pty standing in for an adb device. Run on the host after `build.sh host OUT`,
 # or in the guest with the shipped files. ADB is optional: Ubuntu's adb, for its native backend.
+# The libusb checks need python3 and libusb-1.0-0; lsusb is checked when usbutils is installed.
 #   test.sh LIB CLI FASTBOOT [ADB]
 set -euo pipefail
 lib=$1 cli=$2 fastboot=$3 adb=${4:-}
 here=$(cd "$(dirname "$0")" && pwd)
 work=$(mktemp -d)
-export T3USB_ROOT=$work/root T3USB_SOCKET=t3usb-test-$$
+# The host has working uevents, so udev emulation is forced on as it is in the app.
+export T3USB_ROOT=$work/root T3USB_SOCKET=t3usb-test-$$ T3USB_EMULATE_UDEV=1
 broker=
 trap '[ -n "$broker" ] && kill "$broker"; rm -rf "$work"' EXIT
 
@@ -21,6 +23,7 @@ printf '\x07\x05\x81\x02\x00\x02\x00\x07\x05\x01\x02\x00\x02\x00' >>"$work/descr
 sed 's/\xff\x42\x03/\xff\x42\x01/' "$work/descriptors" >"$work/adb-descriptors"
 
 python3 -I "$here/fake_broker.py" "$T3USB_SOCKET" "$T3USB_ROOT" "1/5=$work/descriptors" "1/6=pty:$work/adb-descriptors" \
+  "1/7=late:pty:$work/descriptors" \
   >"$work/broker.log" 2>&1 &
 broker=$!
 for _ in $(seq 50); do grep -q ready "$work/broker.log" 2>/dev/null && break; sleep 0.1; done
@@ -52,6 +55,19 @@ if [ -n "$adb" ]; then
   check "adb tries to claim it" "CLAIMINTERFACE" "$log"
   check "adb keeps running" "exit 124" "$log"
 fi
+# libusb loaded with RTLD_LOCAL, as pyusb loads it: enumeration, a device plugged in later, and an open.
+probe=$(PROBE_SECONDS=4 LD_PRELOAD=$lib timeout 30 python3 -I "$here/libusb_probe.py" 1/6 2>&1; echo "exit $?")
+check "libusb initialises" "init 0" "$probe"
+check "libusb lists allowed devices" "device 1/5 18d1:4ee0" "$probe"
+check "libusb hotplug sees a later device" "hotplug 1/7" "$probe"
+check "libusb opens a device through the app" "open 1/6 0" "$probe"
+check "libusb exits cleanly" "exit ok" "$probe"
+if command -v lsusb >/dev/null; then
+  # A copy, because Ubuntu's AppArmor profile for /usr/bin/lsusb refuses a preload from a home folder.
+  cp "$(command -v lsusb)" "$work/lsusb"
+  check "lsusb lists allowed devices" "Bus 001 Device 005: ID 18d1:4ee0" "$(LD_PRELOAD=$lib "$work/lsusb" 2>&1)"
+fi
+check "other character devices keep their sysfs links" "$(readlink /sys/dev/char/1:3)" "$(LD_PRELOAD=$lib readlink /sys/dev/char/1:3)"
 check "other paths are untouched" "$(ls /etc | head -1)" "$(LD_PRELOAD=$lib ls /etc | head -1)"
 kill "$broker"
 broker=

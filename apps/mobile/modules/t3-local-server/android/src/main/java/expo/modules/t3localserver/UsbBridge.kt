@@ -28,7 +28,8 @@ import kotlin.concurrent.thread
 /**
  * Lets the Linux environment use USB devices. Apps cannot open /dev/bus/usb, so this asks Android
  * for access, then hands usbfs fds to the guest over an abstract socket (see native/usb/t3usb.h).
- * It also keeps a fake sysfs and devfs tree of allowed devices in the rootfs for the preload library.
+ * It also keeps a fake sysfs and devfs tree of allowed devices in the rootfs, with the files libusb
+ * and adb read, for the preload library (native/usb/t3usb_preload.c).
  */
 object UsbBridge {
   private const val TAG = "T3UsbBridge"
@@ -45,6 +46,10 @@ object UsbBridge {
   private val answers = ConcurrentHashMap<String, CompletableFuture<Boolean>>()
   private val listeners = CopyOnWriteArraySet<() -> Unit>()
   private var published = emptySet<Pair<Int, Int>>()
+  private val descriptors = ConcurrentHashMap<String, Descriptors>()
+
+  /** Read once per attached device, because reading them means opening it. */
+  private class Descriptors(val deviceId: Int, val raw: ByteArray, val configuration: Int)
 
   fun socketName(context: Context) = "${context.packageName}.usb"
 
@@ -154,6 +159,7 @@ object UsbBridge {
     val chardev = File(root, "sys/dev/char").apply { mkdirs() }
     File(root, "socket").writeText(socketName(app ?: return))
     val names = allowed.associateBy { "${it.bus}-${it.dev}" }
+    descriptors.keys.retainAll(allowed.map { it.usb.deviceName }.toSet())
     sysfs.listFiles()?.filter { it.name !in names }?.forEach { it.deleteRecursively() }
     devfs.listFiles()?.forEach { bus ->
       bus.listFiles()?.filter { "${bus.name.toIntOrNull()}-${it.name.toIntOrNull()}" !in names }?.forEach { it.delete() }
@@ -169,7 +175,9 @@ object UsbBridge {
     for ((name, device) in names) {
       val folder = File(sysfs, name).apply { mkdirs() }
       val usb = device.usb
-      val attributes = mapOf(
+      val read = descriptorsOf(usb)
+      val raw = read?.raw
+      val attributes = mutableMapOf(
         "busnum" to device.bus.toString(),
         "devnum" to device.dev.toString(),
         "idVendor" to "%04x".format(usb.vendorId),
@@ -177,11 +185,50 @@ object UsbBridge {
         "manufacturer" to usb.manufacturerName.orEmpty(),
         "product" to usb.productName.orEmpty(),
         "serial" to runCatching { usb.serialNumber }.getOrNull().orEmpty(),
-        // Android does not say which configuration is active. Phones in adb and fastboot use 1.
-        "bConfigurationValue" to "1",
+        "bDeviceClass" to "%02x".format(usb.deviceClass),
+        "bDeviceSubClass" to "%02x".format(usb.deviceSubclass),
+        "bDeviceProtocol" to "%02x".format(usb.deviceProtocol),
+        "bNumConfigurations" to usb.configurationCount.toString(),
+        // Read from the device when it was allowed. A later SET_CONFIGURATION is not seen here.
+        "bConfigurationValue" to (read?.configuration ?: 1).toString(),
+        "uevent" to listOf(
+          "MAJOR=189",
+          "MINOR=${(device.bus - 1) * 128 + device.dev - 1}",
+          "DEVNAME=bus/usb/%03d/%03d".format(device.bus, device.dev),
+          "DEVTYPE=usb_device",
+          "PRODUCT=%x/%x".format(usb.vendorId, usb.productId),
+          "BUSNUM=%03d".format(device.bus),
+          "DEVNUM=%03d".format(device.dev),
+        ).joinToString("\n"),
       )
+      if (raw != null && raw.size >= 18) {
+        attributes["bcdDevice"] = "%02x%02x".format(raw[13], raw[12])
+        attributes["version"] = "%2x.%02x".format(raw[3], raw[2])
+        attributes["bMaxPacketSize0"] = (raw[7].toInt() and 0xff).toString()
+      }
       attributes.forEach { (key, value) -> File(folder, key).writeText("$value\n") }
+      // libusb skips a device without its descriptors, as sysfs has them. Never a partial file.
+      val descriptorFile = File(folder, "descriptors")
+      if (raw != null) descriptorFile.writeBytes(raw) else descriptorFile.delete()
       File(devfs, "%03d/%03d".format(device.bus, device.dev)).apply { parentFile?.mkdirs() }.createNewFile()
+    }
+  }
+
+  private fun descriptorsOf(usb: UsbDevice): Descriptors? {
+    descriptors[usb.deviceName]?.takeIf { it.deviceId == usb.deviceId }?.let { return it }
+    val connection = manager()?.openDevice(usb) ?: return null
+    return try {
+      val raw = connection.rawDescriptors ?: return null
+      val answer = ByteArray(1)
+      // GET_CONFIGURATION, a standard request every device answers.
+      val configuration =
+        if (connection.controlTransfer(0x80, 0x08, 0, 0, answer, 1, 500) == 1) answer[0].toInt() and 0xff else 1
+      Descriptors(usb.deviceId, raw, configuration).also { descriptors[usb.deviceName] = it }
+    } catch (error: RuntimeException) {
+      Log.w(TAG, "USB descriptors not read", error)
+      null
+    } finally {
+      connection.close()
     }
   }
 

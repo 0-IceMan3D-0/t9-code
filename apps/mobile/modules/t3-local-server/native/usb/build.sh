@@ -42,7 +42,10 @@ fi
 target=(--target=aarch64-linux-gnu --sysroot="$sysroot" -mno-outline-atomics -fuse-ld=lld -nostdlib)
 lib=$sysroot/usr/lib/aarch64-linux-gnu
 out=$here/../../android/src/main/jniLibs/arm64-v8a
-"$bin/clang" "${cflags[@]}" "${target[@]}" -shared -Wl,-soname,libt3usb.so -o "$out/libt3usb.so" \
+# Every exec in the guest loads this library, and each mmap and mprotect is a traced syscall under
+# proot, so its text and data go in as few segments as possible.
+"$bin/clang" "${cflags[@]}" "${target[@]}" -shared -Wl,-soname,libt3usb.so -Wl,--no-rosegment -Wl,-z,norelro \
+  -o "$out/libt3usb.so" \
   "$lib/crti.o" "$here/t3usb_preload.c" -lc "$lib/crtn.o"
 # An executable named like a library, so Android unpacks it with the others.
 "$bin/clang" "${cflags[@]}" "${target[@]}" -pie -o "$out/libt3usb_cli.so" \
