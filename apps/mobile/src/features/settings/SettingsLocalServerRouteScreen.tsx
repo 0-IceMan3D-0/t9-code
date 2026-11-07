@@ -1,3 +1,4 @@
+import { useNavigation } from "@react-navigation/native";
 import type { EnvironmentId } from "@t3tools/contracts";
 import { useEffect, useState } from "react";
 import { Linking, ScrollView, TextInput, View } from "react-native";
@@ -139,6 +140,7 @@ function ClaudeSection() {
 
 export function SettingsLocalServerRouteScreen() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation();
   const status = useLocalServerStatus();
   const connection = useLocalConnection(status?.port);
   const { removeEnvironment } = useConnectionController();
@@ -228,6 +230,16 @@ export function SettingsLocalServerRouteScreen() {
         </SettingsSection>
 
         {running ? <ClaudeSection /> : null}
+
+        {state === "notInstalled" || state === "installing" ? null : (
+          <SettingsSection title="Linux">
+            <SettingsActionRow
+              icon="terminal"
+              label="Open Linux shell"
+              onPress={() => navigation.navigate("LinuxShell")}
+            />
+          </SettingsSection>
+        )}
 
         <SettingsSection title="Options">
           <SettingsSwitchRow

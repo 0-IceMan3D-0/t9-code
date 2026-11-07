@@ -55,6 +55,16 @@ class GuestRuntime(context: Context) {
     }
   }
 
+  /** Names Android's supplementary groups, or every login shell complains about them. */
+  fun nameGroups() {
+    val groupFile = File(rootfs, "etc/group")
+    val existing = groupFile.readTextOrNull().orEmpty()
+    val groups = File("/proc/self/status").readLines().first { it.startsWith("Groups:") }
+      .removePrefix("Groups:").trim().split(Regex("""\s+"""))
+    val missing = groups.filter { it.isNotEmpty() && !existing.contains(":x:$it:") }
+    groupFile.appendText(missing.joinToString("") { "android_$it:x:$it:\n" })
+  }
+
   /** Returns the shared folder, creating it, or null while storage access is not granted. */
   private fun sharedProjects(): File? {
     val folder = File(Environment.getExternalStorageDirectory(), "T3Projects")

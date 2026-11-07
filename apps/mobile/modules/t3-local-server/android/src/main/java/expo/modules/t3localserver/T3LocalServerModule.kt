@@ -17,6 +17,8 @@ import java.io.File
 import java.util.concurrent.TimeUnit
 
 private const val STATUS_EVENT = "onStatus"
+private const val SHELL_OUTPUT_EVENT = "onShellOutput"
+private const val SHELL_EXIT_EVENT = "onShellExit"
 
 class T3LocalServerModule : Module() {
   private val context: Context
@@ -24,6 +26,7 @@ class T3LocalServerModule : Module() {
   private val guest get() = GuestRuntime(context)
   private val options get() = LocalServerOptions(context)
   private var login: ClaudeLogin? = null
+  private var shell: LinuxShell? = null
   private val statusListener: (LocalServerStatus) -> Unit = { sendEvent(STATUS_EVENT, snapshot(it)) }
 
   private fun resolvedStatus() = LocalServerStatusStore.current?.takeUnless {
@@ -56,7 +59,7 @@ class T3LocalServerModule : Module() {
 
   override fun definition() = ModuleDefinition {
     Name("T3LocalServer")
-    Events(STATUS_EVENT)
+    Events(STATUS_EVENT, SHELL_OUTPUT_EVENT, SHELL_EXIT_EVENT)
 
     OnCreate { LocalServerStatusStore.addListener(statusListener) }
     OnDestroy { LocalServerStatusStore.removeListener(statusListener) }
@@ -122,6 +125,19 @@ class T3LocalServerModule : Module() {
       val session = login ?: throw CodedException("ERR_NO_LOGIN", "Start the login first", null)
       session.finished.get(300, TimeUnit.SECONDS)
     }
+
+    AsyncFunction("openShell") { cols: Int, rows: Int ->
+      val current = shell?.takeIf { it.isAlive } ?: LinuxShell(
+        guest,
+        cols,
+        rows,
+        { sendEvent(SHELL_OUTPUT_EVENT, mapOf("data" to it)) },
+        { sendEvent(SHELL_EXIT_EVENT, emptyMap<String, Any>()) },
+      ).also { shell = it }
+      current.history()
+    }
+    Function("writeShell") { data: String -> shell?.write(data) }
+    Function("resizeShell") { cols: Int, rows: Int -> shell?.resize(cols, rows) }
 
     Function("cancelClaudeLogin") {
       login?.cancel()

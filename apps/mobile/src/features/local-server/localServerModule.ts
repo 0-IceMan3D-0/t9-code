@@ -34,7 +34,15 @@ interface LocalServerNativeModule {
   submitClaudeCode(code: string): Promise<number>;
   waitForClaudeLogin(): Promise<number>;
   cancelClaudeLogin(): void;
+  openShell(cols: number, rows: number): Promise<string>;
+  writeShell(data: string): void;
+  resizeShell(cols: number, rows: number): void;
   addListener(event: "onStatus", listener: (status: LocalServerStatus) => void): EventSubscription;
+  addListener(
+    event: "onShellOutput",
+    listener: (event: { readonly data: string }) => void,
+  ): EventSubscription;
+  addListener(event: "onShellExit", listener: () => void): EventSubscription;
 }
 
 export const localServer = requireOptionalNativeModule<LocalServerNativeModule>("T3LocalServer");

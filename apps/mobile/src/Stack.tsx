@@ -53,6 +53,7 @@ import {
 } from "./features/keyboard/HardwareKeyboardCommandProvider";
 import { ReviewCommentComposerSheet } from "./features/review/ReviewCommentComposerSheet";
 import { ReviewSheet } from "./features/review/ReviewSheet";
+import { LinuxShellRouteScreen } from "./features/local-server/LinuxShellRouteScreen";
 import { ThreadTerminalRouteScreen } from "./features/terminal/ThreadTerminalRouteScreen";
 import { DevicePreviewRouteScreen } from "./features/devices/DevicePreviewRouteScreen";
 import { BrowserPreviewRouteScreen } from "./features/browser/BrowserPreviewRouteScreen";
@@ -612,6 +613,11 @@ const RootStackConfig = createWorkspaceStackNavigator({
       screen: NewTaskThreadSettingsRouteScreen,
       linking: "new/draft/settings",
       options: THREAD_SETTINGS_ROUTE,
+    }),
+    LinuxShell: createNativeStackScreen({
+      screen: LinuxShellRouteScreen,
+      linking: "settings/this-phone/shell",
+      options: pageRoute({ title: "Linux shell", header: "solid" }),
     }),
     ThreadTerminal: createNativeStackScreen({
       screen: ThreadTerminalRouteScreen,
