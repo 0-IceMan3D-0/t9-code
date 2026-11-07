@@ -113,6 +113,7 @@ import {
 } from "./features/settings/ScheduledTaskPickerScreens";
 import { SettingsKeyboardRouteScreen } from "./features/settings/SettingsKeyboardRouteScreen";
 import { SettingsLegalRouteScreen } from "./features/settings/SettingsLegalRouteScreen";
+import { SettingsLocalServerRouteScreen } from "./features/settings/SettingsLocalServerRouteScreen";
 import { SettingsVoiceRouteScreen } from "./features/settings/SettingsVoiceRouteScreen";
 import { SettingsVoiceModelsRouteScreen } from "./features/settings/SettingsVoiceModelsRouteScreen";
 import {
@@ -195,6 +196,11 @@ const SETTINGS_SCREENS = {
     screen: SettingsWorktreesRouteScreen,
     linking: "settings/worktrees",
     options: settingsPage("Worktrees"),
+  }),
+  SettingsLocalServer: createNativeStackScreen({
+    screen: SettingsLocalServerRouteScreen,
+    linking: "settings/this-phone",
+    options: settingsPage("This phone"),
   }),
   SettingsLabs: createNativeStackScreen({
     screen: SettingsLabsRouteScreen,

@@ -253,6 +253,7 @@ function useSettingsIndexSections(): SettingsListSection[] {
     {
       title: "Agents",
       rows: [
+        ...(Platform.OS === "android" ? [page("SettingsLocalServer", "iphone", "This phone")] : []),
         serverPage("SettingsProviderAccounts", "person.crop.circle", "Providers"),
         serverPage("SettingsThreads", "text.bubble", "Threads"),
         page("SettingsScheduledTasks", "clock", "Scheduled tasks"),

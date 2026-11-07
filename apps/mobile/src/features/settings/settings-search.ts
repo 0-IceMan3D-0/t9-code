@@ -98,6 +98,14 @@ const SETTINGS_SEARCH_TERMS = {
     "submodules",
     "start from remote",
   ],
+  SettingsLocalServer: [
+    "this phone",
+    "built-in server",
+    "local server",
+    "claude code",
+    "sign in",
+    "linux",
+  ],
   SettingsLabs: [
     "legacy",
     "plan mode",
