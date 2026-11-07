@@ -19,6 +19,9 @@ import java.util.concurrent.TimeUnit
 private const val STATUS_EVENT = "onStatus"
 private const val SHELL_OUTPUT_EVENT = "onShellOutput"
 private const val SHELL_EXIT_EVENT = "onShellExit"
+private const val TERMUX_STATUS_EVENT = "onTermuxStatus"
+private const val TERMUX_OUTPUT_EVENT = "onTermuxOutput"
+private const val TERMUX_EXIT_EVENT = "onTermuxExit"
 
 class T3LocalServerModule : Module() {
   private val context: Context
@@ -26,8 +29,29 @@ class T3LocalServerModule : Module() {
   private val guest get() = GuestRuntime(context)
   private val options get() = LocalServerOptions(context)
   private var login: ClaudeLogin? = null
-  private var shell: LinuxShell? = null
+  private var shell: ShellSession? = null
   private val statusListener: (LocalServerStatus) -> Unit = { sendEvent(STATUS_EVENT, snapshot(it)) }
+  private val termuxListener = object : TermuxListener {
+    override fun onStatus() = sendEvent(TERMUX_STATUS_EVENT, termuxSnapshot())
+    override fun onOutput(id: Int, data: String) = sendEvent(TERMUX_OUTPUT_EVENT, mapOf("id" to id, "data" to data))
+    override fun onExit(id: Int) = sendEvent(TERMUX_EXIT_EVENT, mapOf("id" to id))
+  }
+
+  private fun termuxSnapshot() = TermuxSessions.status(context).let {
+    mapOf("state" to it.state, "detail" to it.detail, "progress" to it.progress, "sessions" to TermuxSessions.ids())
+  }
+
+  private fun openLinuxShell(cols: Int, rows: Int): ShellSession {
+    val infoPath = "/tmp/.t3-shell-tty"
+    guest.nameGroups()
+    return ShellSession(
+      guest.process(ShellSession.scriptCommand(cols, rows, infoPath, "bash -l")),
+      File(guest.rootfs, infoPath),
+      { tty, nextCols, nextRows -> guest.process(listOf("stty", "-F", tty, "rows", "$nextRows", "cols", "$nextCols")) },
+      { sendEvent(SHELL_OUTPUT_EVENT, mapOf("data" to it)) },
+      { sendEvent(SHELL_EXIT_EVENT, emptyMap<String, Any>()) },
+    )
+  }
 
   private fun resolvedStatus() = LocalServerStatusStore.current?.takeUnless {
     it.state == LocalServerState.STOPPED && !guest.isInstalled
@@ -59,10 +83,23 @@ class T3LocalServerModule : Module() {
 
   override fun definition() = ModuleDefinition {
     Name("T3LocalServer")
-    Events(STATUS_EVENT, SHELL_OUTPUT_EVENT, SHELL_EXIT_EVENT)
+    Events(
+      STATUS_EVENT,
+      SHELL_OUTPUT_EVENT,
+      SHELL_EXIT_EVENT,
+      TERMUX_STATUS_EVENT,
+      TERMUX_OUTPUT_EVENT,
+      TERMUX_EXIT_EVENT,
+    )
 
-    OnCreate { LocalServerStatusStore.addListener(statusListener) }
-    OnDestroy { LocalServerStatusStore.removeListener(statusListener) }
+    OnCreate {
+      LocalServerStatusStore.addListener(statusListener)
+      TermuxSessions.addListener(termuxListener)
+    }
+    OnDestroy {
+      LocalServerStatusStore.removeListener(statusListener)
+      TermuxSessions.removeListener(termuxListener)
+    }
 
     Function("getStatus") { snapshot() }
     Function("start") { LocalServerService.start(context) }
@@ -127,17 +164,20 @@ class T3LocalServerModule : Module() {
     }
 
     AsyncFunction("openShell") { cols: Int, rows: Int ->
-      val current = shell?.takeIf { it.isAlive } ?: LinuxShell(
-        guest,
-        cols,
-        rows,
-        { sendEvent(SHELL_OUTPUT_EVENT, mapOf("data" to it)) },
-        { sendEvent(SHELL_EXIT_EVENT, emptyMap<String, Any>()) },
-      ).also { shell = it }
+      val current = shell?.takeIf { it.isAlive } ?: openLinuxShell(cols, rows).also { shell = it }
       current.history()
     }
     Function("writeShell") { data: String -> shell?.write(data) }
     Function("resizeShell") { cols: Int, rows: Int -> shell?.resize(cols, rows) }
+
+    Function("getTermuxStatus") { termuxSnapshot() }
+    Function("installTermux") { TermuxSessions.install(context) }
+    AsyncFunction("resetTermux") { TermuxSessions.reset(context) }
+    AsyncFunction("createTermuxSession") { cols: Int, rows: Int -> TermuxSessions.create(context, cols, rows) }
+    Function("termuxHistory") { id: Int -> TermuxSessions.get(id)?.history().orEmpty() }
+    Function("writeTermux") { id: Int, data: String -> TermuxSessions.get(id)?.write(data) }
+    Function("resizeTermux") { id: Int, cols: Int, rows: Int -> TermuxSessions.get(id)?.resize(cols, rows) }
+    Function("closeTermuxSession") { id: Int -> TermuxSessions.get(id)?.close() }
 
     Function("cancelClaudeLogin") {
       login?.cancel()

@@ -1,4 +1,3 @@
-import type { TerminalOutputState } from "@t3tools/client-runtime/state/terminal";
 import { useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
 import { useKeyboardState } from "react-native-keyboard-controller";
@@ -8,8 +7,8 @@ import { AppText as Text } from "../../components/ui/AppText";
 import { TerminalSurface } from "../terminal/NativeTerminalSurface";
 import { resolveModifiedTerminalInput, type PendingModifier } from "../terminal/terminalInput";
 import { localServer } from "./localServerModule";
+import { appendOutput, EMPTY_OUTPUT } from "./sessionOutput";
 
-const MAX_CHUNKS = 400;
 const KEYS = [
   { label: "Esc", data: "\u001b" },
   { label: "Tab", data: "\t" },
@@ -18,24 +17,6 @@ const KEYS = [
   { label: "←", data: "\u001b[D" },
   { label: "→", data: "\u001b[C" },
 ] as const;
-
-const EMPTY_OUTPUT: TerminalOutputState = {
-  generation: 1,
-  chunks: [],
-  retainedBytes: 0,
-  resetVersion: 0,
-  nextOffset: 0,
-};
-
-function appendOutput(output: TerminalOutputState, data: string): TerminalOutputState {
-  const chunk = { startOffset: output.nextOffset, data, byteLength: data.length };
-  return {
-    ...output,
-    chunks: [...output.chunks, chunk].slice(-MAX_CHUNKS),
-    retainedBytes: output.retainedBytes + data.length,
-    nextOffset: output.nextOffset + data.length,
-  };
-}
 
 export function LinuxShellRouteScreen() {
   const insets = useSafeAreaInsets();

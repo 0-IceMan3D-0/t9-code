@@ -12,6 +12,7 @@ import {
   localServer,
   refreshLocalServerStatus,
   useLocalServerStatus,
+  useTermuxStatus,
   type LocalServerStatus,
 } from "../local-server/localServerModule";
 import {
@@ -138,10 +139,44 @@ function ClaudeSection() {
   );
 }
 
+function TermuxSection() {
+  const navigation = useNavigation();
+  const termux = useTermuxStatus();
+  if (!termux) return null;
+  const count = termux.sessions.length;
+
+  return (
+    <SettingsSection title="Termux">
+      {termux.state === "installing" || termux.state === "failed" ? (
+        <Text selectable className="p-4 text-sm text-foreground-muted" numberOfLines={3}>
+          {termux.state === "installing"
+            ? `${Math.round(termux.progress * 100)}% · ${termux.detail}`
+            : termux.detail}
+        </Text>
+      ) : null}
+      {termux.state === "ready" ? (
+        <SettingsActionRow
+          icon="terminal"
+          label={count > 0 ? `Open Termux (${count} running)` : "Open Termux"}
+          onPress={() => navigation.navigate("Termux")}
+        />
+      ) : (
+        <SettingsActionRow
+          icon="arrow.clockwise"
+          label="Install Termux (about 35 MB download)"
+          disabled={termux.state === "installing"}
+          onPress={() => localServer?.installTermux()}
+        />
+      )}
+    </SettingsSection>
+  );
+}
+
 export function SettingsLocalServerRouteScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const status = useLocalServerStatus();
+  const termux = useTermuxStatus();
   const connection = useLocalConnection(status?.port);
   const { removeEnvironment } = useConnectionController();
   const [log, setLog] = useState<string | null>(null);
@@ -172,6 +207,16 @@ export function SettingsLocalServerRouteScreen() {
   const toggleSharedStorage = async (value: boolean) => {
     if (value && !status.sharedStorageGranted) await server.requestStorageAccess();
     setOption(() => server.setSharedStorage(value));
+  };
+
+  const resetTermux = () => {
+    Dialog.confirm({
+      title: "Delete Termux environment?",
+      message: "This ends every Termux session and deletes its packages and home folder.",
+      confirmText: "Delete",
+      destructive: true,
+      onConfirm: () => void server.resetTermux(),
+    });
   };
 
   const reset = () => {
@@ -241,6 +286,8 @@ export function SettingsLocalServerRouteScreen() {
           </SettingsSection>
         )}
 
+        <TermuxSection />
+
         <SettingsSection title="Options">
           <SettingsSwitchRow
             label="Start when phone turns on"
@@ -273,6 +320,15 @@ export function SettingsLocalServerRouteScreen() {
             disabled={running || busy || state === "notInstalled"}
             onPress={reset}
           />
+          {termux && termux.state !== "notInstalled" ? (
+            <SettingsActionRow
+              icon="trash"
+              label="Delete Termux environment"
+              tone="danger"
+              disabled={termux.state === "installing"}
+              onPress={resetTermux}
+            />
+          ) : null}
         </SettingsSection>
       </ScrollView>
     </SettingsScreen>

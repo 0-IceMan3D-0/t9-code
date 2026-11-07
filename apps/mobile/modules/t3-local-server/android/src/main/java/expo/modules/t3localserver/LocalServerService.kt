@@ -37,8 +37,16 @@ class LocalServerService : Service() {
   override fun onBind(intent: Intent?): IBinder? = null
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-    goForeground("Starting")
-    if (intent?.action == ACTION_STOP) {
+    goForeground()
+    when (intent?.action) {
+      ACTION_SESSIONS -> {
+        if (worker?.isAlive == true) return START_STICKY
+        leaveForegroundIfIdle()
+        return START_NOT_STICKY
+      }
+      ACTION_STOP_ALL -> TermuxSessions.closeAll()
+    }
+    if (intent?.action == ACTION_STOP || intent?.action == ACTION_STOP_ALL) {
       stopping = true
       if (worker?.isAlive == true) thread(name = "t3-local-server-stop") { stopServer() }
       else finish(LocalServerState.STOPPED)
@@ -114,21 +122,45 @@ class LocalServerService : Service() {
 
   private fun publish(state: LocalServerState, detail: String, progress: Double = 0.0) {
     LocalServerStatusStore.publish(LocalServerStatus(state, detail, progress))
-    val previous = lastNotification
-    val text = if (state == LocalServerState.INSTALLING) "Setting up" else detail
-    if (text != previous) {
+    serverText = if (state == LocalServerState.INSTALLING) "Setting up" else detail
+    updateNotification()
+  }
+
+  private var serverText: String? = null
+  private var lastNotification: String? = null
+
+  private fun updateNotification() {
+    val text = notificationText()
+    if (text != lastNotification) {
       lastNotification = text
       (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).notify(NOTIFICATION_ID, notification(text))
     }
   }
 
-  private var lastNotification: String? = null
+  private fun notificationText(): String {
+    val count = TermuxSessions.count
+    val sessions = when {
+      count > 0 -> "$count Termux session${if (count == 1) "" else "s"}"
+      TermuxSessions.active -> "Setting up Termux"
+      else -> null
+    }
+    return listOfNotNull(serverText, sessions).joinToString(" · ").ifEmpty { "Starting" }
+  }
 
   private fun finish(state: LocalServerState, detail: String = "") {
     server = null
     LocalServerStatusStore.pairingUrl = null
     LocalServerStatusStore.publish(LocalServerStatus(state, detail))
     if (wakeLock.isHeld) wakeLock.release()
+    serverText = null
+    leaveForegroundIfIdle()
+  }
+
+  private fun leaveForegroundIfIdle() {
+    if (TermuxSessions.active) {
+      updateNotification()
+      return
+    }
     @Suppress("DEPRECATION")
     stopForeground(true)
     stopSelf()
@@ -140,8 +172,8 @@ class LocalServerService : Service() {
     super.onDestroy()
   }
 
-  private fun goForeground(text: String) {
-    val notification = notification(text)
+  private fun goForeground() {
+    val notification = notification(notificationText())
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
       startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
     } else {
@@ -163,7 +195,7 @@ class LocalServerService : Service() {
     val stop = PendingIntent.getService(
       this,
       0,
-      Intent(this, LocalServerService::class.java).setAction(ACTION_STOP),
+      Intent(this, LocalServerService::class.java).setAction(ACTION_STOP_ALL),
       flags,
     )
     val open = packageManager.getLaunchIntentForPackage(packageName)?.let {
@@ -171,7 +203,7 @@ class LocalServerService : Service() {
     }
     return builder
       .setSmallIcon(applicationInfo.icon)
-      .setContentTitle("Built-in server")
+      .setContentTitle(if (serverText == null && TermuxSessions.active) "Termux" else "Built-in server")
       .setContentText(text)
       .setOngoing(true)
       .setContentIntent(open)
@@ -183,6 +215,8 @@ class LocalServerService : Service() {
     const val PORT = 3783
     private const val ACTION_START = "expo.modules.t3localserver.START"
     private const val ACTION_STOP = "expo.modules.t3localserver.STOP"
+    private const val ACTION_STOP_ALL = "expo.modules.t3localserver.STOP_ALL"
+    private const val ACTION_SESSIONS = "expo.modules.t3localserver.SESSIONS"
     private const val CHANNEL_ID = "t3-local-server"
     private const val NOTIFICATION_ID = 3783
     private const val READY_LINE = "server is ready"
@@ -206,6 +240,8 @@ class LocalServerService : Service() {
     fun start(context: Context) = send(context, ACTION_START)
 
     fun stop(context: Context) = send(context, ACTION_STOP)
+
+    fun sessionsChanged(context: Context) = send(context, ACTION_SESSIONS)
 
     private fun send(context: Context, action: String) {
       val intent = Intent(context, LocalServerService::class.java).setAction(action)

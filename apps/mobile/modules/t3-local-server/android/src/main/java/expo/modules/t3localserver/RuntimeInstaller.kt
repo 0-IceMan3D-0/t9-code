@@ -8,12 +8,7 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
-import java.net.HttpURLConnection
-import java.net.URL
-import java.security.MessageDigest
 import java.util.zip.GZIPInputStream
-
-private data class PinnedDownload(val url: String, val sha256: String, val fileName: String)
 
 private val ROOTFS = PinnedDownload(
   "https://cdimage.ubuntu.com/ubuntu-base/releases/24.04/release/ubuntu-base-24.04.5-base-arm64.tar.gz",
@@ -48,8 +43,8 @@ class RuntimeInstaller(
   fun install() {
     downloads.mkdirs()
     File(guest.root, GuestRuntime.INSTALLED_MARKER).delete()
-    val rootfs = download(ROOTFS, "Downloading Linux", 0.0, 0.1)
-    val node = download(NODE, "Downloading Node", 0.1, 0.2)
+    val rootfs = downloadPinned(ROOTFS, downloads, "Downloading Linux", 0.0, 0.1, report)
+    val node = downloadPinned(NODE, downloads, "Downloading Node", 0.1, 0.2, report)
 
     report("Unpacking Linux", 0.2)
     removeTree(guest.rootfs)
@@ -84,55 +79,6 @@ class RuntimeInstaller(
     File(etc, "hosts").writeText("127.0.0.1 localhost\n::1 localhost\n")
     File(etc, "apt/apt.conf.d").mkdirs()
     File(etc, "apt/apt.conf.d/99proot").writeText("APT::Sandbox::User \"root\";\n")
-  }
-
-  private fun download(item: PinnedDownload, label: String, from: Double, to: Double): File {
-    val file = File(downloads, item.fileName)
-    if (file.isFile && sha256(file) == item.sha256) return file
-    val connection = URL(item.url).openConnection() as HttpURLConnection
-    val existing = file.takeIf { it.isFile }?.length() ?: 0L
-    if (existing > 0) connection.setRequestProperty("Range", "bytes=$existing-")
-    connection.connectTimeout = 30_000
-    connection.readTimeout = 60_000
-    connection.connect()
-    val resuming = connection.responseCode == HttpURLConnection.HTTP_PARTIAL
-    if (!resuming && connection.responseCode != HttpURLConnection.HTTP_OK) {
-      throw IOException("${item.url} returned ${connection.responseCode}")
-    }
-    val total = connection.contentLengthLong + if (resuming) existing else 0L
-    var written = if (resuming) existing else 0L
-    connection.inputStream.use { input ->
-      FileOutputStream(file, resuming).use { output ->
-        val buffer = ByteArray(1 shl 16)
-        while (true) {
-          val count = input.read(buffer)
-          if (count < 0) break
-          output.write(buffer, 0, count)
-          written += count
-          if (total > 0) {
-            report("$label ${written * 100 / total}%", from + (to - from) * written / total)
-          }
-        }
-      }
-    }
-    if (sha256(file) != item.sha256) {
-      file.delete()
-      throw IOException("Checksum mismatch for ${item.fileName}")
-    }
-    return file
-  }
-
-  private fun sha256(file: File): String {
-    val digest = MessageDigest.getInstance("SHA-256")
-    FileInputStream(file).use { input ->
-      val buffer = ByteArray(1 shl 16)
-      while (true) {
-        val count = input.read(buffer)
-        if (count < 0) break
-        digest.update(buffer, 0, count)
-      }
-    }
-    return digest.digest().joinToString("") { "%02x".format(it) }
   }
 
   private fun extract(archive: File, destination: File, stripComponents: Int) {
