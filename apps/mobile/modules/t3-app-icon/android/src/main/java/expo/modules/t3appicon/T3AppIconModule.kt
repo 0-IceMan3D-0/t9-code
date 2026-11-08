@@ -63,12 +63,14 @@ class T3AppIconModule : Module() {
     // Enable the new alias before disabling the rest, so a launcher entry exists at every moment.
     Function("applyPendingIcon") {
       val ctx = context
-      val id = pending(ctx) ?: return@Function null
+      // A preset added in an update is enabled by its manifest default beside the chosen alias.
+      val id = pending(ctx) ?: enabledAlias(ctx)?.let(::presetId)?.takeIf { enabledAliases(ctx).size > 1 }
+        ?: return@Function null
       prefs(ctx).edit().remove(AppIconStyle.PENDING_KEY).apply()
       val pm = ctx.packageManager
       val all = aliases(ctx)
       val target = all.firstOrNull { presetId(it.name) == id } ?: return@Function null
-      if (enabledAlias(ctx) == target.name) return@Function null
+      if (enabledAliases(ctx).map { it.name } == listOf(target.name)) return@Function null
       // Android removes dynamic shortcuts of a disabled alias, so they are read before the switch.
       val dynamic = shortcutManager(ctx)?.dynamicShortcuts.orEmpty()
       pm.setComponentEnabledSetting(
@@ -201,6 +203,8 @@ class T3AppIconModule : Module() {
   private fun aliases(ctx: Context) = AppIconStyle.aliases(ctx)
 
   private fun enabledAlias(ctx: Context) = AppIconStyle.enabledAlias(ctx)
+
+  private fun enabledAliases(ctx: Context) = AppIconStyle.enabledAliases(ctx)
 
   private fun shortcutManager(ctx: Context): ShortcutManager? =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) ctx.getSystemService(ShortcutManager::class.java) else null

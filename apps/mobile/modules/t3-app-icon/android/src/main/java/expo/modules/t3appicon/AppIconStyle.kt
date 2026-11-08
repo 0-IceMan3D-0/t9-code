@@ -113,14 +113,24 @@ object AppIconStyle {
     return info.activities.orEmpty().filter { it.targetActivity != null && it.name.contains(ALIAS_MARKER) }
   }
 
+  /** An explicit choice wins over an alias that is only enabled by the manifest default. */
   internal fun enabledAlias(ctx: Context): String? {
+    val enabled = enabledAliases(ctx)
     val pm = ctx.packageManager
-    return aliases(ctx).firstOrNull {
-      when (pm.getComponentEnabledSetting(ComponentName(ctx.packageName, it.name))) {
+    return (enabled.firstOrNull { pm.getComponentEnabledSetting(component(ctx, it)) == PackageManager.COMPONENT_ENABLED_STATE_ENABLED }
+      ?: enabled.firstOrNull())?.name
+  }
+
+  internal fun enabledAliases(ctx: Context): List<ActivityInfo> {
+    val pm = ctx.packageManager
+    return aliases(ctx).filter {
+      when (pm.getComponentEnabledSetting(component(ctx, it))) {
         PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> true
         PackageManager.COMPONENT_ENABLED_STATE_DEFAULT -> it.enabled
         else -> false
       }
-    }?.name
+    }
   }
+
+  private fun component(ctx: Context, alias: ActivityInfo) = ComponentName(ctx.packageName, alias.name)
 }
