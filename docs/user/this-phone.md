@@ -15,6 +15,10 @@ Use **Sign in to Claude** after the server starts. Finish in the browser, and pa
 
 **Open Linux shell** gives a root shell in the same environment. `apt` works there. It does not need the server, but without the server Android may pause it while the app is in the background.
 
+## Quick Settings tile
+
+Add the **T3² server** tile from the Quick Settings edit screen (pull down the shade twice, then the pencil). It shows whether the built-in server is running, starting or stopped. Tap it to start or stop the server without opening the app. Long-press it to open **Settings > This phone**. Before Linux is set up, tapping it opens This phone.
+
 ## Web servers in Linux
 
 When a program in Linux starts a web server, such as an agent running `vite`, `next dev` or `python3 -m http.server`, it shows under **Running web servers** in **Settings > This phone**. Tap a server to open it in your browser, or copy its link. Threads on the built-in server show the same links above the composer: tap one to open it, long-press to copy it. While the server runs, its notification also names the newest web server and has an **Open** button.

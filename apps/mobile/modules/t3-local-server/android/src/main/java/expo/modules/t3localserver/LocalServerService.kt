@@ -52,6 +52,7 @@ class LocalServerService : Service() {
   override fun onCreate() {
     super.onCreate()
     DevServers.addListener(devServersListener)
+    ServerTileService.watch(this)
   }
 
   override fun onBind(intent: Intent?): IBinder? = null

@@ -14,6 +14,11 @@ class LocalServerOptions(context: Context) {
     get() = preferences.getBoolean("sharedStorage", false)
     set(value) = preferences.edit().putBoolean("sharedStorage", value).apply()
 
+  /** The app's deep link scheme, from JS, so the tile and shortcuts can open a screen. */
+  var appScheme: String?
+    get() = preferences.getString("appScheme", null)
+    set(value) = preferences.edit().putString("appScheme", value).apply()
+
   /** Set once the one-time battery hint was answered either way, so it never asks again. */
   var batteryHintDismissed: Boolean
     get() = preferences.getBoolean("batteryHintDismissed", false)

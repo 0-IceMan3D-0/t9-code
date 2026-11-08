@@ -21,5 +21,33 @@
         android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
         android:value="Backs up or restores the user's local Linux environment" />
     </service>
+    <service
+      android:name="expo.modules.t3localserver.ServerTileService"
+      android:exported="true"
+      android:icon="@drawable/t3_tile_server"
+      android:label="T3² server"
+      android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+      <intent-filter>
+        <action android:name="android.service.quicksettings.action.QS_TILE" />
+      </intent-filter>
+    </service>
+    <activity
+      android:name="expo.modules.t3localserver.ServerSwitchActivity"
+      android:excludeFromRecents="true"
+      android:exported="false"
+      android:noHistory="true"
+      android:taskAffinity=""
+      android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+    <activity
+      android:name="expo.modules.t3localserver.ThisPhoneActivity"
+      android:excludeFromRecents="true"
+      android:exported="true"
+      android:noHistory="true"
+      android:taskAffinity=""
+      android:theme="@android:style/Theme.Translucent.NoTitleBar">
+      <intent-filter>
+        <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
+      </intent-filter>
+    </activity>
   </application>
 </manifest>

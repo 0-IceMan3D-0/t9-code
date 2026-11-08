@@ -120,11 +120,7 @@ class T3LocalServerModule : Module() {
     )
   }
 
-  private fun resolvedStatus() = LocalServerStatusStore.current?.takeUnless {
-    it.state == LocalServerState.STOPPED && !guest.isInstalled
-  } ?: LocalServerStatus(if (guest.isInstalled) LocalServerState.STOPPED else LocalServerState.NOT_INSTALLED)
-
-  private fun snapshot(status: LocalServerStatus = resolvedStatus()) = mapOf(
+  private fun snapshot(status: LocalServerStatus = LocalServerStatusStore.resolve(context)) = mapOf(
     "state" to status.state.id,
     "detail" to status.detail,
     "progress" to status.progress,
@@ -168,6 +164,7 @@ class T3LocalServerModule : Module() {
         // Finishes or undoes a restore the app was killed in the middle of.
         if (!LinuxMaintenance.busy) runCatching { MaintenancePaths(it).recover() }
         UsbBridge.start(it)
+        ServerTileService.watch(it)
         startOnAppOpen(it)
       }
       UsbBridge.addListener(usbListener)
@@ -202,6 +199,7 @@ class T3LocalServerModule : Module() {
     }
     Function("setStartOnAppOpen") { value: Boolean -> options.startOnAppOpen = value }
     Function("setSharedStorage") { value: Boolean -> options.sharedStorage = value }
+    Function("setAppScheme") { scheme: String -> options.appScheme = scheme }
 
     Function("getBatteryState") {
       mapOf(

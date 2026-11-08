@@ -1,4 +1,5 @@
 import { requireOptionalNativeModule, type EventSubscription } from "expo";
+import Constants from "expo-constants";
 import { useSyncExternalStore } from "react";
 
 export type LocalServerState =
@@ -84,6 +85,8 @@ interface LocalServerNativeModule {
   takePairingUrl(): string | null;
   setStartOnAppOpen(value: boolean): void;
   setSharedStorage(value: boolean): void;
+  /** The tile and launcher shortcuts open screens through the app's deep links. */
+  setAppScheme(scheme: string): void;
   getBatteryState(): BatteryState;
   /** Returns which screen opened: "prompt", "list", "details" or "none". */
   openBatterySettings(): string;
@@ -140,6 +143,9 @@ interface LocalServerNativeModule {
 }
 
 export const localServer = requireOptionalNativeModule<LocalServerNativeModule>("T3LocalServer");
+
+const scheme = Constants.expoConfig?.scheme;
+localServer?.setAppScheme((Array.isArray(scheme) ? scheme[0] : scheme) ?? "t3code");
 
 // One store for every screen. Option writes change native state without a native event, so the
 // writer refreshes here and every subscriber hears it, not only the next screen that mounts.
