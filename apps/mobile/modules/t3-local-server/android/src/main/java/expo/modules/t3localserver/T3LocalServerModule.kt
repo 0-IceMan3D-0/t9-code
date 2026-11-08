@@ -133,6 +133,15 @@ class T3LocalServerModule : Module() {
     Function("setStartOnAppOpen") { value: Boolean -> options.startOnAppOpen = value }
     Function("setSharedStorage") { value: Boolean -> options.sharedStorage = value }
 
+    Function("getBatteryState") {
+      mapOf(
+        "optimized" to BatteryOptimization.isOptimized(context),
+        "hintDismissed" to options.batteryHintDismissed,
+      )
+    }
+    Function("openBatterySettings") { BatteryOptimization.openSettings(appContext.currentActivity ?: context) }
+    Function("dismissBatteryHint") { options.batteryHintDismissed = true }
+
     AsyncFunction("readLog") {
       listOf("install.log", "server.log").joinToString("\n") { name ->
         File(guest.root, name).takeIf { it.isFile }?.readLines()?.takeLast(120)?.joinToString("\n").orEmpty()

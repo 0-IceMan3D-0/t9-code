@@ -6,6 +6,7 @@ import * as Dialog from "../../components/ui/Dialog";
 import { subscribeAppState } from "../../lib/appState";
 import { useEnvironments } from "../../state/environments";
 import { useProjects, useThreadShells } from "../../state/entities";
+import { offerBatteryExemption } from "../local-server/batteryOptimization";
 import { postTestThreadNotification } from "../agent-awareness/threadNotificationCoordinator";
 import {
   scopedNotificationKey,
@@ -140,7 +141,10 @@ export function ThreadNotificationSettingsSections() {
           subtitle="For servers other than This phone"
           disabled={off}
           value={settings.keepConnected}
-          onValueChange={(keepConnected) => set({ keepConnected })}
+          onValueChange={(keepConnected) => {
+            set({ keepConnected });
+            if (keepConnected) offerBatteryExemption();
+          }}
         />
       </SettingsSection>
       {listedProjects.length > 0 ? (

@@ -8,6 +8,7 @@ import { AppText as Text } from "../../components/ui/AppText";
 import * as Dialog from "../../components/ui/Dialog";
 import { ListActionRow as SettingsActionRow } from "../../components/ui/ListActionRow";
 import { useConnectionController } from "../connection/useConnectionController";
+import { offerBatteryExemption } from "../local-server/batteryOptimization";
 import {
   localServer,
   refreshLocalServerStatus,
@@ -22,6 +23,7 @@ import {
 import { SettingsScreen } from "./components/SettingsScreen";
 import { SettingsSection } from "./components/SettingsSection";
 import { SettingsSwitchRow } from "./components/SettingsSwitchRow";
+import { LocalServerBatterySection } from "./LocalServerBatterySection";
 
 const STATE_LABELS: Record<LocalServerStatus["state"], string> = {
   notInstalled: "Not set up",
@@ -262,7 +264,10 @@ export function SettingsLocalServerRouteScreen() {
             <SettingsActionRow
               icon="arrow.clockwise"
               label={state === "notInstalled" ? "Set up (about 500 MB download)" : "Start"}
-              onPress={() => server.start()}
+              onPress={() => {
+                server.start();
+                offerBatteryExemption();
+              }}
             />
           )}
         </SettingsSection>
@@ -295,6 +300,8 @@ export function SettingsLocalServerRouteScreen() {
             onValueChange={(value) => void toggleSharedStorage(value)}
           />
         </SettingsSection>
+
+        <LocalServerBatterySection />
 
         <SettingsSection title="Maintenance">
           {log !== null ? (

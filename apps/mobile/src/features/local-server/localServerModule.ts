@@ -27,6 +27,11 @@ export interface UsbDevice {
   readonly allowed: boolean;
 }
 
+export interface BatteryState {
+  readonly optimized: boolean;
+  readonly hintDismissed: boolean;
+}
+
 interface LocalServerNativeModule {
   getStatus(): LocalServerStatus;
   listUsbDevices(): ReadonlyArray<UsbDevice>;
@@ -36,6 +41,10 @@ interface LocalServerNativeModule {
   takePairingUrl(): string | null;
   setStartOnAppOpen(value: boolean): void;
   setSharedStorage(value: boolean): void;
+  getBatteryState(): BatteryState;
+  /** Returns which screen opened: "prompt", "list", "details" or "none". */
+  openBatterySettings(): string;
+  dismissBatteryHint(): void;
   readLog(): Promise<string>;
   reset(): Promise<void>;
   requestStorageAccess(): Promise<unknown>;

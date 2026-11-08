@@ -13,4 +13,9 @@ class LocalServerOptions(context: Context) {
   var sharedStorage: Boolean
     get() = preferences.getBoolean("sharedStorage", false)
     set(value) = preferences.edit().putBoolean("sharedStorage", value).apply()
+
+  /** Set once the one-time battery hint was answered either way, so it never asks again. */
+  var batteryHintDismissed: Boolean
+    get() = preferences.getBoolean("batteryHintDismissed", false)
+    set(value) = preferences.edit().putBoolean("batteryHintDismissed", value).apply()
 }

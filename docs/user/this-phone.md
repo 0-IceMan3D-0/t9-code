@@ -15,6 +15,14 @@ Use **Sign in to Claude** after the server starts. Finish in the browser, and pa
 
 **Open Linux shell** gives a root shell in the same environment. `apt` works there. It does not need the server, but without the server Android may pause it while the app is in the background.
 
+## Running in the background
+
+Android's battery optimisation lets OnePlus and other phones stop an app's background work, even while its notification shows. Agents then stop in the middle of a run. **Running in the background** in **Settings > This phone** shows whether the app is optimised. **Allow background use** opens Android's prompt, or its battery optimisation list on phones without the prompt. The row updates when you come back.
+
+The app also asks once, the first time you start the server or turn on **Stay connected** in **Settings > Notifications** while it is optimised. If you choose **Not now**, it does not ask again.
+
+Some phones have their own battery settings on top of Android's. For several makers, including OnePlus, Samsung and Xiaomi, the section links to that maker's page on dontkillmyapp.com.
+
 ## USB devices
 
 The Linux environment can use USB devices plugged into the phone with a USB OTG adapter or cable, for example another phone for `adb` and `fastboot`, or a board for `openocd` or `dfu-util`.
