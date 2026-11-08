@@ -23,15 +23,6 @@ const MANIFEST = `<manifest xmlns:android="http://schemas.android.com/apk/res/an
   </application>
 </manifest>`;
 
-const MAIN_ACTIVITY = `package com.example
-class MainActivity : ReactActivity() {
-  override fun onCreate(savedInstanceState: Bundle?) {
-    SplashScreenManager.registerOnActivity(this)
-    super.onCreate(null)
-  }
-}
-`;
-
 const STYLES = `<resources>
   <style name="Theme.App.SplashScreen" parent="Theme.SplashScreen"/>
 </resources>
@@ -44,31 +35,25 @@ afterEach(() => {
 });
 
 async function prebuildAndroid(
-  files: { manifest: string; mainActivity: string; styles: string } = {
-    manifest: MANIFEST,
-    mainActivity: MAIN_ACTIVITY,
-    styles: STYLES,
-  },
+  files: { manifest: string; styles: string } = { manifest: MANIFEST, styles: STYLES },
 ) {
   const projectRoot = NodeFS.mkdtempSync(NodePath.join(NodeOS.tmpdir(), "app-icons-"));
   projectRoots.push(projectRoot);
   const main = NodePath.join(projectRoot, "android/app/src/main");
   const paths = {
     manifest: NodePath.join(main, "AndroidManifest.xml"),
-    mainActivity: NodePath.join(main, "java/com/example/MainActivity.kt"),
     styles: NodePath.join(main, "res/values/styles.xml"),
   };
-  for (const key of ["manifest", "mainActivity", "styles"] as const) {
+  for (const key of ["manifest", "styles"] as const) {
     NodeFS.mkdirSync(NodePath.dirname(paths[key]), { recursive: true });
     NodeFS.writeFileSync(paths[key], files[key]);
   }
-  await compileModsAsync(
-    withAndroidAppIcons({ name: "T3 Code", slug: "t3code", android: { package: "com.example" } }),
-    { projectRoot, platforms: ["android"] },
-  );
+  await compileModsAsync(withAndroidAppIcons({ name: "T3 Code", slug: "t3code" }), {
+    projectRoot,
+    platforms: ["android"],
+  });
   return {
     manifest: NodeFS.readFileSync(paths.manifest, "utf8"),
-    mainActivity: NodeFS.readFileSync(paths.mainActivity, "utf8"),
     styles: NodeFS.readFileSync(paths.styles, "utf8"),
   };
 }
@@ -100,15 +85,12 @@ describe("withAndroidAppIcons", () => {
     expect(await prebuildAndroid(once)).toEqual(once);
   });
 
-  it("launches with an icon-less splash theme and applies the preset's theme before the splash installs", async () => {
-    const { manifest, mainActivity, styles } = await prebuildAndroid();
+  it("launches with an icon-less splash theme and defines a splash theme per preset", async () => {
+    const { manifest, styles } = await prebuildAndroid();
     const parsed = (await XML.parseXMLAsync(manifest)) as AndroidConfig.Manifest.AndroidManifest;
     expect(AndroidConfig.Manifest.getMainActivityOrThrow(parsed).$["android:theme"]).toBe(
       "@style/T3LaunchTheme",
     );
-    const apply = mainActivity.indexOf("AppIconStyle.applyLaunchTheme(this)");
-    expect(apply).toBeGreaterThan(-1);
-    expect(apply).toBeLessThan(mainActivity.indexOf("SplashScreenManager.registerOnActivity"));
 
     const parsedStyles = (await XML.parseXMLAsync(styles)) as {
       resources: {

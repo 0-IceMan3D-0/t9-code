@@ -34,6 +34,9 @@ class T3AppIconModule : Module() {
   override fun definition() = ModuleDefinition {
     Name("T3AppIcon")
 
+    // Covers presets chosen before this existed and a splash theme reset by clearing app data.
+    OnActivityEntersForeground { appContext.currentActivity?.let(AppIconStyle::syncSplashTheme) }
+
     Function("getState") {
       val ctx = context
       val shortcuts = shortcutManager(ctx)

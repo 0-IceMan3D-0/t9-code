@@ -33,22 +33,10 @@ object AppIconStyle {
 
   fun accent(ctx: Context): Int = preset(ctx).accent
 
-  /** Call from MainActivity.onCreate before the splash screen is installed. */
-  @JvmStatic
-  fun applyLaunchTheme(activity: Activity) {
-    // Below 31 the splash is drawn from the activity theme, so the preset theme must be set here;
-    // the manifest theme has no icon at all, so nothing else shows first.
-    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
-      launchTheme(activity, presetId(activity))?.let(activity::setTheme)
-    } else {
-      persistSplashTheme(activity)
-    }
-  }
-
   internal fun changed(ctx: Context, activity: Activity?) {
     cached = null
     restyleNotifications(ctx)
-    if (activity != null) persistSplashTheme(activity)
+    if (activity != null) syncSplashTheme(activity)
   }
 
   private fun preset(ctx: Context) = APP_ICON_PRESETS[presetId(ctx)] ?: APP_ICON_PRESETS.getValue("classic")
@@ -56,9 +44,10 @@ object AppIconStyle {
   /**
    * Android 13+ shows the persisted splash theme for every launch of the package, including
    * notification taps and deep links that start MainActivity rather than the launcher alias.
-   * 12 and 12L fall back to the launched component's icon: right for the alias, Classic otherwise.
+   * MainActivity's manifest theme has no icon, so 12 and 12L draw the launched component's icon
+   * (right for the alias, Classic for MainActivity) and older versions only the background.
    */
-  private fun persistSplashTheme(activity: Activity) {
+  internal fun syncSplashTheme(activity: Activity) {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return
     val id = presetId(activity)
     val prefs = prefs(activity)
