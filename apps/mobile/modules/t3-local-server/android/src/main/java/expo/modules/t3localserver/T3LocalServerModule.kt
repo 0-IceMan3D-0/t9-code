@@ -133,6 +133,7 @@ class T3LocalServerModule : Module() {
     "progress" to status.progress,
     "port" to LocalServerService.PORT,
     "startOnAppOpen" to options.startOnAppOpen,
+    "stopOnLeave" to options.stopOnLeave,
     "sharedStorage" to options.sharedStorage,
     "sharedStorageGranted" to storageGranted(),
   )
@@ -173,6 +174,7 @@ class T3LocalServerModule : Module() {
         if (!LinuxMaintenance.busy) runCatching { MaintenancePaths(it).recover() }
         UsbBridge.start(it)
         ServerTileService.watch(it)
+        AutoStop.install(it)
         startOnAppOpen(it)
       }
       UsbBridge.addListener(usbListener)
@@ -186,6 +188,7 @@ class T3LocalServerModule : Module() {
       UsbBridge.removeListener(usbListener)
       LinuxShells.removeListener(shellListener)
       DevServers.removeListener(devServersListener)
+      AutoStop.forgetThreads()
     }
 
     OnActivityResult { _, payload ->
@@ -208,6 +211,11 @@ class T3LocalServerModule : Module() {
       LocalServerStatusStore.pairingUrl.also { LocalServerStatusStore.pairingUrl = null }
     }
     Function("setStartOnAppOpen") { value: Boolean -> options.startOnAppOpen = value }
+    Function("setStopOnLeave") { value: Boolean ->
+      options.stopOnLeave = value
+      AutoStop.optionChanged()
+    }
+    Function("reportThreadWork") { json: String -> AutoStop.reportThreads(json) }
     Function("setSharedStorage") { value: Boolean -> options.sharedStorage = value }
     Function("serverSwitchTarget") {
       mapOf(

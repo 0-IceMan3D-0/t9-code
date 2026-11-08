@@ -10,6 +10,11 @@ class LocalServerOptions(context: Context) {
     get() = preferences.getBoolean("startOnAppOpen", false)
     set(value) = preferences.edit().putBoolean("startOnAppOpen", value).apply()
 
+  /** Read by [AutoStop] in the background, so it lives here rather than in JS. */
+  var stopOnLeave: Boolean
+    get() = preferences.getBoolean("stopOnLeave", false)
+    set(value) = preferences.edit().putBoolean("stopOnLeave", value).apply()
+
   var sharedStorage: Boolean
     get() = preferences.getBoolean("sharedStorage", false)
     set(value) = preferences.edit().putBoolean("sharedStorage", value).apply()

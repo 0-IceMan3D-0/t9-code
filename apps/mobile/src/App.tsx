@@ -38,6 +38,7 @@ import {
   setAgentNotificationPathname,
 } from "./features/agent-awareness/notificationNavigation";
 import { installThreadNotifications } from "./features/agent-awareness/threadNotificationCoordinator";
+import { installLocalServerAutoStopReport } from "./features/local-server/autoStopReport";
 import {
   installAppShortcuts,
   recordAppShortcutNavigationState,
@@ -197,6 +198,7 @@ const appServiceDisposers = [
   startIncomingShareInbox(),
   installAgentNotificationNavigation(linkToAppPath),
   installThreadNotifications(),
+  installLocalServerAutoStopReport(),
   installAppShortcuts(linkToAppPath),
   installAppUpdateChecks(),
   installShowcaseCapture(rootPathnameFromState),

@@ -16,6 +16,7 @@ export interface LocalServerStatus {
   readonly progress: number;
   readonly port: number;
   readonly startOnAppOpen: boolean;
+  readonly stopOnLeave: boolean;
   readonly sharedStorage: boolean;
   readonly sharedStorageGranted: boolean;
 }
@@ -93,6 +94,9 @@ interface LocalServerNativeModule {
   stop(): void;
   takePairingUrl(): string | null;
   setStartOnAppOpen(value: boolean): void;
+  setStopOnLeave(value: boolean): void;
+  /** JSON of `{ known, working, needsYou }` for the built-in server's threads. */
+  reportThreadWork(json: string): void;
   setSharedStorage(value: boolean): void;
   /** The activity that starts or stops the server for a launcher shortcut, and its actions. */
   serverSwitchTarget(): {

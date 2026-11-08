@@ -306,6 +306,12 @@ export function SettingsLocalServerRouteScreen() {
             onValueChange={(value) => setOption(() => server.setStartOnAppOpen(value))}
           />
           <SettingsSwitchRow
+            label="Stop when I leave the app"
+            subtitle="Stops the built-in server 2 minutes after you leave the app, once no thread is working or waiting on you and no Linux shell or web server is running."
+            value={status.stopOnLeave}
+            onValueChange={(value) => setOption(() => server.setStopOnLeave(value))}
+          />
+          <SettingsSwitchRow
             label="Shared project folder"
             subtitle="Adds T3Projects in phone storage as /root/shared-projects. Applies after a restart. Private projects live in /root/projects."
             value={status.sharedStorage}

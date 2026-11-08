@@ -14,6 +14,7 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.os.PowerManager
+import android.widget.RemoteViews
 import expo.modules.t3appicon.AppIconStyle
 import java.io.File
 import java.io.IOException
@@ -49,16 +50,26 @@ class LocalServerService : Service() {
   private val devServersListener: (List<DevServers.Server>) -> Unit = {
     handler.post { if (worker?.isAlive == true && !stopping) showNotification() }
   }
+  private val autoStopListener: () -> Unit = {
+    handler.post { if (worker?.isAlive == true && !stopping) showNotification() }
+  }
 
   override fun onCreate() {
     super.onCreate()
     DevServers.addListener(devServersListener)
+    AutoStop.addListener(autoStopListener)
     ServerTileService.watch(this)
   }
 
   override fun onBind(intent: Intent?): IBinder? = null
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    // Sent with startService from the notification, so it need not post a fresh foreground notice.
+    if (intent?.action == ACTION_KEEP_RUNNING) {
+      AutoStop.keepRunning()
+      if (worker?.isAlive != true) stopSelf()
+      return START_STICKY
+    }
     goForeground("Starting")
     if (intent?.action == ACTION_STOP) {
       stopping = true
@@ -154,7 +165,7 @@ class LocalServerService : Service() {
       1 -> " · web server on port ${servers[0].port}"
       else -> " · ${servers.size} web servers"
     }
-    val key = text + servers.maxByOrNull { it.since }?.url
+    val key = text + servers.maxByOrNull { it.since }?.url + AutoStop.decision
     if (key == lastNotification) return
     lastNotification = key
     (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).notify(NOTIFICATION_ID, notification(text))
@@ -173,6 +184,7 @@ class LocalServerService : Service() {
 
   override fun onDestroy() {
     DevServers.removeListener(devServersListener)
+    AutoStop.removeListener(autoStopListener)
     handler.removeCallbacks(healthCheck)
     server?.destroy()
     if (wakeLock.isHeld) wakeLock.release()
@@ -213,7 +225,30 @@ class LocalServerService : Service() {
       .setContentText(text)
       .setOngoing(true)
       .setContentIntent(open)
-      .addAction(Notification.Action.Builder(null, "Stop", stop).build())
+    val autoStop = AutoStop.decision
+    when (autoStop) {
+      is AutoStopDecision.Countdown -> {
+        val content = RemoteViews(packageName, R.layout.t3_autostop_countdown)
+        content.setChronometer(R.id.t3_autostop_chronometer, autoStop.stopAt, "Stopping in %s · you left the app", true)
+        content.setChronometerCountDown(R.id.t3_autostop_chronometer, true)
+        builder.setStyle(Notification.DecoratedCustomViewStyle()).setCustomContentView(content)
+          .setContentText("Stopping soon · you left the app")
+      }
+      is AutoStopDecision.Waiting -> builder.setContentText(autoStop.text)
+      else -> Unit
+    }
+    if (autoStop is AutoStopDecision.Idle) {
+      builder.addAction(Notification.Action.Builder(null, "Stop", stop).build())
+    } else {
+      val keep = PendingIntent.getService(
+        this,
+        2,
+        Intent(this, LocalServerService::class.java).setAction(ACTION_KEEP_RUNNING),
+        flags,
+      )
+      builder.addAction(Notification.Action.Builder(null, "Keep running", keep).build())
+      builder.addAction(Notification.Action.Builder(null, "Stop now", stop).build())
+    }
     DevServers.current.maxByOrNull { it.since }?.let { server ->
       val browse = PendingIntent.getActivity(
         this,
@@ -230,7 +265,8 @@ class LocalServerService : Service() {
     const val PORT = 3783
     private const val ACTION_START = "expo.modules.t3localserver.START"
     private const val ACTION_STOP = "expo.modules.t3localserver.STOP"
-    private const val CHANNEL_ID = "t3-local-server"
+    private const val ACTION_KEEP_RUNNING = "expo.modules.t3localserver.KEEP_RUNNING"
+    const val CHANNEL_ID = "t3-local-server"
     private const val NOTIFICATION_ID = 3783
     private const val READY_LINE = "server is ready"
     private const val STABLE_MILLIS = 60_000L
