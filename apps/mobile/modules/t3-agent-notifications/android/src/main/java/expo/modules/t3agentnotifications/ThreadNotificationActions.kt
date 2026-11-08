@@ -20,6 +20,7 @@ import com.facebook.react.bridge.ReactContext
 import com.facebook.react.bridge.UiThreadUtil
 import com.facebook.react.jstasks.HeadlessJsTaskConfig
 import com.facebook.react.jstasks.HeadlessJsTaskContext
+import expo.modules.t3appicon.AppIconStyle
 
 /** Approve, Deny, option and Reply taps. Shows progress at once, then hands off to JS. */
 class ThreadNotificationActionReceiver : BroadcastReceiver() {
@@ -147,7 +148,7 @@ class ThreadWatchService : Service() {
       flags
     )
     return NotificationCompat.Builder(this, ThreadNotifications.CHANNEL_WATCH)
-      .setSmallIcon(R.drawable.agent_activity_mark)
+      .setSmallIcon(AppIconStyle.smallIcon(this))
       .setContentTitle("Staying connected for notifications")
       .setContentText("Turn this off in Settings → Notifications")
       .setOngoing(true)

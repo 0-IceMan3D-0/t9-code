@@ -1,11 +1,11 @@
 [
-  { "id": "classic", "label": "Classic" },
-  { "id": "glass", "label": "Liquid Glass" },
-  { "id": "void", "label": "Void" },
-  { "id": "frost", "label": "Frost" },
-  { "id": "terminal", "label": "Terminal" },
-  { "id": "neon", "label": "Neon" },
-  { "id": "blueprint", "label": "Blueprint" },
-  { "id": "pixel", "label": "Pixel" },
-  { "id": "brutal", "label": "Brutal" }
+  { "id": "classic", "label": "Classic", "accent": "#5B2BE6" },
+  { "id": "glass", "label": "Liquid Glass", "accent": "#8B5CFF" },
+  { "id": "void", "label": "Void", "accent": "#5A5A5A" },
+  { "id": "frost", "label": "Frost", "accent": "#6A6A6A" },
+  { "id": "terminal", "label": "Terminal", "accent": "#16A34A" },
+  { "id": "neon", "label": "Neon", "accent": "#FF2F8E" },
+  { "id": "blueprint", "label": "Blueprint", "accent": "#1F5FC4" },
+  { "id": "pixel", "label": "Pixel", "accent": "#FF6B2B" },
+  { "id": "brutal", "label": "Brutal", "accent": "#FF3B1F" }
 ]

@@ -14,6 +14,7 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.os.PowerManager
+import expo.modules.t3appicon.AppIconStyle
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.TimeUnit
@@ -206,7 +207,8 @@ class LocalServerService : Service() {
     )
     val open = openAppIntent(this)
     builder
-      .setSmallIcon(applicationInfo.icon)
+      .setSmallIcon(AppIconStyle.smallIcon(this))
+      .setColor(AppIconStyle.accent(this))
       .setContentTitle("Built-in server")
       .setContentText(text)
       .setOngoing(true)

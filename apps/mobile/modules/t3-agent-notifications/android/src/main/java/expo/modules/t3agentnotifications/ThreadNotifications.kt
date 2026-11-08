@@ -15,6 +15,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.RemoteInput
 import androidx.core.content.ContextCompat
+import expo.modules.t3appicon.AppIconStyle
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -270,7 +271,7 @@ object ThreadNotifications {
       putBoolean(EXTRA_FEEDBACK, feedback != Feedback.NONE)
     }
     val builder = NotificationCompat.Builder(context, channel)
-      .setSmallIcon(R.drawable.agent_activity_mark)
+      .setSmallIcon(AppIconStyle.smallIcon(context))
       .setColor(ContextCompat.getColor(context, colorFor(channel, feedback)))
       .setContentTitle(title)
       .setContentText(text)
@@ -324,7 +325,7 @@ object ThreadNotifications {
 
   private fun publicVersion(context: Context, channel: String) =
     NotificationCompat.Builder(context, channel)
-      .setSmallIcon(R.drawable.agent_activity_mark)
+      .setSmallIcon(AppIconStyle.smallIcon(context))
       .setContentTitle(
         when (channel) {
           CHANNEL_NEEDS_YOU -> "An agent needs you"
@@ -424,7 +425,7 @@ object ThreadNotifications {
     }
     val count = children.size
     val summary = NotificationCompat.Builder(context, channel)
-      .setSmallIcon(R.drawable.agent_activity_mark)
+      .setSmallIcon(AppIconStyle.smallIcon(context))
       .setColor(ContextCompat.getColor(context, colorFor(channel, Feedback.NONE)))
       .setContentTitle(groupTitle)
       .setContentText(if (count == 1) "1 thread" else "$count threads")

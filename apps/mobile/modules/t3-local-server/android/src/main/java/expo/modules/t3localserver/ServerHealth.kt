@@ -11,6 +11,7 @@ import android.os.SystemClock
 import android.system.ErrnoException
 import android.system.Os
 import android.system.OsConstants
+import expo.modules.t3appicon.AppIconStyle
 import java.io.File
 
 /** Samples the built-in environment from the app side; /proc/stat is blocked, so per process. */
@@ -119,7 +120,8 @@ object ServerHealth {
     manager.notify(
       NOTIFICATION_ID,
       builder
-        .setSmallIcon(context.applicationInfo.icon)
+        .setSmallIcon(AppIconStyle.smallIcon(context))
+        .setColor(AppIconStyle.accent(context))
         .setContentTitle(title)
         .setContentText(text)
         .setStyle(Notification.BigTextStyle().bigText(text))

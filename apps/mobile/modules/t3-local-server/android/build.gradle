@@ -15,4 +15,5 @@ android {
 
 dependencies {
   implementation project(':expo-modules-core')
+  implementation project(':t3-app-icon')
 }

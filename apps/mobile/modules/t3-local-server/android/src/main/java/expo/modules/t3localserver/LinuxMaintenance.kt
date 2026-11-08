@@ -12,6 +12,7 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.os.PowerManager
+import expo.modules.t3appicon.AppIconStyle
 import org.json.JSONObject
 import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.concurrent.thread
@@ -170,7 +171,8 @@ class MaintenanceService : Service() {
       Notification.Builder(this)
     }
     return builder
-      .setSmallIcon(applicationInfo.icon)
+      .setSmallIcon(AppIconStyle.smallIcon(this))
+      .setColor(AppIconStyle.accent(this))
       .setContentTitle(title)
       .setContentText(percent?.let { "$it%" } ?: "Preparing")
       .setProgress(100, percent ?: 0, percent == null)

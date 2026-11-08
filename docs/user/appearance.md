@@ -31,6 +31,12 @@ On Android, choose an icon under **Settings → Appearance → App icon**. It ta
 leave the app, and the launcher can take a few seconds to show it. Some launchers move or remove the app's home screen icon when it changes; add it
 again from the app drawer. Notifications, links, sharing and the long-press shortcuts keep working with every icon.
 
+The app's notifications and its launch screen use the chosen icon too. A few things still show the
+Classic icon because Android takes them from the app itself, not from the chosen icon: the share
+sheet, the app's entry in Android settings, and phones that draw the full app icon in the
+notification shade. On Android 12 (not 13 or later), opening the app from a notification or a link
+can also show Classic on the launch screen.
+
 Android does not let apps use any picture as their real icon. Under **Your own picture**, choose and
 crop a picture, then select **Add to home screen**. This adds a shortcut that opens the app with
 your picture. Some launchers add a small app badge to it, and the app drawer keeps the icon chosen

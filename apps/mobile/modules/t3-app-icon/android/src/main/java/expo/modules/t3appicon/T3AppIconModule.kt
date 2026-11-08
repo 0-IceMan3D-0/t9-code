@@ -3,7 +3,6 @@ package expo.modules.t3appicon
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
@@ -23,8 +22,6 @@ import expo.modules.kotlin.modules.ModuleDefinition
 import java.io.File
 import org.json.JSONArray
 
-private const val ALIAS_MARKER = ".appicon."
-private const val PENDING_KEY = "pending"
 private const val CUSTOM_SHORTCUT_ID = "t3-custom-icon"
 private const val ADAPTIVE_SIZE = 432
 private const val SOURCE_SIZE = 512
@@ -41,7 +38,7 @@ class T3AppIconModule : Module() {
       val ctx = context
       val shortcuts = shortcutManager(ctx)
       mapOf(
-        "icon" to (pending(ctx) ?: enabledAlias(ctx)?.let(::presetId)),
+        "icon" to AppIconStyle.presetId(ctx),
         "presets" to aliases(ctx).map { presetId(it.name) },
         "pinSupported" to (shortcuts?.isRequestPinShortcutSupported == true),
         "customPinned" to (shortcuts?.pinnedShortcuts?.any { it.id == CUSTOM_SHORTCUT_ID && it.isEnabled } == true),
@@ -56,14 +53,15 @@ class T3AppIconModule : Module() {
       if (aliases(ctx).none { presetId(it.name) == id }) {
         throw CodedException("ERR_UNKNOWN_ICON", "No app icon named $id", null)
       }
-      prefs(ctx).edit().putString(PENDING_KEY, id).apply()
+      prefs(ctx).edit().putString(AppIconStyle.PENDING_KEY, id).commit()
+      AppIconStyle.changed(ctx, appContext.currentActivity)
     }
 
     // Enable the new alias before disabling the rest, so a launcher entry exists at every moment.
     Function("applyPendingIcon") {
       val ctx = context
       val id = pending(ctx) ?: return@Function null
-      prefs(ctx).edit().remove(PENDING_KEY).apply()
+      prefs(ctx).edit().remove(AppIconStyle.PENDING_KEY).apply()
       val pm = ctx.packageManager
       val all = aliases(ctx)
       val target = all.firstOrNull { presetId(it.name) == id } ?: return@Function null
@@ -191,28 +189,15 @@ class T3AppIconModule : Module() {
     runCatching { shortcuts.dynamicShortcuts = moved }.onFailure { Log.w("T3AppIcon", "Could not move shortcuts", it) }
   }
 
-  private fun prefs(ctx: Context) = ctx.getSharedPreferences("t3_app_icon", Context.MODE_PRIVATE)
+  private fun prefs(ctx: Context) = AppIconStyle.prefs(ctx)
 
-  private fun pending(ctx: Context) = prefs(ctx).getString(PENDING_KEY, null)
+  private fun pending(ctx: Context) = AppIconStyle.pending(ctx)
 
-  private fun presetId(aliasName: String) = aliasName.substringAfterLast(ALIAS_MARKER)
+  private fun presetId(aliasName: String) = AppIconStyle.aliasPreset(aliasName)
 
-  private fun aliases(ctx: Context): List<ActivityInfo> {
-    val flags = PackageManager.GET_ACTIVITIES or PackageManager.MATCH_DISABLED_COMPONENTS
-    val info = ctx.packageManager.getPackageInfo(ctx.packageName, flags)
-    return info.activities.orEmpty().filter { it.targetActivity != null && it.name.contains(ALIAS_MARKER) }
-  }
+  private fun aliases(ctx: Context) = AppIconStyle.aliases(ctx)
 
-  private fun enabledAlias(ctx: Context): String? {
-    val pm = ctx.packageManager
-    return aliases(ctx).firstOrNull {
-      when (pm.getComponentEnabledSetting(ComponentName(ctx.packageName, it.name))) {
-        PackageManager.COMPONENT_ENABLED_STATE_ENABLED -> true
-        PackageManager.COMPONENT_ENABLED_STATE_DEFAULT -> it.enabled
-        else -> false
-      }
-    }?.name
-  }
+  private fun enabledAlias(ctx: Context) = AppIconStyle.enabledAlias(ctx)
 
   private fun shortcutManager(ctx: Context): ShortcutManager? =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) ctx.getSystemService(ShortcutManager::class.java) else null
