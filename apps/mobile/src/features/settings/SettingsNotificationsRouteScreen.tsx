@@ -49,6 +49,8 @@ import { SettingsSection } from "./components/SettingsSection";
 import { SettingsSwitchRow } from "./components/SettingsSwitchRow";
 import { SettingsScreen } from "./components/SettingsScreen";
 import { resolveAgentAwarenessPlatformPresentation } from "./SettingsRouteScreen.logic";
+import { threadNotificationsNative } from "../agent-awareness/threadNotificationNative";
+import { ThreadNotificationSettingsSections } from "./ThreadNotificationSettingsSections";
 
 /**
  * A policy that turns Connect off refuses relay links and preferences, which would fail the
@@ -114,11 +116,15 @@ export function SettingsNotificationsRouteScreen() {
       <SettingsScreen title="Notifications">
         <ScrollView
           contentInsetAdjustmentBehavior="automatic"
-          contentContainerClassName="px-5 pt-4"
+          contentContainerClassName="gap-6 px-5 pt-4 pb-10"
         >
-          <Text className="text-base text-foreground-muted">
-            Notifications require T3 Connect in this app build.
-          </Text>
+          {threadNotificationsNative ? (
+            <ThreadNotificationSettingsSections />
+          ) : (
+            <Text className="text-base text-foreground-muted">
+              Notifications require T3 Connect in this app build.
+            </Text>
+          )}
         </ScrollView>
       </SettingsScreen>
     );
@@ -422,7 +428,15 @@ function ConfiguredSettingsNotificationsRouteScreen() {
           paddingBottom: Math.max(insets.bottom, 18) + 18,
         }}
       >
-        <SettingsSection title="Agent activity">
+        {threadNotificationsNative ? <ThreadNotificationSettingsSections /> : null}
+        <SettingsSection
+          title={threadNotificationsNative ? "T3 Connect push" : "Agent activity"}
+          footer={
+            threadNotificationsNative
+              ? "Push through T3 Connect reaches this phone even when the app is closed. It needs a T3 account. Alerts the app already shows itself are not repeated."
+              : undefined
+          }
+        >
           <SettingsSwitchRow
             icon="bell.badge"
             label="Device Notifications"

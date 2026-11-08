@@ -1,3 +1,4 @@
+import { threadNotificationsNative } from "../agent-awareness/threadNotificationNative";
 import {
   navigationCustomizationAvailable,
   overflowNavigationTabs,
@@ -143,7 +144,23 @@ function ConfiguredSettingsRouteScreen() {
 
 function LocalSettingsRouteScreen() {
   const { savedConnectionsById } = useSavedRemoteConnections();
-  return <SettingsList connections={[environmentsRow(Object.keys(savedConnectionsById).length)]} />;
+  return (
+    <SettingsList
+      connections={[
+        environmentsRow(Object.keys(savedConnectionsById).length),
+        ...(threadNotificationsNative
+          ? [
+              {
+                id: "SettingsNotifications",
+                icon: "bell.badge",
+                label: "Notifications",
+                target: "SettingsNotifications",
+              } satisfies SettingsListRow,
+            ]
+          : []),
+      ]}
+    />
+  );
 }
 
 function environmentsRow(count: number): SettingsListRow {

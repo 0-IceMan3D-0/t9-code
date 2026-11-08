@@ -1,5 +1,25 @@
 # Mobile notifications
 
+## On-device notifications (Android)
+
+The Android app can notify you about agents on every server it is connected to, including This phone, with no account. Turn them on in **Settings → Notifications → Agent notifications**. You get a notification when an agent finishes a turn, fails or hits a usage limit, needs an approval, or asks a question.
+
+- **Approvals** show the command or tool and the choices the agent offers, such as **Allow once**, **Allow session**, or **Deny**. Android shows at most three buttons; open the thread for the rest.
+- **Questions** show the question. Short multiple-choice questions get a button per answer. **Reply** sends a typed answer.
+- **Finished** and **failed** notifications preview the agent's last message. **Reply** sends your text to the thread as a new message.
+- Tapping a notification opens its thread. Each thread has one notification that updates in place, grouped by project. It clears when you open the thread, here or on another device, or when the approval or question is answered elsewhere.
+- A thread you have open on screen does not notify. To silence a project, turn it off under **Projects**. To silence one thread, choose **Mute notifications** from its menu in the thread list.
+
+Android groups these notifications into **Needs you**, **Finished**, and **Errors**. Set the sound and priority of each in **Settings → Notifications → Notification categories**. **Send a test notification** checks that notifications reach you.
+
+Notifications arrive only while the app is running and connected:
+
+- While the built-in server runs, the app keeps running in the background, so This phone always reaches you.
+- Other servers reach you in the background only with **Stay connected** on. It keeps their connections open behind a silent notification and uses more battery. Without it, Android pauses the app soon after you leave it, and notifications from those servers arrive when you open the app again. Events that happened meanwhile are announced once; nothing is repeated after a reconnect or restart.
+- If you also use T3 Connect push, the phone does not show the same alert twice.
+
+## T3 Connect push
+
 Sign in to T3 Connect, link your environments, and enable **Device Notifications** in **Settings → Notifications** to receive alerts when an agent finishes, fails, needs approval, or asks for input. Tap a notification to open its thread. Your environment must have agent activity publishing enabled.
 
 Enable **Live Activity Updates** on iOS, **Agent Live Updates** on Android 16 and newer, or **Ongoing Agent Activity** on older Android versions to follow work without opening the app. Finished results remain visible for up to 15 minutes. You can dismiss an Android activity card without disabling alerts; turn off the same switch to stop future cards.

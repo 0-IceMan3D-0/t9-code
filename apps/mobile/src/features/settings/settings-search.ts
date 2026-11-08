@@ -13,7 +13,15 @@ const SETTINGS_SEARCH_TERMS = {
     "remote",
     "tailscale",
   ],
-  SettingsNotifications: ["push", "alerts", "live activity", "agent activity"],
+  SettingsNotifications: [
+    "push",
+    "alerts",
+    "live activity",
+    "agent activity",
+    "approval",
+    "mute",
+    "stay connected",
+  ],
   SettingsAppearance: [
     "theme",
     "dark mode",

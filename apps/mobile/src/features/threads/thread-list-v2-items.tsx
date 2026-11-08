@@ -82,6 +82,13 @@ import { ThreadSearchMatchExcerpt } from "./thread-search-match";
 import { useScaledTextRole } from "../settings/appearance/useScaledTextRole";
 import { PullRequestGlyph } from "../pull-requests/pullRequestGlyphs";
 import { pullRequestStatus } from "../pull-requests/pullRequestStatus";
+import { scopedNotificationKey } from "../agent-awareness/threadNotificationModel";
+import { threadNotificationsNative } from "../agent-awareness/threadNotificationNative";
+import {
+  toggleMutedKey,
+  updateThreadNotificationSettings,
+  useThreadNotificationSettings,
+} from "../agent-awareness/threadNotificationSettings";
 
 interface StatusLabel {
   readonly label: string;
@@ -889,6 +896,8 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
     [props.autoSettleOptOutSupported, thread.autoSettleDisabledAt],
   );
   const canTurnIntoProject = canTurnThreadIntoProject(thread);
+  const notificationKey = scopedNotificationKey(thread.environmentId, thread.id);
+  const notificationsMuted = useThreadNotificationSettings().mutedThreads.includes(notificationKey);
   const titleMenuItems = useMemo<MenuAction[]>(
     () => [
       { id: "rename", title: "Rename", image: "square.and.pencil" },
@@ -906,8 +915,21 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
             } satisfies MenuAction,
           ]
         : []),
+      ...(threadNotificationsNative
+        ? [
+            notificationsMuted
+              ? { id: "unmute-notifications", title: "Unmute notifications", image: "bell.badge" }
+              : { id: "mute-notifications", title: "Mute notifications", image: "eye.slash" },
+          ]
+        : []),
     ],
-    [canTurnIntoProject, props.titleRegenerationSupported, thread.runtime, isRegeneratingTitle],
+    [
+      canTurnIntoProject,
+      notificationsMuted,
+      props.titleRegenerationSupported,
+      thread.runtime,
+      isRegeneratingTitle,
+    ],
   );
   const menuActions = useMemo<MenuAction[]>(() => {
     const nested = Platform.OS === "ios";
@@ -1008,6 +1030,19 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
       if (nativeEvent.event === "move-down") handleMoveDown();
       if (nativeEvent.event === "archive") handleArchive();
       if (nativeEvent.event === "rename") handleRename();
+      if (
+        nativeEvent.event === "mute-notifications" ||
+        nativeEvent.event === "unmute-notifications"
+      ) {
+        const muted = nativeEvent.event === "mute-notifications";
+        updateThreadNotificationSettings((current) => ({
+          mutedThreads: toggleMutedKey(
+            current.mutedThreads,
+            scopedNotificationKey(thread.environmentId, thread.id),
+            muted,
+          ),
+        }));
+      }
       if (nativeEvent.event === "regenerate-title") handleRegenerateTitle();
       if (nativeEvent.event === "turn-into-project") void turnThreadIntoProject(thread);
       if (nativeEvent.event === "copy-thread") {
