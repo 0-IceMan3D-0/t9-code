@@ -31,8 +31,8 @@ export function threadContextWindow(
 
 const TONE_CLASS: Record<ContextMeterTone, string> = {
   normal: "text-foreground-muted",
-  warning: "text-warning",
-  danger: "text-danger",
+  warning: "text-warning-foreground",
+  danger: "text-danger-foreground",
 };
 
 export function useContextToneColor(tone: ContextMeterTone): string | undefined {

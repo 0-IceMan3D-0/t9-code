@@ -11,6 +11,7 @@ import { useNowMinuteMs } from "../../lib/clock";
 import { useThreadUsageEntries } from "../../state/thread-usage";
 import { SettingsSection } from "../settings/components/SettingsSection";
 import { useSettingsEnvironmentFilter } from "../settings/settings-environment-filter";
+import { openSettings } from "../settings/settings-navigation";
 import {
   addTokens,
   aggregateUsage,
@@ -116,8 +117,9 @@ export function ThreadsUsageView(props: {
                 subtitle={`${project.threadCount === 1 ? "1 thread" : `${project.threadCount} threads`} · ${formatEstimate(estimateGroups(project.groups, prices))}`}
                 value={formatTokens(totalTokens(project.tokens))}
                 onPress={() => {
+                  // The project filter lives with Settings and clears while Settings is closed.
+                  openSettings(navigation, "SettingsProjectOverview");
                   selectProject(project.key);
-                  navigation.navigate("SettingsProjectOverview");
                 }}
               />
             ))}
