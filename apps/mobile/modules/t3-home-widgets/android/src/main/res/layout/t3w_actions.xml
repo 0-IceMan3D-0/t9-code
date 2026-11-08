@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:id="@+id/t3w_root"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:background="@drawable/t3w_bg"
+  android:gravity="center_vertical"
+  android:orientation="horizontal"
+  android:padding="6dp">
+  <LinearLayout
+    android:id="@+id/t3w_new"
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="1"
+    android:background="@drawable/t3w_row_bg"
+    android:contentDescription="New thread"
+    android:gravity="center"
+    android:orientation="vertical">
+    <ImageView
+      android:id="@+id/t3w_new_icon"
+      android:layout_width="44dp"
+      android:layout_height="44dp"
+      android:importantForAccessibility="no" />
+    <TextView
+      android:id="@+id/t3w_new_label"
+      style="@style/T3wSecondary"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="4dp"
+      android:text="New thread"
+      android:textColor="@color/t3w_text" />
+  </LinearLayout>
+  <LinearLayout
+    android:id="@+id/t3w_shell"
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="1"
+    android:background="@drawable/t3w_row_bg"
+    android:contentDescription="Linux shell"
+    android:gravity="center"
+    android:orientation="vertical">
+    <FrameLayout
+      android:layout_width="44dp"
+      android:layout_height="44dp"
+      android:background="@drawable/t3w_action_bg">
+      <ImageView
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:layout_gravity="center"
+        android:importantForAccessibility="no"
+        android:src="@drawable/t3w_ic_terminal" />
+    </FrameLayout>
+    <TextView
+      android:id="@+id/t3w_shell_label"
+      style="@style/T3wSecondary"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="4dp"
+      android:text="Linux shell"
+      android:textColor="@color/t3w_text" />
+  </LinearLayout>
+  <LinearLayout
+    android:id="@+id/t3w_web"
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="1"
+    android:background="@drawable/t3w_row_bg"
+    android:contentDescription="Web server"
+    android:gravity="center"
+    android:orientation="vertical">
+    <FrameLayout
+      android:layout_width="44dp"
+      android:layout_height="44dp"
+      android:background="@drawable/t3w_action_bg">
+      <ImageView
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:layout_gravity="center"
+        android:importantForAccessibility="no"
+        android:src="@drawable/t3w_ic_globe" />
+    </FrameLayout>
+    <TextView
+      android:id="@+id/t3w_web_label"
+      style="@style/T3wSecondary"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="4dp"
+      android:text="Web server"
+      android:textColor="@color/t3w_text" />
+  </LinearLayout>
+</LinearLayout>

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:id="@+id/t3w_root"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:background="@drawable/t3w_bg"
+  android:orientation="vertical"
+  android:padding="10dp">
+  <LinearLayout
+    android:id="@+id/t3w_header"
+    android:layout_width="match_parent"
+    android:layout_height="28dp"
+    android:background="@drawable/t3w_row_bg"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="4dp"
+    android:paddingEnd="6dp">
+    <ImageView
+      android:id="@+id/t3w_icon"
+      android:layout_width="18dp"
+      android:layout_height="18dp"
+      android:layout_marginEnd="8dp"
+      android:importantForAccessibility="no" />
+    <TextView
+      style="@style/T3wHeader"
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:layout_weight="1"
+      android:text="This phone" />
+    <ImageView
+      android:id="@+id/t3w_status_dot"
+      android:layout_width="8dp"
+      android:layout_height="8dp"
+      android:layout_marginEnd="6dp"
+      android:importantForAccessibility="no"
+      android:src="@drawable/t3w_dot_idle" />
+    <TextView
+      android:id="@+id/t3w_status"
+      style="@style/T3wSecondary"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content" />
+  </LinearLayout>
+  <TextView
+    android:id="@+id/t3w_detail"
+    style="@style/T3wSecondary"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="6dp"
+    android:paddingStart="4dp"
+    android:visibility="gone" />
+  <LinearLayout
+    android:id="@+id/t3w_web"
+    android:layout_width="match_parent"
+    android:layout_height="30dp"
+    android:layout_marginTop="2dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="4dp"
+    android:visibility="gone">
+    <ImageView
+      android:layout_width="14dp"
+      android:layout_height="14dp"
+      android:layout_marginEnd="6dp"
+      android:importantForAccessibility="no"
+      android:src="@drawable/t3w_ic_globe" />
+    <TextView
+      android:id="@+id/t3w_web_text"
+      style="@style/T3wSecondary"
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:layout_weight="1" />
+    <TextView
+      android:id="@+id/t3w_web_open"
+      style="@style/T3wButton.Plain"
+      android:layout_width="wrap_content"
+      android:layout_height="28dp"
+      android:layout_marginStart="8dp"
+      android:text="Open"
+      android:textSize="13sp" />
+  </LinearLayout>
+  <FrameLayout
+    android:layout_width="match_parent"
+    android:layout_height="0dp"
+    android:layout_weight="1" />
+  <TextView
+    android:id="@+id/t3w_start"
+    style="@style/T3wButton.Primary"
+    android:layout_width="match_parent"
+    android:layout_height="36dp"
+    android:text="Start"
+    android:visibility="gone" />
+  <TextView
+    android:id="@+id/t3w_stop"
+    style="@style/T3wButton.Plain"
+    android:layout_width="match_parent"
+    android:layout_height="36dp"
+    android:text="Stop"
+    android:visibility="gone" />
+</LinearLayout>

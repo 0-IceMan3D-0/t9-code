@@ -1,0 +1,22 @@
+apply plugin: 'com.android.library'
+apply plugin: 'org.jetbrains.kotlin.android'
+
+group = 'com.t3tools.homewidgets'
+version = '0.0.0'
+
+android {
+  namespace 'expo.modules.t3homewidgets'
+  compileSdk rootProject.ext.compileSdkVersion
+  defaultConfig {
+    minSdkVersion rootProject.ext.minSdkVersion
+    targetSdkVersion rootProject.ext.targetSdkVersion
+  }
+}
+
+dependencies {
+  implementation project(':expo-modules-core')
+  // Server state, health and web servers live in the built-in server's module, same process.
+  implementation project(':t3-local-server')
+  implementation project(':t3-app-icon')
+  testImplementation 'junit:junit:4.13.2'
+}

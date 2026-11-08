@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tabler outline glyph, the icon set the app uses. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+  android:width="24dp"
+  android:height="24dp"
+  android:viewportWidth="24"
+  android:viewportHeight="24">
+  <path
+    android:pathData="M12,3A9,9 0 1,0 12,21A9,9 0 1,0 12,3Z M3.6,9H20.4 M3.6,15H20.4 M11.5,3A17,17 0 0,0 11.5,21 M12.5,3A17,17 0 0,1 12.5,21"
+    android:strokeWidth="2"
+    android:strokeColor="@color/t3w_text"
+    android:strokeLineCap="round"
+    android:strokeLineJoin="round" />
+</vector>

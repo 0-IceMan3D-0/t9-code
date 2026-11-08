@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <color name="t3w_surface">#F51C1C1E</color>
+  <color name="t3w_sheen">#1FFFFFFF</color>
+  <color name="t3w_edge">#33FFFFFF</color>
+  <color name="t3w_text">#FFFFFFFF</color>
+  <color name="t3w_text_secondary">#FFAEAEB2</color>
+  <color name="t3w_accent">#FF4DA3FF</color>
+  <color name="t3w_on_accent">#FFFFFFFF</color>
+  <color name="t3w_control">#3D787880</color>
+  <color name="t3w_control_pressed">#5C787880</color>
+  <color name="t3w_pressed">#1FFFFFFF</color>
+  <color name="t3w_needs">#FFFF9F0A</color>
+  <color name="t3w_needs_fill">#33FF9F0A</color>
+  <color name="t3w_working">#FF4DA3FF</color>
+  <color name="t3w_failed">#FFFF6961</color>
+  <color name="t3w_done">#FF30D158</color>
+  <color name="t3w_idle">#FF98989D</color>
+</resources>

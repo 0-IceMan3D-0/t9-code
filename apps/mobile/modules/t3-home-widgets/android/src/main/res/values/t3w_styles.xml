@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <style name="T3wHeader">
+    <item name="android:textSize">14sp</item>
+    <item name="android:textColor">@color/t3w_text</item>
+    <item name="android:fontFamily">sans-serif-medium</item>
+    <item name="android:singleLine">true</item>
+    <item name="android:ellipsize">end</item>
+  </style>
+  <style name="T3wTitle">
+    <item name="android:textSize">14sp</item>
+    <item name="android:textColor">@color/t3w_text</item>
+    <item name="android:singleLine">true</item>
+    <item name="android:ellipsize">end</item>
+  </style>
+  <style name="T3wSecondary">
+    <item name="android:textSize">12sp</item>
+    <item name="android:textColor">@color/t3w_text_secondary</item>
+    <item name="android:singleLine">true</item>
+    <item name="android:ellipsize">end</item>
+  </style>
+  <style name="T3wStamp" parent="T3wSecondary">
+    <item name="android:textSize">11sp</item>
+    <item name="android:paddingStart">4dp</item>
+    <item name="android:paddingTop">2dp</item>
+  </style>
+  <style name="T3wBadge">
+    <item name="android:textSize">11sp</item>
+    <item name="android:textColor">@color/t3w_needs</item>
+    <item name="android:fontFamily">sans-serif-medium</item>
+    <item name="android:background">@drawable/t3w_badge_bg</item>
+    <item name="android:paddingStart">7dp</item>
+    <item name="android:paddingEnd">7dp</item>
+    <item name="android:paddingTop">2dp</item>
+    <item name="android:paddingBottom">2dp</item>
+    <item name="android:singleLine">true</item>
+  </style>
+  <style name="T3wButton">
+    <item name="android:textSize">14sp</item>
+    <item name="android:fontFamily">sans-serif-medium</item>
+    <item name="android:gravity">center</item>
+    <item name="android:singleLine">true</item>
+    <item name="android:paddingStart">14dp</item>
+    <item name="android:paddingEnd">14dp</item>
+  </style>
+  <style name="T3wButton.Primary">
+    <item name="android:textColor">@color/t3w_on_accent</item>
+    <item name="android:background">@drawable/t3w_primary_bg</item>
+  </style>
+  <style name="T3wButton.Plain">
+    <item name="android:textColor">@color/t3w_text</item>
+    <item name="android:background">@drawable/t3w_control_bg</item>
+  </style>
+  <style name="T3wBig">
+    <item name="android:textSize">30sp</item>
+    <item name="android:textColor">@color/t3w_text</item>
+    <item name="android:fontFamily">sans-serif-medium</item>
+    <item name="android:singleLine">true</item>
+  </style>
+</resources>

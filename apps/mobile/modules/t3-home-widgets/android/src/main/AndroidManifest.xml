@@ -1,0 +1,30 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <application>
+    <!-- Runs at every process start so the server widget follows the server without the app's UI. -->
+    <provider
+      android:name="expo.modules.t3homewidgets.HomeWidgetsInit"
+      android:authorities="${applicationId}.t3homewidgets"
+      android:exported="false" />
+    <receiver android:name="expo.modules.t3homewidgets.WidgetCheckReceiver" android:exported="false" />
+    <receiver android:name="expo.modules.t3homewidgets.WorkingThreadsWidget" android:exported="true" android:label="@string/t3w_working_label">
+      <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+      <meta-data android:name="android.appwidget.provider" android:resource="@xml/t3w_info_working" />
+    </receiver>
+    <receiver android:name="expo.modules.t3homewidgets.ServerWidget" android:exported="true" android:label="@string/t3w_server_label">
+      <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+      <meta-data android:name="android.appwidget.provider" android:resource="@xml/t3w_info_server" />
+    </receiver>
+    <receiver android:name="expo.modules.t3homewidgets.QuickActionsWidget" android:exported="true" android:label="@string/t3w_actions_label">
+      <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+      <meta-data android:name="android.appwidget.provider" android:resource="@xml/t3w_info_actions" />
+    </receiver>
+    <receiver android:name="expo.modules.t3homewidgets.UsageTodayWidget" android:exported="true" android:label="@string/t3w_usage_label">
+      <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+      <meta-data android:name="android.appwidget.provider" android:resource="@xml/t3w_info_usage" />
+    </receiver>
+    <receiver android:name="expo.modules.t3homewidgets.RecentThreadsWidget" android:exported="true" android:label="@string/t3w_recent_label">
+      <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+      <meta-data android:name="android.appwidget.provider" android:resource="@xml/t3w_info_recent" />
+    </receiver>
+  </application>
+</manifest>

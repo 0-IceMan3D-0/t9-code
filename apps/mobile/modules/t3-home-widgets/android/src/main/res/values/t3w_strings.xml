@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="t3w_working_label">Working threads</string>
+  <string name="t3w_working_description">Threads that are working or need you, on every server.</string>
+  <string name="t3w_recent_label">Recent threads</string>
+  <string name="t3w_recent_description">Your latest threads with their project and status.</string>
+  <string name="t3w_server_label">This phone\'s server</string>
+  <string name="t3w_server_description">Start or stop the built-in server and see its memory and web servers.</string>
+  <string name="t3w_actions_label">Quick actions</string>
+  <string name="t3w_actions_description">New thread, Linux shell and your newest web server.</string>
+  <string name="t3w_usage_label">Usage today</string>
+  <string name="t3w_usage_description">Tokens used today and your busiest project.</string>
+  <string name="t3w_loading">Open T3² code to load</string>
+</resources>
