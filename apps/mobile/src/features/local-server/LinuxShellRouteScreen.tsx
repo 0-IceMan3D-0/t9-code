@@ -4,6 +4,7 @@ import { useKeyboardState } from "react-native-keyboard-controller";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText as Text } from "../../components/ui/AppText";
+import { cn } from "../../lib/cn";
 import { TerminalSurface } from "../terminal/NativeTerminalSurface";
 import { resolveModifiedTerminalInput, type PendingModifier } from "../terminal/terminalInput";
 import { localServer } from "./localServerModule";
@@ -55,7 +56,15 @@ export function LinuxShellRouteScreen() {
   const toggle = (next: PendingModifier) =>
     setModifier((current) => (current === next ? null : next));
 
-  const keyClass = "flex-1 items-center justify-center py-2.5";
+  const keyClass = "flex-1 items-center justify-center py-1.5";
+  // An armed modifier is filled until the next key consumes it.
+  const modifierLabel = (label: string, armed: boolean) => (
+    <View className={cn("rounded-full px-3 py-1", armed && "bg-primary")}>
+      <Text className={armed ? "font-t3-bold text-primary-foreground" : "text-foreground"}>
+        {label}
+      </Text>
+    </View>
+  );
   const bottom = keyboardVisible ? keyboardHeight : insets.bottom;
 
   return (
@@ -83,9 +92,7 @@ export function LinuxShellRouteScreen() {
           className={keyClass}
           onPress={() => toggle("ctrl")}
         >
-          <Text className={modifier === "ctrl" ? "text-primary-foreground" : "text-foreground"}>
-            Ctrl
-          </Text>
+          {modifierLabel("Ctrl", modifier === "ctrl")}
         </Pressable>
         <Pressable
           accessibilityLabel="Alt"
@@ -94,9 +101,7 @@ export function LinuxShellRouteScreen() {
           className={keyClass}
           onPress={() => toggle("meta")}
         >
-          <Text className={modifier === "meta" ? "text-primary-foreground" : "text-foreground"}>
-            Alt
-          </Text>
+          {modifierLabel("Alt", modifier === "meta")}
         </Pressable>
         {KEYS.map((key) => (
           <Pressable
@@ -106,7 +111,9 @@ export function LinuxShellRouteScreen() {
             className={keyClass}
             onPress={() => write(key.data)}
           >
-            <Text className="text-foreground">{key.label}</Text>
+            <View className="px-3 py-1">
+              <Text className="text-foreground">{key.label}</Text>
+            </View>
           </Pressable>
         ))}
       </View>
