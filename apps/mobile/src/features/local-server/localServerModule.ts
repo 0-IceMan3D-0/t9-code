@@ -86,7 +86,11 @@ export function refreshLocalServerStatus(): void {
   publishStatus(localServer?.getStatus() ?? null);
 }
 
-function subscribe(onChange: () => void) {
+export function getLocalServerStatus(): LocalServerStatus | null {
+  return snapshot;
+}
+
+export function subscribeLocalServerStatus(onChange: () => void) {
   statusListeners.add(onChange);
   return () => {
     statusListeners.delete(onChange);
@@ -94,7 +98,7 @@ function subscribe(onChange: () => void) {
 }
 
 export function useLocalServerStatus(): LocalServerStatus | null {
-  return useSyncExternalStore(subscribe, () => snapshot);
+  return useSyncExternalStore(subscribeLocalServerStatus, getLocalServerStatus);
 }
 
 let usbDevices: ReadonlyArray<UsbDevice> = localServer?.listUsbDevices() ?? [];

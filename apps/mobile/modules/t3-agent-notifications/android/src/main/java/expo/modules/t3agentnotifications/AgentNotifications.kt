@@ -46,7 +46,7 @@ object AgentNotifications {
   private const val ACTIVITY_CHANNEL = "agent-activity"
   private const val ALERT_CHANNEL = "agent-alerts"
   private const val ACTIVITY_TAG = "t3-agent-activity"
-  private const val ALERT_TAG = "t3-agent-alert"
+  const val ALERT_TAG = "t3-agent-alert"
   private const val ACTIVITY_ID = 73001
   private const val MAX_MESSAGE_AGE_MS = 10 * 60 * 1000L
   private const val RUNNING_LIFETIME_MS = 2 * 60 * 60 * 1000L
@@ -92,6 +92,10 @@ object AgentNotifications {
   }
 
   @Volatile private var threadOnScreen: String? = null
+
+  fun scheme(context: Context): String =
+    context.getSharedPreferences(STORE, Context.MODE_PRIVATE).getString("scheme", null)
+      ?: ThreadNotifications.readStore(context, "scheme") ?: "t3code"
 
   fun setThreadOnScreen(path: String?) {
     threadOnScreen = path
@@ -150,7 +154,9 @@ object AgentNotifications {
       )
       val visibleThread = threadOnScreen
       val onScreen = resumed && visibleThread != null && data["alert_path"] == visibleThread
-      if (!onScreen) {
+      // The on-device watcher already shows this thread with more detail and actions.
+      val covered = ThreadNotifications.coversRelayAlert(context, data["alert_path"])
+      if (!onScreen && !covered) {
         postAlert(context, scheme, data, alertId)
       }
       prefs.edit().remove("seenAlerts").putString(
@@ -158,7 +164,7 @@ object AgentNotifications {
         (seen.takeLast(63) + alertId).joinToString("\n")
       ).apply()
       // Android drops posts to a blocked channel, so that alert shows nothing.
-      return !onScreen && (
+      return !onScreen && !covered && (
         Build.VERSION.SDK_INT < 26 ||
           manager(context).getNotificationChannel(ALERT_CHANNEL)?.importance !=
           NotificationManager.IMPORTANCE_NONE
@@ -184,6 +190,7 @@ object AgentNotifications {
       .setAutoCancel(true)
       .setGroup(group)
       .setContentIntent(contentIntent(context, scheme, data["alert_path"], id))
+      .addExtras(android.os.Bundle().apply { putString(ThreadNotifications.EXTRA_PATH, data["alert_path"]) })
       .build()
     manager(context).notify(ALERT_TAG, id, notification)
     val children = manager(context).activeNotifications.filter {
