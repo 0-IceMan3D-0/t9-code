@@ -55,6 +55,19 @@ object ProcessTree {
     return result
   }
 
+  fun commandLine(pid: Int): List<String> = try {
+    File("/proc/$pid/cmdline").readBytes().toString(Charsets.UTF_8).split('\u0000').filter { it.isNotEmpty() }
+  } catch (_: Exception) {
+    emptyList()
+  }
+
+  /** Processes started under [pid], children first. */
+  fun descendants(pid: Int): List<Entry> {
+    val entries = all()
+    val root = entries.firstOrNull { it.pid == pid } ?: return emptyList()
+    return below(entries, listOf(root)).drop(1)
+  }
+
   /** Every proot the app started and everything running under them. */
   fun guests(): List<Entry> {
     val entries = all()

@@ -69,7 +69,7 @@ object DevServers {
     val address = fields.getOrNull(2) ?: return
     val pid = fields.getOrNull(4)?.toIntOrNull() ?: return
     val inode = fields.getOrNull(5)?.toLongOrNull() ?: return
-    if (port == LocalServerService.PORT || port == ADB_PORT || isInternal(commandLine(pid))) return
+    if (port == LocalServerService.PORT || port == ADB_PORT || isInternal(ProcessTree.commandLine(pid))) return
     reports[inode] = Report(port, address, fields.getOrNull(3) == "1", pid, SystemClock.elapsedRealtime())
     handler.removeCallbacks(poll)
     handler.post(poll)
@@ -101,7 +101,7 @@ object DevServers {
       val pids = held[inode] ?: return@mapNotNull null
       // A forked worker can outlive the process that called listen().
       val pid = if (report.pid in pids) report.pid else pids.min()
-      Server(report.port, report.address, url(report), pid, commandLine(pid).joinToString(" "), report.since)
+      Server(report.port, report.address, url(report), pid, ProcessTree.commandLine(pid).joinToString(" "), report.since)
     }.sortedWith(compareBy({ it.port }, { it.address }))
     val key = { list: List<Server> -> list.map { listOf(it.port, it.address, it.pid, it.command) } }
     if (key(next) == key(current)) return
@@ -120,12 +120,6 @@ object DevServers {
       else -> report.address
     }
     return "http://$host:${report.port}"
-  }
-
-  private fun commandLine(pid: Int): List<String> = try {
-    File("/proc/$pid/cmdline").readBytes().toString(Charsets.UTF_8).split('\u0000').filter { it.isNotEmpty() }
-  } catch (_: Exception) {
-    emptyList()
   }
 
 

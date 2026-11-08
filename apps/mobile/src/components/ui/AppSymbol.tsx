@@ -47,6 +47,7 @@ import IconTicket from "@tabler/icons-react-native/IconTicket";
 import IconClock from "@tabler/icons-react-native/IconClock";
 import IconCode from "@tabler/icons-react-native/IconCode";
 import IconCopy from "@tabler/icons-react-native/IconCopy";
+import IconClipboard from "@tabler/icons-react-native/IconClipboard";
 import IconDatabase from "@tabler/icons-react-native/IconDatabase";
 import IconDeviceDesktop from "@tabler/icons-react-native/IconDeviceDesktop";
 import IconDeviceLaptop from "@tabler/icons-react-native/IconDeviceLaptop";
@@ -310,6 +311,7 @@ const ANDROID_ICON_BY_MATERIAL_NAME = {
   close: IconX,
   construction: IconHammer,
   content_copy: IconCopy,
+  content_paste: IconClipboard,
   desktop_windows: IconDeviceDesktop,
   edit: IconEdit,
   error: IconAlertCircle,

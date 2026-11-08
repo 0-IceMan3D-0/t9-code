@@ -24,6 +24,12 @@ class ShellSession(
   @Volatile
   private var resizing = false
 
+  /** The last window title the shell or a program set, such as bash's "root@localhost: ~/app". */
+  @Volatile
+  var title: String? = null
+    private set
+  private var titleCarry = ""
+
   init {
     thread(name = "t3-shell") {
       val reader = process.inputStream.reader()
@@ -32,6 +38,7 @@ class ShellSession(
         val count = runCatching { reader.read(buffer) }.getOrDefault(-1)
         if (count < 0) break
         val text = String(buffer, 0, count)
+        scanTitle(text)
         synchronized(history) {
           history.append(text)
           if (history.length > MAX_HISTORY) history.delete(0, history.length - MAX_HISTORY)
@@ -83,10 +90,27 @@ class ShellSession(
     return null
   }
 
+  // proot tracks each guest's folder itself, so /proc/<pid>/cwd is useless; titles are what is left.
+  private fun scanTitle(text: String) {
+    val combined = titleCarry + text
+    TITLE.findAll(combined).lastOrNull()?.let { title = it.groupValues[1] }
+    val open = combined.lastIndexOf("\u001b]")
+    titleCarry = if (open >= 0 && TITLE.find(combined, open) == null && combined.length - open < MAX_TITLE_CARRY) {
+      combined.substring(open)
+    } else {
+      ""
+    }
+  }
+
+  /** The shell's pid, once `script` has started it. proot does not hide real pids. */
+  fun shellPid() = info()?.getOrNull(0)?.toIntOrNull()
+
   private fun info() = infoFile.readTextOrNull()?.trim()?.split(" ")?.takeIf { it.size == 2 }
 
   companion object {
     private const val MAX_HISTORY = 200_000
+    private const val MAX_TITLE_CARRY = 512
+    private val TITLE = Regex("\u001b\\][012];([^\u0007\u001b]*)(?:\u0007|\u001b\\\\)")
     private const val TTY_WAIT_ATTEMPTS = 100
     private const val TTY_WAIT_MILLIS = 100L
 

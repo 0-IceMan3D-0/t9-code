@@ -39,6 +39,15 @@ export interface DevServerListener {
   readonly since: number;
 }
 
+export interface LinuxShellInfo {
+  readonly id: string;
+  /** The newest program started from the shell, or null while it waits at the prompt. */
+  readonly command: string | null;
+  /** The last window title set, such as bash's "root@localhost: ~/app". */
+  readonly title: string | null;
+  readonly busy: boolean;
+}
+
 export interface BatteryState {
   readonly optimized: boolean;
   readonly hintDismissed: boolean;
@@ -116,9 +125,17 @@ interface LocalServerNativeModule {
   submitClaudeCode(code: string): Promise<number>;
   waitForClaudeLogin(): Promise<number>;
   cancelClaudeLogin(): void;
+  /** Ids of the open Linux shells, oldest first. */
+  listShells(): ReadonlyArray<string>;
+  describeShells(): Promise<ReadonlyArray<LinuxShellInfo>>;
+  /** Starts a shell and resolves with its id. */
   openShell(cols: number, rows: number): Promise<string>;
-  writeShell(data: string): void;
-  resizeShell(cols: number, rows: number): void;
+  /** Output so far, or null when the shell has ended. */
+  shellHistory(id: string): Promise<string | null>;
+  /** Ends the shell and everything started in it. */
+  closeShell(id: string): Promise<void>;
+  writeShell(id: string, data: string): void;
+  resizeShell(id: string, cols: number, rows: number): void;
   saveToDownloads(id: string, url: string, fileName: string): Promise<string>;
   /** Git identity and SSH key state in Linux, as JSON. */
   gitStatus(): Promise<string>;
@@ -133,9 +150,12 @@ interface LocalServerNativeModule {
   addListener(event: "onStatus", listener: (status: LocalServerStatus) => void): EventSubscription;
   addListener(
     event: "onShellOutput",
-    listener: (event: { readonly data: string }) => void,
+    listener: (event: { readonly id: string; readonly data: string }) => void,
   ): EventSubscription;
-  addListener(event: "onShellExit", listener: () => void): EventSubscription;
+  addListener(
+    event: "onShellExit",
+    listener: (event: { readonly id: string }) => void,
+  ): EventSubscription;
   addListener(
     event: "onDevServers",
     listener: (event: { readonly servers: ReadonlyArray<DevServerListener> }) => void,

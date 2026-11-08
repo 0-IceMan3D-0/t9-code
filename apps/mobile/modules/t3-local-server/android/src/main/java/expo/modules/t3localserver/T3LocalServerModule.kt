@@ -37,7 +37,11 @@ class T3LocalServerModule : Module() {
   private val guest get() = GuestRuntime(context)
   private val options get() = LocalServerOptions(context)
   private var login: ClaudeLogin? = null
-  private var shell: ShellSession? = null
+  private val shellListener = object : LinuxShells.Listener {
+    override fun onOutput(id: String, data: String) = sendEvent(SHELL_OUTPUT_EVENT, mapOf("id" to id, "data" to data))
+
+    override fun onExit(id: String) = sendEvent(SHELL_EXIT_EVENT, mapOf("id" to id))
+  }
   private val statusListener: (LocalServerStatus) -> Unit = { sendEvent(STATUS_EVENT, snapshot(it)) }
   private val usbListener: () -> Unit = { sendEvent(USB_DEVICES_EVENT, mapOf("devices" to usbDevices())) }
   private val maintenanceListener: (Map<String, Any?>) -> Unit = { sendEvent(MAINTENANCE_EVENT, it) }
@@ -94,11 +98,6 @@ class T3LocalServerModule : Module() {
     return GitSetup(guest)
   }
 
-  private fun closeShell() {
-    shell?.takeIf { it.isAlive }?.close()
-    shell = null
-  }
-
   private fun usbDevices() = UsbBridge.devices().map {
     mapOf(
       "name" to it.usb.deviceName,
@@ -126,18 +125,6 @@ class T3LocalServerModule : Module() {
       runCatching { LocalServerService.start(app) }
         .onFailure { LocalServerStatusStore.publish(LocalServerStatus(LocalServerState.FAILED, "Could not start: ${it.message}")) }
     }
-  }
-
-  private fun openLinuxShell(cols: Int, rows: Int): ShellSession {
-    val infoPath = "/tmp/.t3-shell-tty"
-    guest.nameGroups()
-    return ShellSession(
-      guest.process(ShellSession.scriptCommand(cols, rows, infoPath, "bash -l")),
-      File(guest.rootfs, infoPath),
-      { tty, nextCols, nextRows -> guest.process(listOf("stty", "-F", tty, "rows", "$nextRows", "cols", "$nextCols")) },
-      { sendEvent(SHELL_OUTPUT_EVENT, mapOf("data" to it)) },
-      { sendEvent(SHELL_EXIT_EVENT, emptyMap<String, Any>()) },
-    )
   }
 
   private fun snapshot(status: LocalServerStatus = LocalServerStatusStore.resolve(context)) = mapOf(
@@ -189,6 +176,7 @@ class T3LocalServerModule : Module() {
         startOnAppOpen(it)
       }
       UsbBridge.addListener(usbListener)
+      LinuxShells.addListener(shellListener)
       DevServers.addListener(devServersListener)
       removeRetiredTermux()
     }
@@ -196,6 +184,7 @@ class T3LocalServerModule : Module() {
       LocalServerStatusStore.removeListener(statusListener)
       LinuxMaintenance.removeListener(maintenanceListener)
       UsbBridge.removeListener(usbListener)
+      LinuxShells.removeListener(shellListener)
       DevServers.removeListener(devServersListener)
     }
 
@@ -290,7 +279,7 @@ class T3LocalServerModule : Module() {
 
     AsyncFunction("restoreLinux") { uri: String, promise: Promise ->
       requireStopped()
-      closeShell()
+      LinuxShells.closeAll()
       val app = context
       runMaintenance("restore", promise) {
         LinuxBackup.restore(app, GuestRuntime(app), Uri.parse(uri), it).toString().also {
@@ -302,7 +291,7 @@ class T3LocalServerModule : Module() {
     AsyncFunction("resetLinux") {
       requireStopped()
       if (!guest.isInstalled) throw CodedException("ERR_NOT_INSTALLED", "Linux is not set up", null)
-      closeShell()
+      LinuxShells.closeAll()
       try {
         KeptFiles.moveAside(guest)
       } catch (error: Exception) {
@@ -316,7 +305,7 @@ class T3LocalServerModule : Module() {
 
     AsyncFunction("reset") {
       requireStopped()
-      closeShell()
+      LinuxShells.closeAll()
       RuntimeInstaller.removeTree(guest.root)
       LocalServerStatusStore.publish(LocalServerStatus(LocalServerState.NOT_INSTALLED))
     }
@@ -362,12 +351,20 @@ class T3LocalServerModule : Module() {
       session.finished.get(300, TimeUnit.SECONDS)
     }
 
+    Function("listShells") { LinuxShells.ids() }
+    AsyncFunction("describeShells") { LinuxShells.describe() }
     AsyncFunction("openShell") { cols: Int, rows: Int ->
-      val current = shell?.takeIf { it.isAlive } ?: openLinuxShell(cols, rows).also { shell = it }
-      current.history()
+      if (LinuxMaintenance.busy) throw CodedException("ERR_BUSY", "Wait for the backup or restore to finish", null)
+      try {
+        LinuxShells.open(context, cols, rows)
+      } catch (error: IllegalStateException) {
+        throw CodedException("ERR_TOO_MANY_SHELLS", error.message, error)
+      }
     }
-    Function("writeShell") { data: String -> shell?.write(data) }
-    Function("resizeShell") { cols: Int, rows: Int -> shell?.resize(cols, rows) }
+    AsyncFunction("shellHistory") { id: String -> LinuxShells.get(id)?.history() }
+    AsyncFunction("closeShell") { id: String -> LinuxShells.close(id) }
+    Function("writeShell") { id: String, data: String -> LinuxShells.get(id)?.write(data) }
+    Function("resizeShell") { id: String, cols: Int, rows: Int -> LinuxShells.get(id)?.resize(cols, rows) }
 
     AsyncFunction("gitStatus") { promise: Promise ->
       val setup = gitSetup()

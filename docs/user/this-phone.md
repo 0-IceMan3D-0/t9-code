@@ -15,6 +15,11 @@ Use **Sign in to Claude** after the server starts. Finish in the browser, and pa
 
 **Open Linux shell** gives a root shell in the same environment. `apt` works there. It does not need the server, but without the server Android may pause it while the app is in the background.
 
+- **Tabs**: tap **+** for up to 8 shells. Each tab shows the program running in it, or its folder. Shells keep running when you switch tabs or leave the screen. Closing a tab ends everything started in it, and asks first if a program is still running.
+- **Text size**: pinch the terminal, or use **Larger text** and **Smaller text** in the **⋮** menu. The size is shared with thread terminals.
+- **Links**: tap a web link in the output, such as `http://localhost:5173`, to open it in your browser. Long-press it for **Copy link**. Links to `0.0.0.0` open as `127.0.0.1`.
+- **Copy and paste**: long-press to select, drag the handles, then **Copy** or **Select all**. The clipboard key in the key row pastes. **Copy screen** in the **⋮** menu copies what is on screen.
+
 ## Git and GitHub
 
 **Git and GitHub** in **Settings > This phone** sets up git for Linux. The built-in server's agents run as the same root user, so they commit with this identity and push with this key.
