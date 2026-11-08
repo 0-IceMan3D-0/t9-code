@@ -216,7 +216,7 @@ export function useThreadListV2(input: {
         pendingTasks,
         workingCount: layout.workingCount,
         workingShelfExpanded: input.workingShelfExpanded,
-        workingShelfHeaderIndex: layout.workingShelfHeaderIndex,
+        workingShelfEnd: layout.workingShelfEnd,
         snoozedCount: layout.snoozedCount,
         snoozedShelfExpanded: input.snoozedShelfExpanded,
         snoozedShelfHeaderIndex: layout.snoozedShelfHeaderIndex,

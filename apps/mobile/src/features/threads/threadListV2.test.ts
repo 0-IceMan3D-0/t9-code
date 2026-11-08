@@ -1672,7 +1672,17 @@ describe("Working section beta", () => {
       "finished-early",
     ]);
     expect(layout.workingCount).toBe(1);
-    expect(layout.workingShelfHeaderIndex).toBe(4);
+    expect(layout.workingShelfEnd).toBe(0);
+
+    const expanded = build({ workingShelfExpanded: true });
+    expect(ids(expanded)).toEqual([
+      "working",
+      "pinned-working",
+      "finished-late",
+      "asks-approval",
+      "finished-early",
+    ]);
+    expect(expanded.workingShelfEnd).toBe(1);
 
     const off = build({ workingShelfEnabled: false });
     expect(ids(off)).toContain("working");
@@ -1715,10 +1725,15 @@ describe("Working section beta", () => {
     expect(ids(layout).slice(1)).toEqual(["finished-early", "finished-late", "asks-approval"]);
   });
 
-  it("places the shelf after queued tasks and before snoozed and settled threads", () => {
+  it("places the shelf above queued tasks, pinned and active threads, and snoozed and settled threads", () => {
     const layout = buildThreadListV2Items({
       threads: [
         makeThread({ id: ThreadId.make("active"), title: "active" }),
+        makeThread({
+          id: ThreadId.make("pinned"),
+          title: "pinned",
+          pinnedAt: "2026-06-01T00:00:00.000Z",
+        }),
         makeThread({ id: ThreadId.make("working"), title: "working", runtime: running }),
         makeThread({
           id: ThreadId.make("snoozed"),
@@ -1746,7 +1761,7 @@ describe("Working section beta", () => {
       pendingTasks: [makePendingTask("queued")],
       workingCount: layout.workingCount,
       workingShelfExpanded: true,
-      workingShelfHeaderIndex: layout.workingShelfHeaderIndex,
+      workingShelfEnd: layout.workingShelfEnd,
       snoozedCount: layout.snoozedCount,
       snoozedShelfExpanded: true,
       snoozedShelfHeaderIndex: layout.snoozedShelfHeaderIndex,
@@ -1762,15 +1777,18 @@ describe("Working section beta", () => {
             : item.type,
       ),
     ).toEqual([
-      "queued",
-      "active",
       "v2-working-shelf",
       "working",
+      "queued",
+      "pinned",
+      "active",
       "v2-snoozed-shelf",
       "snoozed",
       "v2-settled-shelf",
       "settled",
     ]);
+    const workingRow = items.find((item) => item.key === `v2-thread:${environmentId}:working`);
+    expect(workingRow?.type === "v2-thread" && workingRow.showTrailingDivider).toBe(false);
   });
 });
 
