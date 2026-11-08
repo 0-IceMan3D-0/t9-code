@@ -120,7 +120,7 @@ object ServerHealth {
     manager.notify(
       NOTIFICATION_ID,
       builder
-        .setSmallIcon(AppIconStyle.smallIcon(context))
+        .setSmallIcon(AppIconStyle.smallIcon(context)).addExtras(AppIconStyle.extras())
         .setColor(AppIconStyle.accent(context))
         .setContentTitle(title)
         .setContentText(text)

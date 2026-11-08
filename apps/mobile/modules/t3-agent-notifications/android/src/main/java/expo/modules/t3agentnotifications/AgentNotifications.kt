@@ -378,7 +378,7 @@ object AgentNotifications {
         }
       )
       .setDefaults(if (channel == ALERT_CHANNEL) Notification.DEFAULT_ALL else 0)
-      .setSmallIcon(AppIconStyle.smallIcon(context))
+      .setSmallIcon(AppIconStyle.smallIcon(context)).addExtras(AppIconStyle.extras())
       .setVisibility(NotificationCompat.VISIBILITY_PRIVATE)
       .setShowWhen(false)
 

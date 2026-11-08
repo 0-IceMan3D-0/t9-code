@@ -148,7 +148,7 @@ class ThreadWatchService : Service() {
       flags
     )
     return NotificationCompat.Builder(this, ThreadNotifications.CHANNEL_WATCH)
-      .setSmallIcon(AppIconStyle.smallIcon(this))
+      .setSmallIcon(AppIconStyle.smallIcon(this)).addExtras(AppIconStyle.extras())
       .setContentTitle("Staying connected for notifications")
       .setContentText("Turn this off in Settings → Notifications")
       .setOngoing(true)

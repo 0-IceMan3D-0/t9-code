@@ -219,7 +219,7 @@ class LocalServerService : Service() {
     )
     val open = openAppIntent(this)
     builder
-      .setSmallIcon(AppIconStyle.smallIcon(this))
+      .setSmallIcon(AppIconStyle.smallIcon(this)).addExtras(AppIconStyle.extras())
       .setColor(AppIconStyle.accent(this))
       .setContentTitle("Built-in server")
       .setContentText(text)

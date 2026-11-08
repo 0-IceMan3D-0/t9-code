@@ -196,7 +196,7 @@ object AutoStop {
         Notification.Builder(context)
       }
     val notification = builder
-      .setSmallIcon(AppIconStyle.smallIcon(context))
+      .setSmallIcon(AppIconStyle.smallIcon(context)).addExtras(AppIconStyle.extras())
       .setColor(AppIconStyle.accent(context))
       .setContentTitle("Built-in server stopped")
       .setContentText("You left the app and nothing was using it.")

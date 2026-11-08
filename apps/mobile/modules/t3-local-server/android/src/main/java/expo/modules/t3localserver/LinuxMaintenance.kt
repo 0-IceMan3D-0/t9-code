@@ -171,7 +171,7 @@ class MaintenanceService : Service() {
       Notification.Builder(this)
     }
     return builder
-      .setSmallIcon(AppIconStyle.smallIcon(this))
+      .setSmallIcon(AppIconStyle.smallIcon(this)).addExtras(AppIconStyle.extras())
       .setColor(AppIconStyle.accent(this))
       .setContentTitle(title)
       .setContentText(percent?.let { "$it%" } ?: "Preparing")

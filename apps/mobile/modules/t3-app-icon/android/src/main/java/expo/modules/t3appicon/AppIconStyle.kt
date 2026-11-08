@@ -9,6 +9,7 @@ import android.content.pm.ActivityInfo
 import android.content.pm.PackageManager
 import android.graphics.drawable.Icon
 import android.os.Build
+import android.os.Bundle
 import android.util.Log
 
 /**
@@ -22,6 +23,8 @@ object AppIconStyle {
   internal const val PENDING_KEY = "pending"
   private const val SPLASH_KEY = "splashTheme"
   private const val LAUNCH_THEME = "T3LaunchTheme"
+  // Notification.EXTRA_PREFER_SMALL_ICON (API 37); older versions ignore it.
+  private const val PREFER_SMALL_ICON = "android.app.preferSmallIcon"
 
   @Volatile private var cached: String? = null
 
@@ -32,6 +35,13 @@ object AppIconStyle {
   fun smallIcon(ctx: Context): Int = preset(ctx).smallIcon
 
   fun accent(ctx: Context): Int = preset(ctx).accent
+
+  /**
+   * Android 17 draws the launcher icon on notification cards, which is always the manifest's
+   * Classic icon, not the chosen alias. This asks for the small icon, which follows the preset.
+   * One UI 9 draws its own app icon and ignores it.
+   */
+  fun extras(): Bundle = Bundle().apply { putBoolean(PREFER_SMALL_ICON, true) }
 
   internal fun changed(ctx: Context, activity: Activity?) {
     cached = null
@@ -76,6 +86,7 @@ object AppIconStyle {
       runCatching {
         val builder = Notification.Builder.recoverBuilder(ctx, old)
           .setSmallIcon(Icon.createWithResource(ctx, next.smallIcon))
+          .addExtras(extras())
           .setOnlyAlertOnce(true)
         if (previous.any { it.accent == old.color }) builder.setColor(next.accent)
         old.publicVersion?.let { hidden ->
