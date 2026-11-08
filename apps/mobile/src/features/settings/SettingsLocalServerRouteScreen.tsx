@@ -94,7 +94,12 @@ function ClaudeSection() {
   };
 
   const submit = async () => {
-    await localServer?.submitClaudeCode(code.trim());
+    setError(null);
+    try {
+      await localServer?.submitClaudeCode(code.trim());
+    } catch (cause) {
+      setError(signInErrorMessage(cause));
+    }
     setCode("");
   };
 

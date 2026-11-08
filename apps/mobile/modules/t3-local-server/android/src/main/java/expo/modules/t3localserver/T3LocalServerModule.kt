@@ -351,7 +351,9 @@ class T3LocalServerModule : Module() {
     AsyncFunction("submitClaudeCode") { code: String ->
       val session = login ?: throw CodedException("ERR_NO_LOGIN", "Start the login first", null)
       session.submitCode(code)
-      session.finished.get(60, TimeUnit.SECONDS)
+      val exit = session.finished.get(60, TimeUnit.SECONDS)
+      session.failure?.let { throw CodedException("ERR_CLAUDE_LOGIN", it, null) }
+      exit
     }
 
     AsyncFunction("waitForClaudeLogin") {
