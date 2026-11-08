@@ -1,6 +1,7 @@
 package expo.modules.t3localserver
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -22,6 +23,9 @@ private const val SHELL_OUTPUT_EVENT = "onShellOutput"
 private const val SHELL_EXIT_EVENT = "onShellExit"
 private const val DOWNLOAD_PROGRESS_EVENT = "onDownloadProgress"
 private const val USB_DEVICES_EVENT = "onUsbDevices"
+private const val MAINTENANCE_EVENT = "onMaintenance"
+private const val CREATE_BACKUP_REQUEST = 7461
+private const val OPEN_BACKUP_REQUEST = 7462
 
 private var appOpenHandled = false
 
@@ -34,6 +38,42 @@ class T3LocalServerModule : Module() {
   private var shell: ShellSession? = null
   private val statusListener: (LocalServerStatus) -> Unit = { sendEvent(STATUS_EVENT, snapshot(it)) }
   private val usbListener: () -> Unit = { sendEvent(USB_DEVICES_EVENT, mapOf("devices" to usbDevices())) }
+  private val maintenanceListener: (Map<String, Any?>) -> Unit = { sendEvent(MAINTENANCE_EVENT, it) }
+  private var pendingDocument: Pair<Int, (Uri?) -> Unit>? = null
+
+  private fun pickDocument(intent: Intent, requestCode: Int, promise: Promise, then: (Uri?) -> Unit) {
+    val activity = appContext.currentActivity
+      ?: return promise.reject(CodedException("ERR_NO_ACTIVITY", "Open the app first", null))
+    pendingDocument = requestCode to then
+    try {
+      activity.startActivityForResult(intent, requestCode)
+    } catch (error: Exception) {
+      pendingDocument = null
+      promise.reject(CodedException("ERR_PICKER", "Android has no file picker for this", error))
+    }
+  }
+
+  private fun runMaintenance(operation: String, promise: Promise, work: (MaintenanceProgress) -> String) {
+    val app = context
+    try {
+      LinuxMaintenance.run(app, operation, { org.json.JSONObject(work(it)) }) { result ->
+        result.fold(
+          { promise.resolve(it.toString()) },
+          {
+            if (it is MaintenanceCancelled) promise.resolve(null)
+            else promise.reject(CodedException("ERR_MAINTENANCE", it.message ?: it.toString(), it))
+          },
+        )
+      }
+    } catch (error: IllegalStateException) {
+      promise.reject(CodedException("ERR_BUSY", error.message, error))
+    }
+  }
+
+  private fun closeShell() {
+    shell?.takeIf { it.isAlive }?.close()
+    shell = null
+  }
 
   private fun usbDevices() = UsbBridge.devices().map {
     mapOf(
@@ -98,6 +138,7 @@ class T3LocalServerModule : Module() {
     }
 
   private fun requireStopped() {
+    if (LinuxMaintenance.busy) throw CodedException("ERR_BUSY", "Wait for the backup or restore to finish", null)
     val state = LocalServerStatusStore.current?.state
     if (state == LocalServerState.RUNNING || state == LocalServerState.STARTING || state == LocalServerState.INSTALLING) {
       throw CodedException("ERR_SERVER_RUNNING", "Stop the server first", null)
@@ -106,11 +147,14 @@ class T3LocalServerModule : Module() {
 
   override fun definition() = ModuleDefinition {
     Name("T3LocalServer")
-    Events(STATUS_EVENT, SHELL_OUTPUT_EVENT, SHELL_EXIT_EVENT, DOWNLOAD_PROGRESS_EVENT, USB_DEVICES_EVENT)
+    Events(STATUS_EVENT, SHELL_OUTPUT_EVENT, SHELL_EXIT_EVENT, DOWNLOAD_PROGRESS_EVENT, USB_DEVICES_EVENT, MAINTENANCE_EVENT)
 
     OnCreate {
       LocalServerStatusStore.addListener(statusListener)
+      LinuxMaintenance.addListener(maintenanceListener)
       appContext.reactContext?.let {
+        // Finishes or undoes a restore the app was killed in the middle of.
+        if (!LinuxMaintenance.busy) runCatching { MaintenancePaths(it).recover() }
         UsbBridge.start(it)
         startOnAppOpen(it)
       }
@@ -119,13 +163,24 @@ class T3LocalServerModule : Module() {
     }
     OnDestroy {
       LocalServerStatusStore.removeListener(statusListener)
+      LinuxMaintenance.removeListener(maintenanceListener)
       UsbBridge.removeListener(usbListener)
+    }
+
+    OnActivityResult { _, payload ->
+      val (code, then) = pendingDocument ?: return@OnActivityResult
+      if (payload.requestCode != code) return@OnActivityResult
+      pendingDocument = null
+      then(payload.data?.data?.takeIf { payload.resultCode == Activity.RESULT_OK })
     }
 
     Function("getStatus") { snapshot() }
     Function("listUsbDevices") { usbDevices() }
     Function("allowUsbDevice") { name: String -> UsbBridge.requestAccess(name) }
-    Function("start") { LocalServerService.start(context) }
+    Function("start") {
+      if (LinuxMaintenance.busy) throw CodedException("ERR_BUSY", "Wait for the backup or restore to finish", null)
+      LocalServerService.start(context)
+    }
     Function("stop") { LocalServerService.stop(context) }
     Function("takePairingUrl") {
       LocalServerStatusStore.pairingUrl.also { LocalServerStatusStore.pairingUrl = null }
@@ -148,8 +203,76 @@ class T3LocalServerModule : Module() {
       }.trim()
     }
 
+    Function("getMaintenance") { LinuxMaintenance.last }
+    Function("clearMaintenance") { LinuxMaintenance.clear() }
+    Function("cancelMaintenance") { LinuxMaintenance.cancel() }
+
+    AsyncFunction("backupLinux") { destination: String, promise: Promise ->
+      requireStopped()
+      val app = context
+      val fileName = LinuxBackup.fileName()
+      val begin = { sink: BackupSink ->
+        runMaintenance("backup", promise) { LinuxBackup.backup(app, GuestRuntime(app), sink, it).toString() }
+      }
+      if (destination == "downloads") {
+        begin(DownloadsSink(app, fileName))
+      } else {
+        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT)
+          .addCategory(Intent.CATEGORY_OPENABLE)
+          .setType("application/gzip")
+          .putExtra(Intent.EXTRA_TITLE, fileName)
+        pickDocument(intent, CREATE_BACKUP_REQUEST, promise) { uri ->
+          if (uri == null) promise.resolve(null) else begin(DocumentSink(app, uri))
+        }
+      }
+    }
+
+    AsyncFunction("pickBackup") { promise: Promise ->
+      val app = context
+      val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("*/*")
+      pickDocument(intent, OPEN_BACKUP_REQUEST, promise) { uri ->
+        if (uri == null) {
+          promise.resolve(null)
+        } else {
+          thread(name = "t3-read-backup") {
+            runCatching { LinuxBackup.readManifest(app, uri).put("uri", uri.toString()).toString() }.fold(
+              { promise.resolve(it) },
+              { promise.reject(CodedException("ERR_BACKUP", it.message ?: it.toString(), it)) },
+            )
+          }
+        }
+      }
+    }
+
+    AsyncFunction("restoreLinux") { uri: String, promise: Promise ->
+      requireStopped()
+      closeShell()
+      val app = context
+      runMaintenance("restore", promise) {
+        LinuxBackup.restore(app, GuestRuntime(app), Uri.parse(uri), it).toString().also {
+          LocalServerStatusStore.publish(LocalServerStatus(LocalServerState.STOPPED))
+        }
+      }
+    }
+
+    AsyncFunction("resetLinux") {
+      requireStopped()
+      if (!guest.isInstalled) throw CodedException("ERR_NOT_INSTALLED", "Linux is not set up", null)
+      closeShell()
+      try {
+        KeptFiles.moveAside(guest)
+      } catch (error: Exception) {
+        KeptFiles.restore(guest)
+        throw error
+      }
+      File(guest.root, GuestRuntime.INSTALLED_MARKER).delete()
+      RuntimeInstaller.removeTree(guest.rootfs)
+      LocalServerService.start(context)
+    }
+
     AsyncFunction("reset") {
       requireStopped()
+      closeShell()
       RuntimeInstaller.removeTree(guest.root)
       LocalServerStatusStore.publish(LocalServerStatus(LocalServerState.NOT_INSTALLED))
     }

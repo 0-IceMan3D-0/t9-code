@@ -165,13 +165,7 @@ class LocalServerService : Service() {
       Intent(this, LocalServerService::class.java).setAction(ACTION_STOP),
       flags,
     )
-    // The launcher alias is disabled when the app icon changes; target the activity behind it.
-    val open = packageManager.getLaunchIntentForPackage(packageName)?.let { intent ->
-      intent.resolveActivityInfo(packageManager, 0)?.let {
-        intent.setClassName(packageName, it.targetActivity ?: it.name)
-      }
-      PendingIntent.getActivity(this, 0, intent, flags)
-    }
+    val open = openAppIntent(this)
     return builder
       .setSmallIcon(applicationInfo.icon)
       .setContentTitle("Built-in server")
@@ -205,6 +199,17 @@ class LocalServerService : Service() {
       "$PORT",
       "--no-browser",
     )
+
+    // The launcher alias is disabled when the app icon changes; target the activity behind it.
+    fun openAppIntent(context: Context): PendingIntent? {
+      val packageManager = context.packageManager
+      return packageManager.getLaunchIntentForPackage(context.packageName)?.let { intent ->
+        intent.resolveActivityInfo(packageManager, 0)?.let {
+          intent.setClassName(context.packageName, it.targetActivity ?: it.name)
+        }
+        PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
+      }
+    }
 
     fun start(context: Context) = send(context, ACTION_START)
 

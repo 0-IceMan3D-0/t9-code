@@ -2,12 +2,10 @@ package expo.modules.t3localserver
 
 import android.system.Os
 import java.io.BufferedInputStream
-import java.io.EOFException
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
-import java.io.InputStream
 import java.util.zip.GZIPInputStream
 
 private val ROOTFS = PinnedDownload(
@@ -70,6 +68,8 @@ class RuntimeInstaller(
     val code = process.waitFor()
     if (code != 0) throw IOException("Setup failed with exit code $code. See the install log.")
     downloads.listFiles()?.forEach { it.delete() }
+    report("Restoring kept files", 0.97)
+    KeptFiles.restore(guest)
     File(guest.root, GuestRuntime.INSTALLED_MARKER).writeText(GuestRuntime.RUNTIME_VERSION)
   }
 
@@ -83,143 +83,50 @@ class RuntimeInstaller(
 
   private fun extract(archive: File, destination: File, stripComponents: Int) {
     GZIPInputStream(BufferedInputStream(FileInputStream(archive), 1 shl 16)).use { input ->
-      val header = ByteArray(512)
-      var longName: String? = null
-      var longLink: String? = null
-      var paxPath: String? = null
+      val reader = TarReader(input)
       while (true) {
-        if (!input.readBlock(header) || header.all { it == 0.toByte() }) return
-        val size = header.octal(124, 12)
-        val type = header[156].toInt().toChar()
-        when (type) {
-          'L' -> {
-            longName = input.readText(size)
-            continue
-          }
-          'K' -> {
-            longLink = input.readText(size)
-            continue
-          }
-          'x' -> {
-            paxPath = Regex("""\d+ path=(.*)\n""").find(input.readText(size))?.groupValues?.get(1)
-            continue
-          }
-          'g' -> {
-            input.readText(size)
-            continue
-          }
-        }
-        val prefix = if (header.string(257, 5) == "ustar") header.string(345, 155) else ""
-        val rawName = paxPath ?: longName ?: listOf(prefix, header.string(0, 100))
-          .filter { it.isNotEmpty() }
-          .joinToString("/")
-        val link = longLink ?: header.string(157, 100)
-        paxPath = null
-        longName = null
-        longLink = null
-        val relative = rawName.removePrefix("./").split('/').drop(stripComponents).joinToString("/")
-        val mode = header.octal(100, 8).toInt()
+        val entry = reader.next() ?: return
+        val relative = entry.name.removePrefix("./").split('/').drop(stripComponents).joinToString("/")
+        if (relative.isEmpty() || relative.split('/').contains("..")) continue
         val target = File(destination, relative.trimEnd('/'))
-        if (relative.isEmpty() || relative.split('/').contains("..")) {
-          input.skipBlocks(size)
-          continue
-        }
         target.parentFile?.mkdirs()
-        when (type) {
-          '5' -> {
+        when {
+          entry.isDirectory -> {
             target.mkdirs()
-            Os.chmod(target.path, mode or 0b111_000_000)
+            Os.chmod(target.path, entry.mode or 0b111_000_000)
           }
-          '2' -> {
+          entry.isSymlink -> {
             target.delete()
-            Os.symlink(link, target.path)
+            Os.symlink(entry.link, target.path)
           }
-          '1' -> {
-            val source = File(destination, link.removePrefix("./").split('/').drop(stripComponents).joinToString("/"))
+          entry.isHardLink -> {
+            val source = File(destination, entry.link.removePrefix("./").split('/').drop(stripComponents).joinToString("/"))
             target.delete()
             source.copyTo(target)
-            Os.chmod(target.path, mode or 0b110_000_000)
+            Os.chmod(target.path, entry.mode or 0b110_000_000)
           }
-          '0', '\u0000', '7' -> {
+          entry.isFile -> {
             target.delete()
-            FileOutputStream(target).use { output -> input.copyExactly(output, size) }
-            input.skipPadding(size)
-            Os.chmod(target.path, mode or 0b110_000_000)
+            FileOutputStream(target).use { reader.copyTo(it) }
+            Os.chmod(target.path, entry.mode or 0b110_000_000)
           }
-          else -> input.skipBlocks(size)
         }
       }
     }
   }
 
   companion object {
-    // toybox rm, because Kotlin's recursive delete follows the rootfs's symlinks out of it.
+    // toybox rm, because Kotlin's recursive delete follows the rootfs's symlinks out of it. Only
+    // directories get chmod: chmod -R follows symlinks, and link2symlink's absolute links would let
+    // it change files in another environment or in shared storage.
     fun removeTree(directory: File) {
       if (!directory.exists()) return
-      ProcessBuilder("/system/bin/sh", "-c", "chmod -R u+rwx \"$1\" 2>/dev/null; rm -rf \"$1\"", "sh", directory.path)
+      val script = "find \"$1\" -type d -exec chmod u+rwx {} + 2>/dev/null; rm -rf \"$1\""
+      ProcessBuilder("/system/bin/sh", "-c", script, "sh", directory.path)
         .redirectErrorStream(true)
         .start()
         .apply { inputStream.readBytes() }
         .waitFor()
     }
   }
-}
-
-private fun ByteArray.string(offset: Int, length: Int): String {
-  var end = offset
-  while (end < offset + length && this[end] != 0.toByte()) end += 1
-  return String(this, offset, end - offset, Charsets.UTF_8)
-}
-
-private fun ByteArray.octal(offset: Int, length: Int): Long =
-  string(offset, length).trim().ifEmpty { "0" }.toLong(8)
-
-private fun InputStream.readBlock(block: ByteArray): Boolean {
-  var read = 0
-  while (read < block.size) {
-    val count = read(block, read, block.size - read)
-    if (count < 0) return false
-    read += count
-  }
-  return true
-}
-
-private fun InputStream.copyExactly(output: FileOutputStream, size: Long) {
-  val buffer = ByteArray(1 shl 16)
-  var left = size
-  while (left > 0) {
-    val count = read(buffer, 0, minOf(buffer.size.toLong(), left).toInt())
-    if (count < 0) throw EOFException("Truncated archive")
-    output.write(buffer, 0, count)
-    left -= count
-  }
-}
-
-private fun InputStream.skipExactly(size: Long) {
-  val buffer = ByteArray(1 shl 14)
-  var left = size
-  while (left > 0) {
-    val count = read(buffer, 0, minOf(buffer.size.toLong(), left).toInt())
-    if (count < 0) throw EOFException("Truncated archive")
-    left -= count
-  }
-}
-
-private fun InputStream.skipPadding(size: Long) = skipExactly((512 - size % 512) % 512)
-
-private fun InputStream.skipBlocks(size: Long) {
-  skipExactly(size)
-  skipPadding(size)
-}
-
-private fun InputStream.readText(size: Long): String {
-  val bytes = ByteArray(size.toInt())
-  var read = 0
-  while (read < bytes.size) {
-    val count = read(bytes, read, bytes.size - read)
-    if (count < 0) throw EOFException("Truncated archive")
-    read += count
-  }
-  skipPadding(size)
-  return String(bytes, Charsets.UTF_8).trimEnd('\u0000')
 }

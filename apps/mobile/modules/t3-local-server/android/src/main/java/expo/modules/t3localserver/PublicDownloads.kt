@@ -13,13 +13,14 @@ import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 
-private const val FOLDER = "T3² code"
 private const val PROGRESS_STEP_BYTES = 1L shl 20
 private const val MAX_NAME_ATTEMPTS = 50
 
 /** MediaStore needs no storage permission for an app's own Downloads, and it uniquifies the name. */
 @RequiresApi(Build.VERSION_CODES.Q)
 object PublicDownloads {
+  const val FOLDER = "T3² code"
+
   fun save(
     context: Context,
     url: String,
@@ -53,7 +54,7 @@ object PublicDownloads {
 
   // MediaStore uniquifies against files on disk, so a row left by a file deleted behind its back
   // makes the insert fail for that name.
-  private fun insert(context: Context, fileName: String): Uri {
+  fun insert(context: Context, fileName: String): Uri {
     repeat(MAX_NAME_ATTEMPTS) { attempt ->
       val values = ContentValues().apply {
         put(MediaStore.Downloads.DISPLAY_NAME, numberedName(fileName, attempt))

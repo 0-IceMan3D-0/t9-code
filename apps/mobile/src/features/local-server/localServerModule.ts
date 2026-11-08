@@ -32,6 +32,17 @@ export interface BatteryState {
   readonly hintDismissed: boolean;
 }
 
+export interface MaintenanceSnapshot {
+  readonly operation: "backup" | "restore";
+  readonly state: "running" | "done" | "failed" | "cancelled";
+  readonly done: number;
+  readonly total: number;
+  readonly detail: string;
+  readonly message: string | null;
+  /** Size of the saved backup file, once a backup is done. */
+  readonly fileBytes: number;
+}
+
 interface LocalServerNativeModule {
   getStatus(): LocalServerStatus;
   listUsbDevices(): ReadonlyArray<UsbDevice>;
@@ -47,6 +58,15 @@ interface LocalServerNativeModule {
   dismissBatteryHint(): void;
   readLog(): Promise<string>;
   reset(): Promise<void>;
+  getMaintenance(): MaintenanceSnapshot | null;
+  clearMaintenance(): void;
+  cancelMaintenance(): void;
+  /** Resolves with the result as JSON, or null when the picker or the backup was cancelled. */
+  backupLinux(destination: "downloads" | "choose"): Promise<string | null>;
+  /** Resolves with the chosen backup's manifest as JSON, or null when nothing was picked. */
+  pickBackup(): Promise<string | null>;
+  restoreLinux(uri: string): Promise<string | null>;
+  resetLinux(): Promise<void>;
   requestStorageAccess(): Promise<unknown>;
   claudeLoggedIn(): Promise<boolean>;
   startClaudeLogin(): Promise<string>;
@@ -63,6 +83,10 @@ interface LocalServerNativeModule {
     listener: (event: { readonly data: string }) => void,
   ): EventSubscription;
   addListener(event: "onShellExit", listener: () => void): EventSubscription;
+  addListener(
+    event: "onMaintenance",
+    listener: (snapshot: MaintenanceSnapshot) => void,
+  ): EventSubscription;
   addListener(
     event: "onUsbDevices",
     listener: (event: { readonly devices: ReadonlyArray<UsbDevice> }) => void,

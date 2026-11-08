@@ -13,5 +13,13 @@
         android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
         android:value="Runs the user's local coding agent server" />
     </service>
+    <service
+      android:name="expo.modules.t3localserver.MaintenanceService"
+      android:exported="false"
+      android:foregroundServiceType="specialUse">
+      <property
+        android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+        android:value="Backs up or restores the user's local Linux environment" />
+    </service>
   </application>
 </manifest>

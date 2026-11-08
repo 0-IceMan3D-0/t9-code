@@ -5,10 +5,10 @@ import { Linking, ScrollView, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText as Text } from "../../components/ui/AppText";
-import * as Dialog from "../../components/ui/Dialog";
 import { ListActionRow as SettingsActionRow } from "../../components/ui/ListActionRow";
 import { useConnectionController } from "../connection/useConnectionController";
 import { offerBatteryExemption } from "../local-server/batteryOptimization";
+import { confirmDeleteEnvironment, useLinuxMaintenance } from "../local-server/linuxMaintenance";
 import {
   localServer,
   refreshLocalServerStatus,
@@ -24,6 +24,7 @@ import { SettingsScreen } from "./components/SettingsScreen";
 import { SettingsSection } from "./components/SettingsSection";
 import { SettingsSwitchRow } from "./components/SettingsSwitchRow";
 import { LocalServerBatterySection } from "./LocalServerBatterySection";
+import { LocalServerMaintenanceRows } from "./LocalServerMaintenanceRows";
 
 const STATE_LABELS: Record<LocalServerStatus["state"], string> = {
   notInstalled: "Not set up",
@@ -182,6 +183,7 @@ export function SettingsLocalServerRouteScreen() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const status = useLocalServerStatus();
+  const maintenance = useLinuxMaintenance();
   const connection = useLocalConnection(status?.port);
   const { removeEnvironment } = useConnectionController();
   const [log, setLog] = useState<string | null>(null);
@@ -202,6 +204,7 @@ export function SettingsLocalServerRouteScreen() {
   if (!server || !status) return null;
 
   const busy = state === "installing" || state === "starting";
+  const maintaining = maintenance?.state === "running";
   const running = state === "running";
 
   const setOption = (write: () => void) => {
@@ -214,19 +217,12 @@ export function SettingsLocalServerRouteScreen() {
     setOption(() => server.setSharedStorage(value));
   };
 
-  const reset = () => {
-    Dialog.confirm({
-      title: "Delete environment?",
-      message: "This deletes Linux, Claude Code's sign-in, and every project in private storage.",
-      confirmText: "Delete",
-      destructive: true,
-      onConfirm: () => {
-        void server.reset().then(() => {
-          if (connection) void removeEnvironment(connection.environmentId);
-        });
-      },
+  const reset = () =>
+    void confirmDeleteEnvironment(() => {
+      void server.reset().then(() => {
+        if (connection) void removeEnvironment(connection.environmentId);
+      });
     });
-  };
 
   return (
     <SettingsScreen title="This phone">
@@ -264,6 +260,7 @@ export function SettingsLocalServerRouteScreen() {
             <SettingsActionRow
               icon="arrow.clockwise"
               label={state === "notInstalled" ? "Set up (about 500 MB download)" : "Start"}
+              disabled={maintaining}
               onPress={() => {
                 server.start();
                 offerBatteryExemption();
@@ -279,6 +276,7 @@ export function SettingsLocalServerRouteScreen() {
             <SettingsActionRow
               icon="terminal"
               label="Open Linux shell"
+              disabled={maintaining}
               onPress={() => navigation.navigate("LinuxShell")}
             />
           </SettingsSection>
@@ -303,7 +301,11 @@ export function SettingsLocalServerRouteScreen() {
 
         <LocalServerBatterySection />
 
-        <SettingsSection title="Maintenance">
+        <SettingsSection
+          title="Maintenance"
+          footer="Backups hold Claude Code's sign-in and SSH keys, so keep them private. Projects in the shared folder are not included."
+        >
+          <LocalServerMaintenanceRows state={status.state} />
           {log !== null ? (
             <Text selectable className="p-4 text-xs text-foreground-muted">
               {log || "No log yet."}
@@ -318,7 +320,7 @@ export function SettingsLocalServerRouteScreen() {
             icon="trash"
             label="Delete environment"
             tone="danger"
-            disabled={running || busy || state === "notInstalled"}
+            disabled={running || busy || maintaining || state === "notInstalled"}
             onPress={reset}
           />
         </SettingsSection>
