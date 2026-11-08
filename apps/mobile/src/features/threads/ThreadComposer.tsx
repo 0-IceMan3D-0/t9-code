@@ -73,6 +73,7 @@ import { scopeProjectRef } from "@t3tools/client-runtime/environment";
 
 import { AppText as Text } from "../../components/ui/AppText";
 import { ComposerAttachmentButton } from "./ComposerAttachmentButton";
+import { ContextWindowMeterButton } from "./ContextWindowMeter";
 import {
   ComposerAttachmentStrip,
   ComposerAttachmentThumbnail,
@@ -1093,6 +1094,13 @@ export const ThreadComposer = function ThreadComposer(props: ThreadComposerProps
                   compactEditor.isExpanded ? { flex: 1, justifyContent: "flex-end" } : undefined
                 }
               >
+                {props.isDraft ? null : (
+                  <ContextWindowMeterButton
+                    environmentId={props.environmentId}
+                    threadId={props.selectedThread.id}
+                    size={usesLargeControls ? "large" : "regular"}
+                  />
+                )}
                 {modelControl}
                 <ComposerDictationStartAction
                   size={usesLargeControls ? "large" : "regular"}

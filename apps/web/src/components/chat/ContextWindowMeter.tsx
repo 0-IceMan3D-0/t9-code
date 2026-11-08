@@ -1,6 +1,8 @@
 import { Button } from "../ui/button";
-import type { ContextWindowSnapshot } from "@t3tools/client-runtime/state/context-window";
-import { formatContextWindowTokens } from "~/lib/contextWindow";
+import {
+  formatContextWindowTokens,
+  type ContextWindowSnapshot,
+} from "@t3tools/client-runtime/state/context-window";
 import { Popover, PopoverPopup, PopoverTrigger } from "../ui/popover";
 import {
   formatContextWindowCompactionMessage,

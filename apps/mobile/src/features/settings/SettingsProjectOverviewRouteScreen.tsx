@@ -44,6 +44,7 @@ import { leaveSettingsPage } from "./settings-navigation";
 import { workspaceHasColumns } from "../layout/workspace/workspace-selection-store";
 import { DEFAULT_SETTINGS_PAGE } from "../layout/workspace/workspace-tab-navigation";
 import { readUnloadedThreadCount } from "../../state/olderSettledShelf";
+import { ProjectUsageSection } from "../usage/ThreadsUsageView";
 
 export function SettingsProjectOverviewRouteScreen() {
   const environmentMenu = useSettingsEnvironmentMenu();
@@ -343,6 +344,8 @@ function ProjectOverviewContent(props: {
           </View>
         </View>
       </SettingsSection>
+
+      <ProjectUsageSection members={props.members} />
 
       {canOrganize ? (
         <SettingsSection title="Organize">

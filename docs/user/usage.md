@@ -61,6 +61,23 @@ saved totals first, then updates them when Cursor's API responds.
 If recent work is missing or a new model shows no cost, refresh to rescan session history and
 update model pricing.
 
+## Thread and project usage on mobile
+
+On mobile, **Usage → Threads** shows the tokens your T3 threads used on every connected
+environment: today's total and top project, totals, and splits by project, model, and thread.
+Choose **Today**, **7d**, **30d**, or **All**. Input counts uncached input, cache reads, and cache
+writes; output includes reasoning. Only turns whose provider reports per-turn usage count, so
+threads without it show **No usage recorded**. Threads the app has not loaded, such as older
+settled ones, are left out until you open them.
+
+Cost here is an estimate from the rates each server's **Cost** totals imply, marked with `≈`.
+It needs the server's usage scan, so environments that cannot report usage show **Not priced**.
+When a provider reports a thread's cost itself, the thread shows that figure instead.
+
+To see one thread, long-press it in the thread list and choose **Usage**, or tap the context meter
+beside the composer. A project's totals and its threads by tokens are on **Settings → Projects**
+when you choose the project.
+
 ## Set custom model prices
 
 On web or desktop, open the environment dropdown on **Usage**, then choose **Model prices** to add,

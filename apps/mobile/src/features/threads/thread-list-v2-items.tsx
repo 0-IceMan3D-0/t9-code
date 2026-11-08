@@ -1,3 +1,4 @@
+import { useNavigation } from "@react-navigation/native";
 import * as Dialog from "../../components/ui/Dialog";
 import type { ThreadRowProviderInstance } from "./thread-provider-instance";
 import {
@@ -773,6 +774,7 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
     [prBadgeLabel, showsWoke],
   );
 
+  const navigation = useNavigation();
   const handleDelete = useCallback(() => onDeleteThread(thread), [onDeleteThread, thread]);
   const handleRename = useCallback(() => onRenameThread(thread), [onRenameThread, thread]);
   const canOperateThread = useEnvironmentScope(thread.environmentId, AuthOrchestrationOperateScope);
@@ -945,6 +947,7 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
         : []),
       { id: "copy-thread", title: "Copy thread", image: "text.bubble" },
       { id: "copy-thread-id", title: "Copy thread ID", image: "doc.on.doc" },
+      { id: "usage", title: "Usage", image: "chart.bar.xaxis" },
     ];
     if (snoozedRow) {
       return layoutThreadListV2RowMenuActions({
@@ -1057,6 +1060,12 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
       if (nativeEvent.event === "copy-thread-id") {
         copyTextWithHaptic(thread.id, { target: "thread-id" });
       }
+      if (nativeEvent.event === "usage") {
+        navigation.navigate("ThreadUsage", {
+          environmentId: thread.environmentId,
+          threadId: thread.id,
+        });
+      }
       if (nativeEvent.event === "delete") handleDelete();
       if (nativeEvent.event === "snooze:custom") {
         setCustomSnoozeOpen(true);
@@ -1079,6 +1088,7 @@ export const ThreadListV2Row = memo(function ThreadListV2Row(props: {
     },
     [
       onNewThreadOnBranch,
+      navigation,
       thread,
       handleArchive,
       handleDelete,

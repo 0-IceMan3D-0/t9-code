@@ -286,6 +286,11 @@ window indicator (legacy)** to see context usage. The meter is off by default
 and appears once the provider reports usage. Open it for usage details and
 **Compact context** when the provider supports compaction.
 
+On mobile, a ring beside the send button shows context usage once the provider reports it. It
+turns amber, then red, as the conversation nears automatic compaction, or the full window when
+the provider doesn't compact. Tap it for the counts, when compaction happens, the last turn's
+input, cached, and output tokens, and the thread's [usage](./usage.md#thread-and-project-usage-on-mobile).
+
 Claude instances can also compact idle threads for you. See
 [compact long conversations](./providers-claude.md#compact-long-conversations).
 

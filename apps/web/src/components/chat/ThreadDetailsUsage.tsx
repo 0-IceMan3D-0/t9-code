@@ -16,8 +16,10 @@ import type { ReactNode } from "react";
 
 import { usePrimarySettings } from "../../hooks/useSettings";
 import { useNowMinute } from "../../hooks/useNowMinute";
-import type { ContextWindowSnapshot } from "@t3tools/client-runtime/state/context-window";
-import { formatContextWindowTokens } from "../../lib/contextWindow";
+import {
+  formatContextWindowTokens,
+  type ContextWindowSnapshot,
+} from "@t3tools/client-runtime/state/context-window";
 import { cn } from "../../lib/utils";
 import { formatUpcomingTimestamp } from "../../timestampFormat";
 import { Tooltip, TooltipPopup, TooltipTrigger } from "../ui/tooltip";
