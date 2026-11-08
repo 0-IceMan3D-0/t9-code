@@ -25,6 +25,7 @@ private const val DOWNLOAD_PROGRESS_EVENT = "onDownloadProgress"
 private const val USB_DEVICES_EVENT = "onUsbDevices"
 private const val MAINTENANCE_EVENT = "onMaintenance"
 private const val DEV_SERVERS_EVENT = "onDevServers"
+private const val GIT_SETUP_EVENT = "onGitSetup"
 private const val CREATE_BACKUP_REQUEST = 7461
 private const val OPEN_BACKUP_REQUEST = 7462
 
@@ -72,6 +73,25 @@ class T3LocalServerModule : Module() {
     } catch (error: IllegalStateException) {
       promise.reject(CodedException("ERR_BUSY", error.message, error))
     }
+  }
+
+  /** Runs slow guest work off the module's queue, so the shell and other calls stay responsive. */
+  private fun inBackground(name: String, promise: Promise, work: () -> Any?) {
+    thread(name = name) {
+      runCatching(work).fold(
+        { promise.resolve(it.takeUnless { value -> value is Unit }) },
+        {
+          val code = if (it is GitSetup.KeyExists) "ERR_KEY_EXISTS" else "ERR_GIT_SETUP"
+          promise.reject(CodedException(code, it.message ?: it.toString(), it))
+        },
+      )
+    }
+  }
+
+  private fun gitSetup(): GitSetup {
+    if (!guest.isInstalled) throw CodedException("ERR_NOT_INSTALLED", "Linux is not set up", null)
+    if (LinuxMaintenance.busy) throw CodedException("ERR_BUSY", "Wait for the backup or restore to finish", null)
+    return GitSetup(guest)
   }
 
   private fun closeShell() {
@@ -155,6 +175,7 @@ class T3LocalServerModule : Module() {
       USB_DEVICES_EVENT,
       MAINTENANCE_EVENT,
       DEV_SERVERS_EVENT,
+      GIT_SETUP_EVENT,
     )
 
     OnCreate {
@@ -347,6 +368,37 @@ class T3LocalServerModule : Module() {
     }
     Function("writeShell") { data: String -> shell?.write(data) }
     Function("resizeShell") { cols: Int, rows: Int -> shell?.resize(cols, rows) }
+
+    AsyncFunction("gitStatus") { promise: Promise ->
+      val setup = gitSetup()
+      inBackground("t3-git-status", promise) { setup.status().toString() }
+    }
+    AsyncFunction("setGitIdentity") { name: String, email: String, promise: Promise ->
+      val setup = gitSetup()
+      inBackground("t3-git-identity", promise) { setup.setIdentity(name, email) }
+    }
+    AsyncFunction("installGitTools") { promise: Promise ->
+      val setup = gitSetup()
+      inBackground("t3-git-install", promise) {
+        val result = setup.installTools { stage, percent, detail ->
+          sendEvent(GIT_SETUP_EVENT, mapOf("stage" to stage, "percent" to percent, "detail" to detail))
+        }
+        if (result.exitCode != 0) {
+          throw IllegalStateException(result.output.lines().takeLast(6).joinToString("\n").ifBlank { "apt-get failed" })
+        }
+      }
+    }
+    AsyncFunction("createSshKey") { overwrite: Boolean, promise: Promise ->
+      val setup = gitSetup()
+      inBackground("t3-ssh-keygen", promise) { setup.createKey(overwrite) }
+    }
+    AsyncFunction("deleteSshKey") { gitSetup().deleteKey() }
+    AsyncFunction("testGitHub") { promise: Promise ->
+      val setup = gitSetup()
+      inBackground("t3-ssh-test", promise) {
+        setup.testGitHub().let { org.json.JSONObject().put("exitCode", it.exitCode).put("output", it.output).toString() }
+      }
+    }
 
     AsyncFunction("saveToDownloads") { id: String, url: String, fileName: String, promise: Promise ->
       if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {

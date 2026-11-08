@@ -25,6 +25,7 @@ import { SettingsSection } from "./components/SettingsSection";
 import { SettingsSwitchRow } from "./components/SettingsSwitchRow";
 import { LocalServerBatterySection } from "./LocalServerBatterySection";
 import { LocalServerDevServersSection } from "./LocalServerDevServersSection";
+import { LocalServerGitSection } from "./LocalServerGitSection";
 import { LocalServerHealthSection } from "./LocalServerHealthSection";
 import { LocalServerMaintenanceRows } from "./LocalServerMaintenanceRows";
 
@@ -230,6 +231,7 @@ export function SettingsLocalServerRouteScreen() {
     <SettingsScreen title="This phone">
       <ScrollView
         contentInsetAdjustmentBehavior="automatic"
+        keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         className="flex-1"
         contentContainerClassName="gap-6 px-5 pt-4"
@@ -282,6 +284,10 @@ export function SettingsLocalServerRouteScreen() {
               onPress={() => navigation.navigate("LinuxShell")}
             />
           </SettingsSection>
+        )}
+
+        {state === "notInstalled" || state === "installing" || maintaining ? null : (
+          <LocalServerGitSection />
         )}
 
         {state === "notInstalled" || state === "installing" ? null : (

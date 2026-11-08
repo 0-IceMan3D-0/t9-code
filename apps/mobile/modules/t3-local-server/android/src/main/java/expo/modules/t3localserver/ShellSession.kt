@@ -48,9 +48,7 @@ class ShellSession(
 
   /** Android's destroyForcibly sends only SIGTERM, which proot ignores. */
   fun close() {
-    val pid = PID.find(process.toString())?.groupValues?.get(1)?.toIntOrNull()
-      ?: runCatching { process.javaClass.getDeclaredField("pid").apply { isAccessible = true }.getInt(process) }.getOrNull()
-    if (pid != null) ProcessTree.kill(pid) else process.destroyForcibly()
+    ProcessTree.killProcess(process)
     process.waitFor(5, TimeUnit.SECONDS)
   }
 
@@ -89,8 +87,6 @@ class ShellSession(
 
   companion object {
     private const val MAX_HISTORY = 200_000
-    // Android's process class prints itself as "Process[pid=1234, ...]" and has no pid() before API 33.
-    private val PID = Regex("""pid=(\d+)""")
     private const val TTY_WAIT_ATTEMPTS = 100
     private const val TTY_WAIT_MILLIS = 100L
 

@@ -15,6 +15,20 @@ Use **Sign in to Claude** after the server starts. Finish in the browser, and pa
 
 **Open Linux shell** gives a root shell in the same environment. `apt` works there. It does not need the server, but without the server Android may pause it while the app is in the background.
 
+## Git and GitHub
+
+**Git and GitHub** in **Settings > This phone** sets up git for Linux. The built-in server's agents run as the same root user, so they commit with this identity and push with this key.
+
+1. If git or SSH is missing, tap **Install git and SSH**.
+2. Type a name and email for your commits and tap **Save identity**. Clear both and save to remove them.
+3. Tap **Create SSH key**. This makes an ed25519 key at `/root/.ssh/id_ed25519` with no passphrase, so agents can use it without asking.
+4. Tap **Copy public key**, then **Add to GitHub**, and paste the key on GitHub's **New SSH key** page.
+5. Tap **Test connection**. "Connected to GitHub" means the key works. If GitHub says it does not know the key, it was not added yet.
+
+GitHub's host keys are added to `/root/.ssh/known_hosts` for you, so the first connection does not ask whether to trust GitHub. The private key never leaves Linux, but backups of Linux include it, so keep them private. **Replace key** and **Delete key** ask before removing the old key; remove it from GitHub too.
+
+To use the GitHub CLI instead, run `apt install gh`, then `gh auth login` in the Linux shell.
+
 ## Quick Settings tile
 
 Add the **T3² server** tile from the Quick Settings edit screen (pull down the shade twice, then the pencil). It shows whether the built-in server is running, starting or stopped. Tap it to start or stop the server without opening the app. Long-press it to open **Settings > This phone**. Before Linux is set up, tapping it opens This phone.

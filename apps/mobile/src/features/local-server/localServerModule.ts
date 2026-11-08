@@ -120,6 +120,16 @@ interface LocalServerNativeModule {
   writeShell(data: string): void;
   resizeShell(cols: number, rows: number): void;
   saveToDownloads(id: string, url: string, fileName: string): Promise<string>;
+  /** Git identity and SSH key state in Linux, as JSON. */
+  gitStatus(): Promise<string>;
+  /** An empty value removes that setting. */
+  setGitIdentity(name: string, email: string): Promise<void>;
+  installGitTools(): Promise<void>;
+  /** Rejects with ERR_KEY_EXISTS unless `overwrite` is set. */
+  createSshKey(overwrite: boolean): Promise<void>;
+  deleteSshKey(): Promise<void>;
+  /** `ssh -T git@github.com`, as JSON with exitCode and output. */
+  testGitHub(): Promise<string>;
   addListener(event: "onStatus", listener: (status: LocalServerStatus) => void): EventSubscription;
   addListener(
     event: "onShellOutput",
@@ -137,6 +147,14 @@ interface LocalServerNativeModule {
   addListener(
     event: "onUsbDevices",
     listener: (event: { readonly devices: ReadonlyArray<UsbDevice> }) => void,
+  ): EventSubscription;
+  addListener(
+    event: "onGitSetup",
+    listener: (event: {
+      readonly stage: "update" | "install";
+      readonly percent: number;
+      readonly detail: string;
+    }) => void,
   ): EventSubscription;
   addListener(
     event: "onDownloadProgress",

@@ -61,6 +61,19 @@ object ProcessTree {
     return below(entries, entries.filter { isProot(it.pid) })
   }
 
+  // Android's process class prints itself as "Process[pid=1234, ...]" and has no pid() before API 33.
+  private val PID = Regex("""pid=(\d+)""")
+
+  fun pidOf(process: java.lang.Process): Int? =
+    PID.find(process.toString())?.groupValues?.get(1)?.toIntOrNull()
+      ?: runCatching { process.javaClass.getDeclaredField("pid").apply { isAccessible = true }.getInt(process) }.getOrNull()
+
+  /** Kills a process this app started through proot, with everything under it. */
+  fun killProcess(process: java.lang.Process) {
+    val pid = pidOf(process)
+    if (pid != null) kill(pid) else process.destroyForcibly()
+  }
+
   /**
    * SIGKILLs a proot and all its guests, guests first. proot ignores SIGTERM, and once it dies its
    * guests would keep running untraced, outside the rootfs.
