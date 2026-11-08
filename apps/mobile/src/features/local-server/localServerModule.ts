@@ -43,6 +43,26 @@ export interface MaintenanceSnapshot {
   readonly fileBytes: number;
 }
 
+export interface HealthSample {
+  /** Milliseconds since boot. */
+  readonly at: number;
+  readonly rssBytes: number;
+  readonly cpuTicks: number;
+  readonly ticksPerSecond: number;
+  readonly cores: number;
+  readonly processes: number;
+  readonly totalMemory: number;
+  readonly availableMemory: number;
+  readonly warning: "deviceLow" | "treeLarge" | null;
+}
+
+export interface StorageSample {
+  readonly linuxBytes: number;
+  readonly projectBytes: number;
+  readonly freeBytes: number;
+  readonly totalBytes: number;
+}
+
 interface LocalServerNativeModule {
   getStatus(): LocalServerStatus;
   listUsbDevices(): ReadonlyArray<UsbDevice>;
@@ -58,6 +78,8 @@ interface LocalServerNativeModule {
   dismissBatteryHint(): void;
   readLog(): Promise<string>;
   reset(): Promise<void>;
+  sampleHealth(): Promise<HealthSample>;
+  measureStorage(): Promise<StorageSample>;
   getMaintenance(): MaintenanceSnapshot | null;
   clearMaintenance(): void;
   cancelMaintenance(): void;

@@ -203,6 +203,9 @@ class T3LocalServerModule : Module() {
       }.trim()
     }
 
+    AsyncFunction("sampleHealth") { ServerHealth.sample(context) }
+    AsyncFunction("measureStorage") { ServerHealth.storage(context) }
+
     Function("getMaintenance") { LinuxMaintenance.last }
     Function("clearMaintenance") { LinuxMaintenance.clear() }
     Function("cancelMaintenance") { LinuxMaintenance.cancel() }

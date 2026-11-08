@@ -9,7 +9,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
+import android.os.Looper
 import android.os.PowerManager
 import java.io.File
 import java.io.IOException
@@ -34,6 +36,14 @@ class LocalServerService : Service() {
   private var server: Process? = null
   private var worker: Thread? = null
 
+  private val handler = Handler(Looper.getMainLooper())
+  private val healthCheck = object : Runnable {
+    override fun run() {
+      thread(name = "t3-health") { runCatching { ServerHealth.checkInBackground(this@LocalServerService) } }
+      handler.postDelayed(this, HEALTH_CHECK_MILLIS)
+    }
+  }
+
   override fun onBind(intent: Intent?): IBinder? = null
 
   override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -48,6 +58,8 @@ class LocalServerService : Service() {
     if (worker?.isAlive != true) {
       if (!wakeLock.isHeld) wakeLock.acquire()
       worker = thread(name = "t3-local-server") { run() }
+      handler.removeCallbacks(healthCheck)
+      handler.postDelayed(healthCheck, HEALTH_CHECK_MILLIS)
     }
     return START_STICKY
   }
@@ -124,6 +136,7 @@ class LocalServerService : Service() {
   private var lastNotification: String? = null
 
   private fun finish(state: LocalServerState, detail: String = "") {
+    handler.removeCallbacks(healthCheck)
     server = null
     LocalServerStatusStore.pairingUrl = null
     LocalServerStatusStore.publish(LocalServerStatus(state, detail))
@@ -134,6 +147,7 @@ class LocalServerService : Service() {
   }
 
   override fun onDestroy() {
+    handler.removeCallbacks(healthCheck)
     server?.destroy()
     if (wakeLock.isHeld) wakeLock.release()
     super.onDestroy()
@@ -187,6 +201,7 @@ class LocalServerService : Service() {
     private const val RETRY_MILLIS = 2_000L
     private const val MAX_FAILURES = 5
     private const val STOP_SECONDS = 8L
+    private const val HEALTH_CHECK_MILLIS = 60_000L
     private val PAIRING_LINE = Regex("""^Pairing URL: (\S+)""")
     private val SERVER_COMMAND = listOf(
       "t3",

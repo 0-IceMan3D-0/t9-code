@@ -24,6 +24,7 @@ import { SettingsScreen } from "./components/SettingsScreen";
 import { SettingsSection } from "./components/SettingsSection";
 import { SettingsSwitchRow } from "./components/SettingsSwitchRow";
 import { LocalServerBatterySection } from "./LocalServerBatterySection";
+import { LocalServerHealthSection } from "./LocalServerHealthSection";
 import { LocalServerMaintenanceRows } from "./LocalServerMaintenanceRows";
 
 const STATE_LABELS: Record<LocalServerStatus["state"], string> = {
@@ -281,6 +282,8 @@ export function SettingsLocalServerRouteScreen() {
             />
           </SettingsSection>
         )}
+
+        {state === "notInstalled" || state === "installing" ? null : <LocalServerHealthSection />}
 
         {state === "notInstalled" || state === "installing" ? null : <UsbSection />}
 

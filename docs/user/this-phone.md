@@ -15,6 +15,12 @@ Use **Sign in to Claude** after the server starts. Finish in the browser, and pa
 
 **Open Linux shell** gives a root shell in the same environment. `apt` works there. It does not need the server, but without the server Android may pause it while the app is in the background.
 
+## Health
+
+**Health** in **Settings > This phone** shows how much memory and CPU the built-in environment uses (the server, shells and agents in Linux), how much memory the phone has free, and how much storage Linux and private projects take. It updates every few seconds while the screen is open.
+
+When the phone runs low on memory, or Linux uses a large share of it, Android may stop the server and its agents. A warning then shows on This phone. If the server runs while the app is in the background, a notification says so, at most every 30 minutes. You can turn it off under the **Built-in server warnings** category in Android's notification settings for the app.
+
 ## Back up, restore and reset
 
 **Settings > This phone > Maintenance** has three tools. Each one stops the server first if it is running, after asking.
