@@ -6,6 +6,9 @@ const PRESETS = require("../modules/t3-app-icon/presets.json");
 // icon by enabling one alias. Deep links, share and notification intents stay on MainActivity.
 // "classic" keeps the icon Expo generates from app.config; the others ship in modules/t3-app-icon.
 
+// Also the application icon: One UI draws that on notification cards whichever alias is enabled.
+const DEFAULT_PRESET = "original";
+
 const isLauncherFilter = (filter) =>
   (filter.action ?? []).some((a) => a.$["android:name"] === "android.intent.action.MAIN") &&
   (filter.category ?? []).some((c) => c.$["android:name"] === "android.intent.category.LAUNCHER");
@@ -53,6 +56,8 @@ module.exports = function withAndroidAppIcons(config) {
     const application = AndroidConfig.Manifest.getMainApplicationOrThrow(manifest);
     const mainActivity = AndroidConfig.Manifest.getMainActivityOrThrow(manifest);
     mainActivity.$["android:theme"] = `@style/${LAUNCH_THEME}`;
+    application.$["android:icon"] = `@mipmap/t3_icon_${DEFAULT_PRESET}`;
+    application.$["android:roundIcon"] = `@mipmap/t3_icon_${DEFAULT_PRESET}_round`;
     mainActivity["intent-filter"] = (mainActivity["intent-filter"] ?? []).filter(
       (filter) => !isLauncherFilter(filter),
     );
@@ -69,7 +74,7 @@ module.exports = function withAndroidAppIcons(config) {
           $: {
             "android:name": `.appicon.${id}`,
             "android:targetActivity": mainActivity.$["android:name"],
-            "android:enabled": id === "classic" ? "true" : "false",
+            "android:enabled": id === DEFAULT_PRESET ? "true" : "false",
             "android:exported": "true",
             "android:icon": icon,
             "android:roundIcon": roundIcon,

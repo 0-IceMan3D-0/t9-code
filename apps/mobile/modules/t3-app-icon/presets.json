@@ -1,4 +1,5 @@
 [
+  { "id": "original", "label": "Original", "accent": "#6B6B6B" },
   { "id": "classic", "label": "Classic", "accent": "#5B2BE6" },
   { "id": "glass", "label": "Liquid Glass", "accent": "#8B5CFF" },
   { "id": "void", "label": "Void", "accent": "#5A5A5A" },

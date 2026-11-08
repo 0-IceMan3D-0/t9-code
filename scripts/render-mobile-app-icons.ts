@@ -493,6 +493,30 @@ function brutal(): PresetArt {
   };
 }
 
+/** The original black T3 Code icon with chrome letters, plus the ². */
+function original(): PresetArt {
+  const mark = layoutMark("dmBold", 25, 54, 55, { gap: 0.03, twoGap: 0.04, twoScale: 0.46 });
+  return {
+    background: `
+      <defs>
+        <radialGradient id="o" cx="0.5" cy="0.4" r="0.75">
+          <stop offset="0" stop-color="#121212"/><stop offset="1" stop-color="#000"/>
+        </radialGradient>
+      </defs>
+      <rect ${FULL} fill="url(#o)"/>`,
+    foreground: `
+      <defs>
+        <linearGradient id="chrome" x1="0" y1="${mark.capTop.toFixed(2)}" x2="0" y2="${mark.baseline.toFixed(2)}" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stop-color="#ffffff"/><stop offset="0.45" stop-color="#ececec"/><stop offset="1" stop-color="#9c9c9c"/>
+        </linearGradient>
+        <filter id="lift" ${filterBox}><feDropShadow dx="0" dy="0.5" stdDeviation="0.6" flood-color="#000" flood-opacity="0.8"/></filter>
+      </defs>
+      <path d="${markPaths(mark)}" fill="url(#chrome)" stroke="#d6d6d6" stroke-width="0.45" stroke-linejoin="round" filter="url(#lift)"/>
+      <path d="${markPaths(mark)}" fill="none" stroke="#5c5c5c" stroke-width="0.15" stroke-linejoin="round"/>`,
+    monochrome: mono(mark),
+  };
+}
+
 function mulberry32(seed: number) {
   let a = seed;
   return () => {
@@ -504,6 +528,7 @@ function mulberry32(seed: number) {
 }
 
 const ART: Record<string, () => PresetArt> = {
+  original,
   glass,
   void: void_,
   frost,

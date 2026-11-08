@@ -30,7 +30,7 @@ object AppIconStyle {
 
   /** The pending choice wins: it becomes the launcher alias once the app is in the background. */
   fun presetId(ctx: Context): String =
-    cached ?: (pending(ctx) ?: enabledAlias(ctx)?.let(::aliasPreset) ?: "classic").also { cached = it }
+    cached ?: (pending(ctx) ?: enabledAlias(ctx)?.let(::aliasPreset) ?: "original").also { cached = it }
 
   fun smallIcon(ctx: Context): Int = preset(ctx).smallIcon
 
@@ -49,7 +49,7 @@ object AppIconStyle {
     if (activity != null) syncSplashTheme(activity)
   }
 
-  private fun preset(ctx: Context) = APP_ICON_PRESETS[presetId(ctx)] ?: APP_ICON_PRESETS.getValue("classic")
+  private fun preset(ctx: Context) = APP_ICON_PRESETS[presetId(ctx)] ?: APP_ICON_PRESETS.getValue("original")
 
   /**
    * Android 13+ shows the persisted splash theme for every launch of the package, including

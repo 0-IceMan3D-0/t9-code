@@ -57,6 +57,7 @@ export const setLauncherShortcuts = native
 
 // Metro asset ids.
 const PREVIEWS: Record<string, number> = {
+  original: require("../../../assets/app-icons/original.png"),
   classic: require("../../../assets/app-icons/classic.png"),
   glass: require("../../../assets/app-icons/glass.png"),
   void: require("../../../assets/app-icons/void.png"),
@@ -70,7 +71,7 @@ const PREVIEWS: Record<string, number> = {
 
 export const APP_ICON_PRESETS = PRESETS.map((preset) => ({
   ...preset,
-  preview: PREVIEWS[preset.id] ?? PREVIEWS.classic!,
+  preview: PREVIEWS[preset.id] ?? PREVIEWS.original!,
 }));
 
 export function appIconPreview(id: string | null | undefined): number | null {

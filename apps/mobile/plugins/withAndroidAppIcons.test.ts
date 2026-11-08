@@ -78,7 +78,8 @@ describe("withAndroidAppIcons", () => {
       aliases
         .filter((alias) => alias.$?.["android:enabled"] === "true")
         .map((alias) => alias.$?.["android:name"]),
-    ).toEqual([".appicon.classic"]);
+    ).toEqual([".appicon.original"]);
+    expect(application.$["android:icon"]).toBe("@mipmap/t3_icon_original");
     expect(aliases.every((alias) => alias.$?.["android:targetActivity"] === ".MainActivity")).toBe(
       true,
     );

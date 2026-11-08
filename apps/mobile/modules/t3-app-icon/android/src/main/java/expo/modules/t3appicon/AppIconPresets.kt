@@ -4,6 +4,7 @@ package expo.modules.t3appicon
 data class AppIconPreset(val smallIcon: Int, val accent: Int)
 
 internal val APP_ICON_PRESETS: Map<String, AppIconPreset> = mapOf(
+    "original" to AppIconPreset(R.drawable.t3_notify_original, 0xFF6B6B6B.toInt()),
     "classic" to AppIconPreset(R.drawable.t3_notify_classic, 0xFF5B2BE6.toInt()),
     "glass" to AppIconPreset(R.drawable.t3_notify_glass, 0xFF8B5CFF.toInt()),
     "void" to AppIconPreset(R.drawable.t3_notify_void, 0xFF5A5A5A.toInt()),
