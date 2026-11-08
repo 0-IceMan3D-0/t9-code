@@ -86,7 +86,7 @@ class T3LocalServerModule : Module() {
         { promise.resolve(it.takeUnless { value -> value is Unit }) },
         {
           val code = if (it is GitSetup.KeyExists) "ERR_KEY_EXISTS" else "ERR_GIT_SETUP"
-          promise.reject(CodedException(code, it.message ?: it.toString(), it))
+          promise.reject(it as? CodedException ?: CodedException(code, it.message ?: it.toString(), it))
         },
       )
     }
@@ -334,31 +334,37 @@ class T3LocalServerModule : Module() {
       }
     }
 
-    AsyncFunction("claudeLoggedIn") {
-      val process = guest.process(listOf("claude", "auth", "status")).start()
-      val output = process.inputStream.bufferedReader().readText()
-      process.waitFor()
-      output.contains("\"loggedIn\": true")
+    // The login calls block for minutes, so they run off the module's queue: waitForClaudeLogin
+    // would otherwise hold submitClaudeCode back until it timed out.
+    AsyncFunction("claudeLoggedIn") { promise: Promise ->
+      inBackground("t3-claude-status", promise) {
+        val process = guest.process(listOf("claude", "auth", "status")).start()
+        val output = process.inputStream.bufferedReader().readText()
+        process.waitFor()
+        output.contains("\"loggedIn\": true")
+      }
     }
 
-    AsyncFunction("startClaudeLogin") {
+    AsyncFunction("startClaudeLogin") { promise: Promise ->
       login?.cancel()
       val session = ClaudeLogin(guest)
       login = session
-      session.url.get(60, TimeUnit.SECONDS)
+      inBackground("t3-claude-login-url", promise) { session.url.get(60, TimeUnit.SECONDS) }
     }
 
-    AsyncFunction("submitClaudeCode") { code: String ->
+    AsyncFunction("submitClaudeCode") { code: String, promise: Promise ->
       val session = login ?: throw CodedException("ERR_NO_LOGIN", "Start the login first", null)
-      session.submitCode(code)
-      val exit = session.finished.get(60, TimeUnit.SECONDS)
-      session.failure?.let { throw CodedException("ERR_CLAUDE_LOGIN", it, null) }
-      exit
+      inBackground("t3-claude-login-code", promise) {
+        session.submitCode(code)
+        val exit = session.finished.get(60, TimeUnit.SECONDS)
+        session.failure?.let { throw CodedException("ERR_CLAUDE_LOGIN", it, null) }
+        exit
+      }
     }
 
-    AsyncFunction("waitForClaudeLogin") {
+    AsyncFunction("waitForClaudeLogin") { promise: Promise ->
       val session = login ?: throw CodedException("ERR_NO_LOGIN", "Start the login first", null)
-      session.finished.get(300, TimeUnit.SECONDS)
+      inBackground("t3-claude-login-wait", promise) { session.finished.get(300, TimeUnit.SECONDS) }
     }
 
     Function("listShells") { LinuxShells.ids() }
