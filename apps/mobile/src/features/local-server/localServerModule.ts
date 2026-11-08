@@ -85,6 +85,12 @@ interface LocalServerNativeModule {
   takePairingUrl(): string | null;
   setStartOnAppOpen(value: boolean): void;
   setSharedStorage(value: boolean): void;
+  /** The activity that starts or stops the server for a launcher shortcut, and its actions. */
+  serverSwitchTarget(): {
+    readonly className: string;
+    readonly start: string;
+    readonly stop: string;
+  };
   /** The tile and launcher shortcuts open screens through the app's deep links. */
   setAppScheme(scheme: string): void;
   getBatteryState(): BatteryState;

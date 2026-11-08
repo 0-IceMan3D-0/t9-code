@@ -29,7 +29,7 @@ of the selected theme.
 
 On Android, choose an icon under **Settings → Appearance → App icon**. It takes effect when you
 leave the app, and the launcher can take a few seconds to show it. Some launchers move or remove the app's home screen icon when it changes; add it
-again from the app drawer. Notifications, links and sharing keep working with every icon.
+again from the app drawer. Notifications, links, sharing and the long-press shortcuts keep working with every icon.
 
 Android does not let apps use any picture as their real icon. Under **Your own picture**, choose and
 crop a picture, then select **Add to home screen**. This adds a shortcut that opens the app with

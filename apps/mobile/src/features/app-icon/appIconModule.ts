@@ -18,12 +18,23 @@ export interface AppIconState {
 
 export type PinCustomIconResult = "requested" | "updated" | "unsupported";
 
+/** A launcher shortcut: a deep link, or an explicit activity of this app. */
+export interface LauncherShortcut {
+  readonly id: string;
+  readonly title: string;
+  readonly icon?: string;
+  readonly url?: string;
+  readonly className?: string;
+  readonly action?: string;
+}
+
 interface AppIconNativeModule {
   getState(): AppIconState;
   setIcon(id: string): void;
   applyPendingIcon(): void;
   pinCustomIcon(uri: string): Promise<PinCustomIconResult>;
   removeCustomIcon(): Promise<void>;
+  setShortcuts(json: string): void;
 }
 
 const native = requireOptionalNativeModule<AppIconNativeModule>("T3AppIcon");
@@ -35,6 +46,14 @@ if (native) {
     if (state === "background" && !isForegroundHandoffActive()) native.applyPendingIcon();
   });
 }
+
+/**
+ * Publishes launcher shortcuts against the enabled icon alias. Android drops shortcuts whose alias
+ * is disabled, so the native side moves them to the new alias on every icon switch.
+ */
+export const setLauncherShortcuts = native
+  ? (items: ReadonlyArray<LauncherShortcut>) => native.setShortcuts(JSON.stringify(items))
+  : null;
 
 // Metro asset ids.
 const PREVIEWS: Record<string, number> = {

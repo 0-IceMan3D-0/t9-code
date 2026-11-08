@@ -15,16 +15,20 @@ import android.graphics.Rect
 import android.graphics.drawable.Icon
 import android.net.Uri
 import android.os.Build
+import android.os.PersistableBundle
+import android.util.Log
 import expo.modules.kotlin.exception.CodedException
 import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 import java.io.File
+import org.json.JSONArray
 
 private const val ALIAS_MARKER = ".appicon."
 private const val PENDING_KEY = "pending"
 private const val CUSTOM_SHORTCUT_ID = "t3-custom-icon"
 private const val ADAPTIVE_SIZE = 432
 private const val SOURCE_SIZE = 512
+private const val ICON_EXTRA = "icon"
 
 class T3AppIconModule : Module() {
   private val context: Context
@@ -64,6 +68,8 @@ class T3AppIconModule : Module() {
       val all = aliases(ctx)
       val target = all.firstOrNull { presetId(it.name) == id } ?: return@Function null
       if (enabledAlias(ctx) == target.name) return@Function null
+      // Android removes dynamic shortcuts of a disabled alias, so they are read before the switch.
+      val dynamic = shortcutManager(ctx)?.dynamicShortcuts.orEmpty()
       pm.setComponentEnabledSetting(
         ComponentName(ctx.packageName, target.name),
         PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
@@ -77,6 +83,7 @@ class T3AppIconModule : Module() {
           PackageManager.DONT_KILL_APP,
         )
       }
+      moveShortcuts(ctx, dynamic, target.name)
       // A pinned shortcut is tied to a launcher activity; move ours to the alias that stays enabled.
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         val shortcuts = shortcutManager(ctx)
@@ -85,6 +92,9 @@ class T3AppIconModule : Module() {
         }
       }
     }
+
+    // JSON, because an expo Record list argument left an unresolved reified type in this module.
+    Function("setShortcuts") { json: String -> publishShortcuts(context, JSONArray(json)) }
 
     AsyncFunction("pinCustomIcon") { uri: String ->
       val ctx = context
@@ -117,6 +127,68 @@ class T3AppIconModule : Module() {
       }
       sourceFile(ctx).delete()
     }
+  }
+
+  /** Each item: id, title, icon, and either url (a deep link) or className and action. */
+  private fun publishShortcuts(ctx: Context, items: JSONArray) {
+    val shortcuts = shortcutManager(ctx) ?: return
+    val launcher = ComponentName(ctx.packageName, enabledAlias(ctx) ?: return)
+    val published = ArrayList<ShortcutInfo>()
+    for (index in 0 until items.length()) {
+      val item = items.getJSONObject(index)
+      val icon = item.optString("icon").ifEmpty { null }
+      val intent = when {
+        item.has("className") -> Intent(item.optString("action", Intent.ACTION_MAIN))
+          .setClassName(ctx.packageName, item.getString("className"))
+        item.has("url") -> Intent(Intent.ACTION_VIEW, Uri.parse(item.getString("url")))
+          .setClassName(ctx.packageName, mainActivity(ctx))
+        else -> continue
+      }
+      val title = item.getString("title")
+      published += ShortcutInfo.Builder(ctx, item.getString("id"))
+        .setShortLabel(title)
+        .setLongLabel(title)
+        .setIntent(intent)
+        .setRank(index)
+        .setActivity(launcher)
+        .setExtras(PersistableBundle().apply { putString(ICON_EXTRA, icon) })
+        .apply { iconResource(ctx, icon)?.let { setIcon(Icon.createWithResource(ctx, it)) } }
+        .build()
+    }
+    shortcuts.dynamicShortcuts = published
+  }
+
+  private fun mainActivity(ctx: Context) = aliases(ctx).firstOrNull()?.targetActivity
+    ?: throw CodedException("ERR_NO_ACTIVITY", "The app has no launcher activity", null)
+
+  private fun iconResource(ctx: Context, name: String?): Int? {
+    if (name == null) return null
+    val res = ctx.resources
+    return res.getIdentifier(name, "drawable", ctx.packageName).takeIf { it != 0 }
+      ?: res.getIdentifier(name, "mipmap", ctx.packageName).takeIf { it != 0 }
+  }
+
+  /** Republishes shortcuts read before an icon switch on the alias that is now enabled. */
+  private fun moveShortcuts(ctx: Context, before: List<ShortcutInfo>, launcher: String) {
+    if (before.isEmpty()) return
+    val shortcuts = shortcutManager(ctx) ?: return
+    val moved = before.filter { it.isEnabled }.mapNotNull { old ->
+      val intents = old.intents ?: return@mapNotNull null
+      ShortcutInfo.Builder(ctx, old.id)
+        .setShortLabel(old.shortLabel ?: old.id)
+        .setLongLabel(old.longLabel ?: old.shortLabel ?: old.id)
+        .setIntents(intents)
+        .setRank(old.rank)
+        .setActivity(ComponentName(ctx.packageName, launcher))
+        .apply {
+          old.extras?.let { extras ->
+            setExtras(extras)
+            iconResource(ctx, extras.getString(ICON_EXTRA))?.let { setIcon(Icon.createWithResource(ctx, it)) }
+          }
+        }
+        .build()
+    }
+    runCatching { shortcuts.dynamicShortcuts = moved }.onFailure { Log.w("T3AppIcon", "Could not move shortcuts", it) }
   }
 
   private fun prefs(ctx: Context) = ctx.getSharedPreferences("t3_app_icon", Context.MODE_PRIVATE)

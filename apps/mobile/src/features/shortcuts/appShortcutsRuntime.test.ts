@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vite-plus/test";
 
 vi.mock("expo-quick-actions", () => ({}));
+vi.mock("expo-linking", () => ({}));
+vi.mock("../app-icon/appIconModule", () => ({ setLauncherShortcuts: null }));
+vi.mock("../local-server/localServerModule", () => ({}));
 vi.mock("react-native", () => ({ Platform: { OS: "android" } }));
 vi.mock("../../persistence/imperative", () => ({}));
 vi.mock("../../state/atom-registry", () => ({}));

@@ -38,6 +38,26 @@ describe("buildShortcutActions", () => {
     expect(actions[1]?.params?.href).toBe("/threads/env%201/thread%2F2");
     expect(actions[1]?.title).toBe("Spaced out");
   });
+
+  it.each([
+    [null, ["New thread", "Recent"]],
+    ["setup", ["New thread", "Set up this phone", "Recent"]],
+    ["start", ["New thread", "Start server", "Linux shell", "Recent"]],
+    ["stop", ["New thread", "Stop server", "Linux shell", "Recent"]],
+  ] as const)("puts the built-in server's entries before recent threads (%s)", (server, titles) => {
+    const actions = buildShortcutActions([thread("a", "Recent")], server);
+    expect(actions.map((action) => action.title)).toEqual(titles);
+    for (const action of actions) {
+      const href = action.params?.href;
+      if (href !== undefined) expect(shortcutHref(action)).toBe(href);
+    }
+  });
+
+  it("switches the server without a deep link, so other apps cannot start it", () => {
+    const server = buildShortcutActions([], "stop")[1];
+    expect(server?.id).toBe("server");
+    expect(server?.params).toEqual({ serverSwitch: "stop" });
+  });
 });
 
 describe("shortcutHref", () => {

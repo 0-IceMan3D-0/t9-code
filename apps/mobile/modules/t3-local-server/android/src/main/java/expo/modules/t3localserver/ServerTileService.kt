@@ -6,6 +6,8 @@ import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ShortcutInfo
+import android.content.pm.ShortcutManager
 import android.graphics.drawable.Icon
 import android.net.Uri
 import android.os.Build
@@ -91,13 +93,16 @@ class ServerTileService : TileService() {
     @Volatile
     private var watching = false
 
-    /** Asks the system to redraw the tile whenever the server's state changes. */
+    /** Redraws the tile and relabels the server shortcut whenever the server's state changes. */
     fun watch(context: Context) {
       if (watching) return
       watching = true
       val app = context.applicationContext
       val component = ComponentName(app, ServerTileService::class.java)
-      val refresh = { runCatching { requestListeningState(app, component) } }
+      val refresh = {
+        runCatching { requestListeningState(app, component) }
+        ServerShortcut.update(app)
+      }
       LocalServerStatusStore.addListener { refresh() }
       LinuxMaintenance.addListener { refresh() }
     }
@@ -160,6 +165,39 @@ class ThisPhoneActivity : Activity() {
         launch.setAction(Intent.ACTION_VIEW).setData(Uri.parse("$it://settings/this-phone"))
       }
       return launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+    }
+  }
+}
+
+/**
+ * Keeps the launcher's "Start server" / "Stop server" shortcut in step with the server, also when
+ * the tile started it and no screen of the app ever ran. The app publishes the shortcut
+ * (appShortcuts.ts, SERVER_SHORTCUT_ID); this only relabels one that exists.
+ */
+object ServerShortcut {
+  private const val ID = "server"
+
+  fun update(context: Context) {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+    val state = LocalServerStatusStore.resolve(context).state
+    if (state == LocalServerState.NOT_INSTALLED) return
+    val stopped = state == LocalServerState.STOPPED || state == LocalServerState.FAILED
+    val action = if (stopped) ServerSwitchActivity.ACTION_START else ServerSwitchActivity.ACTION_STOP
+    val manager = context.getSystemService(ShortcutManager::class.java) ?: return
+    val current = manager.dynamicShortcuts.firstOrNull { it.id == ID } ?: return
+    // Android rate-limits shortcut updates from the background, so only real changes are sent.
+    if (current.intent?.action == action) return
+    val label = if (stopped) "Start server" else "Stop server"
+    runCatching {
+      manager.updateShortcuts(
+        listOf(
+          ShortcutInfo.Builder(context, ID)
+            .setShortLabel(label)
+            .setLongLabel(label)
+            .setIntent(ServerSwitchActivity.intent(context, action))
+            .build(),
+        ),
+      )
     }
   }
 }

@@ -19,6 +19,10 @@ Use **Sign in to Claude** after the server starts. Finish in the browser, and pa
 
 Add the **T3² server** tile from the Quick Settings edit screen (pull down the shade twice, then the pencil). It shows whether the built-in server is running, starting or stopped. Tap it to start or stop the server without opening the app. Long-press it to open **Settings > This phone**. Before Linux is set up, tapping it opens This phone.
 
+## Launcher shortcuts
+
+Long-press the app icon for **New thread**, **Start server** (or **Stop server** while it runs), **Linux shell** and your recent threads. Before Linux is set up, **Set up this phone** takes the server's place. Start and stop work without opening the app. Shortcuts keep working after you change the app icon in **Settings > Appearance**. Drag one to the home screen to keep it there.
+
 ## Web servers in Linux
 
 When a program in Linux starts a web server, such as an agent running `vite`, `next dev` or `python3 -m http.server`, it shows under **Running web servers** in **Settings > This phone**. Tap a server to open it in your browser, or copy its link. Threads on the built-in server show the same links above the composer: tap one to open it, long-press to copy it. While the server runs, its notification also names the newest web server and has an **Open** button.

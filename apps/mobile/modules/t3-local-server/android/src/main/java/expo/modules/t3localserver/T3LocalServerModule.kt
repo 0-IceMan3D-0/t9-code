@@ -199,6 +199,13 @@ class T3LocalServerModule : Module() {
     }
     Function("setStartOnAppOpen") { value: Boolean -> options.startOnAppOpen = value }
     Function("setSharedStorage") { value: Boolean -> options.sharedStorage = value }
+    Function("serverSwitchTarget") {
+      mapOf(
+        "className" to ServerSwitchActivity::class.java.name,
+        "start" to ServerSwitchActivity.ACTION_START,
+        "stop" to ServerSwitchActivity.ACTION_STOP,
+      )
+    }
     Function("setAppScheme") { scheme: String -> options.appScheme = scheme }
 
     Function("getBatteryState") {

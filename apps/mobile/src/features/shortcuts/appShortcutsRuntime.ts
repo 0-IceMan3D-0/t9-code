@@ -1,3 +1,4 @@
+import * as Linking from "expo-linking";
 import * as QuickActions from "expo-quick-actions";
 import { Platform } from "react-native";
 import type { NavigationState } from "@react-navigation/native";
@@ -10,12 +11,20 @@ import {
   type RecentThreadShortcut,
 } from "../../persistence/imperative";
 import { appAtomRegistry } from "../../state/atom-registry";
+import { setLauncherShortcuts, type LauncherShortcut } from "../app-icon/appIconModule";
+import {
+  getLocalServerStatus,
+  localServer,
+  subscribeLocalServerStatus,
+} from "../local-server/localServerModule";
 import { environmentThreadShells } from "../../state/threads";
 import {
   activeThreadRef,
   buildShortcutActions,
+  serverShortcut,
   shortcutHref,
   withRecentThreadShortcut,
+  type ServerShortcut,
 } from "./appShortcuts";
 
 export interface RecentThreadShortcutsDependencies {
@@ -118,6 +127,28 @@ export function recordAppShortcutNavigationState(state: NavigationState): void {
   appAtomRegistry.set(activeThreadRefAtom, next);
 }
 
+function launcherShortcuts(actions: ReturnType<typeof buildShortcutActions>): LauncherShortcut[] {
+  const target = localServer?.serverSwitchTarget();
+  return actions.flatMap((action): LauncherShortcut[] => {
+    const base = { id: action.id, title: action.title, icon: action.icon ?? undefined };
+    const href = shortcutHref(action);
+    if (href !== null) return [{ ...base, url: Linking.createURL(href.slice(1)) }];
+    const server = action.params?.serverSwitch;
+    if (!target || (server !== "start" && server !== "stop")) return [];
+    return [{ ...base, className: target.className, action: target[server] }];
+  });
+}
+
+/** Android publishes natively so shortcuts survive app icon switches; see appIconModule. */
+async function publishShortcuts(
+  recents: ReadonlyArray<RecentThreadShortcut>,
+  server: ServerShortcut,
+): Promise<void> {
+  const actions = buildShortcutActions(recents, server);
+  if (setLauncherShortcuts) setLauncherShortcuts(launcherShortcuts(actions));
+  else await QuickActions.setItems(actions);
+}
+
 /**
  * App-lifetime quick actions. `navigate` must queue until navigation is ready:
  * a cold-start shortcut arrives as the launch action, and pushing it over the
@@ -132,10 +163,24 @@ export function installAppShortcuts(navigate: (href: string) => void): () => voi
   });
   if (Platform.OS !== "android") return () => subscription.remove();
 
+  let server = serverShortcut(getLocalServerStatus());
+  let published: ReadonlyArray<RecentThreadShortcut> | null = null;
   const recents = createRecentThreadShortcuts({
     load: loadRecentThreadShortcuts,
     save: saveRecentThreadShortcuts,
-    publish: (list) => QuickActions.setItems(buildShortcutActions(list)),
+    publish: (list) => {
+      published = list;
+      return publishShortcuts(list, server);
+    },
+  });
+  const unsubscribeServer = subscribeLocalServerStatus(() => {
+    const next = serverShortcut(getLocalServerStatus());
+    if (next === server) return;
+    server = next;
+    if (published === null) return;
+    void publishShortcuts(published, server).catch((error: unknown) => {
+      console.warn("[app-shortcuts] failed to update launcher shortcuts", error);
+    });
   });
   const unsubscribe = appAtomRegistry.subscribe(
     activeThreadShortcutAtom,
@@ -144,6 +189,7 @@ export function installAppShortcuts(navigate: (href: string) => void): () => voi
   );
   return () => {
     subscription.remove();
+    unsubscribeServer();
     unsubscribe();
   };
 }
