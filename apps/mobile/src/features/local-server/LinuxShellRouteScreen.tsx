@@ -31,6 +31,9 @@ import { shellTabTitle, tabAfterClose } from "./linuxShellTabs";
 import { localServer, type LinuxShellInfo } from "./localServerModule";
 import { appendOutput, EMPTY_OUTPUT } from "./sessionOutput";
 
+// Nine keys share the width, so a large system font size would wrap "Ctrl" and "Esc".
+const KEY_FONT_SCALE = 1.1;
+
 const KEYS = [
   { label: "Esc", data: "\u001b" },
   { label: "Tab", data: "\t" },
@@ -220,8 +223,12 @@ export function LinuxShellRouteScreen() {
   const keyClass = "flex-1 items-center justify-center py-1.5";
   // An armed modifier is filled until the next key consumes it.
   const modifierLabel = (label: string, armed: boolean) => (
-    <View className={cn("rounded-full px-3 py-1", armed && "bg-primary")}>
-      <Text className={armed ? "font-t3-bold text-primary-foreground" : "text-foreground"}>
+    <View className={cn("rounded-full px-2 py-1", armed && "bg-primary")}>
+      <Text
+        className={armed ? "font-t3-bold text-primary-foreground" : "text-foreground"}
+        maxFontSizeMultiplier={KEY_FONT_SCALE}
+        numberOfLines={1}
+      >
         {label}
       </Text>
     </View>
@@ -384,8 +391,14 @@ export function LinuxShellRouteScreen() {
             className={keyClass}
             onPress={() => write(key.data)}
           >
-            <View className="px-3 py-1">
-              <Text className="text-foreground">{key.label}</Text>
+            <View className="px-1 py-1">
+              <Text
+                className="text-foreground"
+                maxFontSizeMultiplier={KEY_FONT_SCALE}
+                numberOfLines={1}
+              >
+                {key.label}
+              </Text>
             </View>
           </Pressable>
         ))}
