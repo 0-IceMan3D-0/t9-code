@@ -59,6 +59,8 @@ interface TerminalSurfaceProps extends ViewProps {
   readonly theme?: TerminalTheme;
   readonly onInput: (data: string) => void;
   readonly onResize: (size: { readonly cols: number; readonly rows: number }) => void;
+  /** Turns on pinch to zoom; receives the size when a pinch ends. */
+  readonly onFontSizeChange?: (fontSize: number) => void;
 }
 
 type ReadyTerminalSurfaceProps = Omit<TerminalSurfaceProps, "buffer"> & {
@@ -291,6 +293,8 @@ const ReadyTerminalSurface = memo(function ReadyTerminalSurface({
           onResize={handleNativeResize}
           captureRequest={props.captureRequest}
           onCapture={(event) => props.onCapture?.(event.nativeEvent.text)}
+          pinchToZoom={props.onFontSizeChange !== undefined}
+          onFontSizeChange={(event) => props.onFontSizeChange?.(event.nativeEvent.fontSize)}
         />
       </View>
     );

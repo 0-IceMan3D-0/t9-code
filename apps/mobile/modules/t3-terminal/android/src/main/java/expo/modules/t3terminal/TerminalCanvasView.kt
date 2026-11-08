@@ -8,6 +8,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Rect
 import android.graphics.Typeface
+import android.os.Build
 import android.util.Log
 import android.view.ActionMode
 import android.view.GestureDetector
@@ -15,7 +16,9 @@ import android.view.HapticFeedbackConstants
 import android.view.Menu
 import android.view.MenuItem
 import android.view.MotionEvent
+import android.view.ScaleGestureDetector
 import android.view.View
+import android.widget.Toast
 import android.widget.OverScroller
 import kotlin.math.ceil
 import kotlin.math.max
@@ -69,6 +72,8 @@ internal class TerminalCanvasView(context: Context) : View(context) {
 
     private const val MENU_COPY = 1
     private const val MENU_SELECT_ALL = 2
+    private const val MENU_OPEN_LINK = 3
+    private const val MENU_COPY_LINK = 4
     private const val HANDLE_COLOR = 0xFF7AA2F7.toInt()
   }
 
@@ -85,6 +90,14 @@ internal class TerminalCanvasView(context: Context) : View(context) {
   private val italicTypeface = Typeface.create(TerminalTypefaces.regular, Typeface.ITALIC)
   private val boldItalicTypeface = Typeface.create(TerminalTypefaces.bold, Typeface.ITALIC)
   private val gestureDetector = GestureDetector(context, TerminalGestureListener())
+  private val scaleDetector = ScaleGestureDetector(context, PinchListener()).apply {
+    // Quick scale (double-tap then drag) would fight text selection.
+    isQuickScaleEnabled = false
+  }
+  private var pinching = false
+  private var links: List<TerminalLink> = emptyList()
+  private var linkCells = BooleanArray(0)
+  private var pressedLink: TerminalLink? = null
   private val contentPadding = 8f * density
   private var frame: TerminalFrame? = null
   private var scrollRemainder = 0f
@@ -120,6 +133,11 @@ internal class TerminalCanvasView(context: Context) : View(context) {
   var onRequestKeyboard: (() -> Unit)? = null
   var onCellMetricsChanged: (() -> Unit)? = null
   var selectionDelegate: TerminalSelectionDelegate? = null
+  var onOpenLink: ((String) -> Unit)? = null
+
+  /** Receives the pinch's scale factor since the last call; null turns pinch to zoom off. */
+  var onPinch: ((Float) -> Unit)? = null
+  var onPinchEnd: (() -> Unit)? = null
 
   private val handlePaint = Paint(Paint.ANTI_ALIAS_FLAG)
   private var selectionActive = false
@@ -170,6 +188,12 @@ internal class TerminalCanvasView(context: Context) : View(context) {
 
   fun setFrame(value: TerminalFrame) {
     frame = value
+    links = TerminalLinks.find(value.cols, value.rows, value.cellText)
+    linkCells = BooleanArray(value.cols * value.rows).also { cells ->
+      for (link in links) for (span in link.spans) {
+        for (col in span.startCol..span.endCol) cells[span.row * value.cols + col] = true
+      }
+    }
     cursorOn = true
     updateSelectionEndpoints()
     removeCallbacks(cursorBlink)
@@ -229,6 +253,7 @@ internal class TerminalCanvasView(context: Context) : View(context) {
         val text = currentFrame.cellText[index]
         if (text.isNotEmpty() && flags and FLAG_INVISIBLE == 0) {
           configureTextPaint(flags, currentFrame.cellForegrounds[index])
+          if (linkCells.getOrElse(index) { false }) paint.isUnderlineText = true
           canvas.drawText(text, left, top + baselineOffsetPx, paint)
           if (flags and FLAG_OVERLINE != 0) {
             canvas.drawRect(left, top + 1f, right, top + max(2f, density), paint)
@@ -258,6 +283,13 @@ internal class TerminalCanvasView(context: Context) : View(context) {
       event.actionMasked == MotionEvent.ACTION_CANCEL
     ) {
       parent?.requestDisallowInterceptTouchEvent(false)
+    }
+    if (onPinch != null && !dragSelecting) {
+      scaleDetector.onTouchEvent(event)
+      if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
+        if (pinching) onPinchEnd?.invoke()
+        pinching = false
+      }
     }
     return when {
       dragSelecting -> {
@@ -353,12 +385,19 @@ internal class TerminalCanvasView(context: Context) : View(context) {
     val delegate = selectionDelegate ?: return
     val col = columnAt(px)
     val row = rowAt(py)
+    pressedLink = TerminalLinks.at(links, col, row)
     // Set before selectWordAt: the delegate re-renders synchronously and
     // updateSelectionEndpoints only scans while a selection is active.
     selectionActive = true
     if (!delegate.selectWordAt(col, row)) {
       selectionActive = false
       return
+    }
+    // A word stops at punctuation, so a pressed link is selected whole.
+    pressedLink?.let { link ->
+      val first = link.spans.first()
+      val last = link.spans.last()
+      delegate.extendSelection(first.startCol, first.row, last.endCol, last.row)
     }
     dragSelecting = true
     draggingHandle = false
@@ -401,6 +440,7 @@ internal class TerminalCanvasView(context: Context) : View(context) {
   }
 
   private fun clearSelection() {
+    pressedLink = null
     if (!selectionActive) return
     selectionActive = false
     dragSelecting = false
@@ -411,7 +451,10 @@ internal class TerminalCanvasView(context: Context) : View(context) {
   }
 
   private fun copySelection() {
-    val text = selectionDelegate?.selectionText() ?: return
+    copyText(selectionDelegate?.selectionText() ?: return)
+  }
+
+  private fun copyText(text: String) {
     if (text.isEmpty()) return
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as? ClipboardManager
     clipboard?.setPrimaryClip(ClipData.newPlainText("Terminal", text))
@@ -500,8 +543,12 @@ internal class TerminalCanvasView(context: Context) : View(context) {
     actionMode = startActionMode(
       object : ActionMode.Callback2() {
         override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
-          menu.add(Menu.NONE, MENU_COPY, 0, android.R.string.copy)
-          menu.add(Menu.NONE, MENU_SELECT_ALL, 1, android.R.string.selectAll)
+          if (pressedLink != null) {
+            menu.add(Menu.NONE, MENU_OPEN_LINK, 0, "Open link")
+            menu.add(Menu.NONE, MENU_COPY_LINK, 1, "Copy link")
+          }
+          menu.add(Menu.NONE, MENU_COPY, 2, android.R.string.copy)
+          menu.add(Menu.NONE, MENU_SELECT_ALL, 3, android.R.string.selectAll)
           return true
         }
 
@@ -511,6 +558,21 @@ internal class TerminalCanvasView(context: Context) : View(context) {
           when (item.itemId) {
             MENU_COPY -> {
               copySelection()
+              clearSelection()
+              true
+            }
+            MENU_OPEN_LINK -> {
+              val url = pressedLink?.url
+              clearSelection()
+              url?.let { onOpenLink?.invoke(it) }
+              true
+            }
+            MENU_COPY_LINK -> {
+              pressedLink?.url?.let { copyText(it) }
+              // Android 13 and later confirm clipboard writes themselves.
+              if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
+                Toast.makeText(context, "Link copied", Toast.LENGTH_SHORT).show()
+              }
               clearSelection()
               true
             }
@@ -579,6 +641,12 @@ internal class TerminalCanvasView(context: Context) : View(context) {
     override fun onSingleTapUp(event: MotionEvent): Boolean {
       if (selectionActive) {
         clearSelection()
+        return true
+      }
+      val link = TerminalLinks.at(links, columnAt(event.x), rowAt(event.y))
+      if (link != null && onOpenLink != null) {
+        performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+        onOpenLink?.invoke(link.url)
       } else {
         performClick()
       }
@@ -586,6 +654,7 @@ internal class TerminalCanvasView(context: Context) : View(context) {
     }
 
     override fun onLongPress(event: MotionEvent) {
+      if (pinching) return
       startWordSelection(event.x, event.y)
     }
 
@@ -595,6 +664,7 @@ internal class TerminalCanvasView(context: Context) : View(context) {
       distanceX: Float,
       distanceY: Float
     ): Boolean {
+      if (pinching || current.pointerCount > 1) return true
       scrollRemainder += distanceY / cellHeightPx
       val rows = scrollRemainder.toInt()
       if (rows != 0) {
@@ -610,9 +680,23 @@ internal class TerminalCanvasView(context: Context) : View(context) {
       velocityX: Float,
       velocityY: Float
     ): Boolean {
+      if (pinching) return true
       flingLastY = 0
       scroller.fling(0, 0, 0, velocityY.toInt(), 0, 0, Int.MIN_VALUE / 2, Int.MAX_VALUE / 2)
       postOnAnimation(flingRunnable)
+      return true
+    }
+  }
+
+  private inner class PinchListener : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+    override fun onScaleBegin(detector: ScaleGestureDetector): Boolean {
+      pinching = true
+      scrollRemainder = 0f
+      return onPinch != null
+    }
+
+    override fun onScale(detector: ScaleGestureDetector): Boolean {
+      onPinch?.invoke(detector.scaleFactor)
       return true
     }
   }

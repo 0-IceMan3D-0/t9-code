@@ -88,6 +88,7 @@ import {
   type PendingModifier,
 } from "./terminalInput";
 import { createTerminalPasteSession } from "./terminalPaste";
+import { normalizeTerminalFontSize } from "./terminalPreferences";
 import { cacheTerminalGridSize, getCachedTerminalGridSize } from "./terminalUiState";
 import { getKeyboardShowEpoch, subscribeKeyboardShowing } from "./terminalKeyboardShowing";
 
@@ -931,6 +932,7 @@ function ThreadTerminal(props: {
                   }}
                   onInput={handleInput}
                   onResize={handleResize}
+                  onFontSizeChange={(size) => setTerminalFontSize(normalizeTerminalFontSize(size))}
                   style={{ flex: 1 }}
                   terminalKey={terminalKey}
                   theme={terminalTheme}

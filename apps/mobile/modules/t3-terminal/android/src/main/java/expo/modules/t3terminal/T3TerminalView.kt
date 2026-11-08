@@ -1,8 +1,11 @@
 package expo.modules.t3terminal
 
+import android.content.ActivityNotFoundException
 import android.content.Context
+import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
+import android.net.Uri
 import android.text.Editable
 import android.text.InputType
 import android.text.TextWatcher
@@ -14,6 +17,7 @@ import android.view.inputmethod.InputConnection
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.FrameLayout
+import android.widget.Toast
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.viewevent.EventDispatcher
 import expo.modules.kotlin.views.ExpoView
@@ -39,6 +43,14 @@ class T3TerminalView(context: Context, appContext: AppContext) : ExpoView(contex
   private val onInput by EventDispatcher()
   private val onResize by EventDispatcher()
   private val onCapture by EventDispatcher()
+  private val onFontSizeChange by EventDispatcher()
+  private var pinchFontSize = 0f
+
+  var pinchToZoom: Boolean = false
+    set(value) {
+      field = value
+      terminalCanvas.onPinch = if (value) ::pinch else null
+    }
   var captureRequest: Double = 0.0
     set(value) {
       if (field == value || value <= 0) return
@@ -184,6 +196,11 @@ class T3TerminalView(context: Context, appContext: AppContext) : ExpoView(contex
       }
     }
     terminalCanvas.onCellMetricsChanged = { emitResize() }
+    terminalCanvas.onOpenLink = ::openLink
+    terminalCanvas.onPinchEnd = {
+      if (pinchFontSize > 0f) onFontSizeChange(mapOf("fontSize" to fontSize.toDouble()))
+      pinchFontSize = 0f
+    }
     terminalCanvas.selectionDelegate = object : TerminalSelectionDelegate {
       override fun selectWordAt(col: Int, row: Int): Boolean {
         if (terminalHandle == 0L) return false
@@ -260,6 +277,9 @@ class T3TerminalView(context: Context, appContext: AppContext) : ExpoView(contex
     terminalCanvas.onRequestKeyboard = null
     terminalCanvas.onCellMetricsChanged = null
     terminalCanvas.selectionDelegate = null
+    terminalCanvas.onOpenLink = null
+    terminalCanvas.onPinch = null
+    terminalCanvas.onPinchEnd = null
     destroyTerminal()
   }
 
@@ -474,6 +494,24 @@ class T3TerminalView(context: Context, appContext: AppContext) : ExpoView(contex
     }
   }
 
+  // The size follows the fingers in half-point steps, and the app saves it when the pinch ends.
+  private fun pinch(scale: Float) {
+    if (pinchFontSize == 0f) pinchFontSize = fontSize
+    pinchFontSize = (pinchFontSize * scale).coerceIn(MIN_PINCH_FONT_SIZE, MAX_PINCH_FONT_SIZE)
+    val stepped = Math.round(pinchFontSize * 2f) / 2f
+    if (stepped != fontSize) fontSize = stepped
+  }
+
+  private fun openLink(url: String) {
+    try {
+      context.startActivity(
+        Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+      )
+    } catch (_: ActivityNotFoundException) {
+      Toast.makeText(context, "No app can open this link", Toast.LENGTH_SHORT).show()
+    }
+  }
+
   private fun requestKeyboardFocus() {
     if (readOnly) return
     inputView.requestFocus()
@@ -539,3 +577,6 @@ class T3TerminalView(context: Context, appContext: AppContext) : ExpoView(contex
       fallback
     }
 }
+
+private const val MIN_PINCH_FONT_SIZE = 6f
+private const val MAX_PINCH_FONT_SIZE = 20f

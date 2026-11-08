@@ -40,6 +40,9 @@ export interface NativeTerminalSurfaceProps extends ViewProps {
   readonly sharedGrid?: ReadonlyArray<number>;
   readonly onInput?: (event: NativeSyntheticEvent<TerminalInputEvent>) => void;
   readonly onResize?: (event: NativeSyntheticEvent<TerminalResizeEvent>) => void;
+  /** Pinch changes the size on screen and reports it when the fingers lift. */
+  readonly pinchToZoom?: boolean;
+  readonly onFontSizeChange?: (event: NativeSyntheticEvent<{ readonly fontSize: number }>) => void;
 }
 
 export interface NativeTerminalSurfaceHandle {

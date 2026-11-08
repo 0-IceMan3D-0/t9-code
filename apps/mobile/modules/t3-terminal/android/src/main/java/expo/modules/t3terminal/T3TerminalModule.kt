@@ -70,10 +70,14 @@ class T3TerminalModule : Module() {
         view.captureRequest = request
       }
 
+      Prop("pinchToZoom") { view: T3TerminalView, pinchToZoom: Boolean ->
+        view.pinchToZoom = pinchToZoom
+      }
+
       Prop("sharedGrid") { view: T3TerminalView, sharedGrid: List<Int> ->
         view.sharedGrid = sharedGrid
       }
-      Events("onInput", "onResize", "onCapture")
+      Events("onInput", "onResize", "onCapture", "onFontSizeChange")
 
       OnViewDidUpdateProps { view: T3TerminalView ->
         view.applyPendingBuffer()
