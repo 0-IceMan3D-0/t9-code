@@ -25,6 +25,19 @@ Android uses **Material You Layout** by default unless you have turned it off in
 It changes shapes, spacing, and controls independently
 of the selected theme.
 
+## App icon
+
+On Android, choose an icon under **Settings → Appearance → App icon**. It takes effect when you
+leave the app, and the launcher can take a few seconds to show it. Some launchers move or remove the app's home screen icon when it changes; add it
+again from the app drawer. Notifications, links and sharing keep working with every icon.
+
+Android does not let apps use any picture as their real icon. Under **Your own picture**, choose and
+crop a picture, then select **Add to home screen**. This adds a shortcut that opens the app with
+your picture. Some launchers add a small app badge to it, and the app drawer keeps the icon chosen
+above. Choosing another picture updates the shortcut. **Remove shortcut** turns it off; long-press it
+on the home screen to remove it there. If your launcher does not support shortcuts, the app says
+so.
+
 ## Composer context
 
 Git-backed projects show branch and worktree controls below the composer while you create a thread.

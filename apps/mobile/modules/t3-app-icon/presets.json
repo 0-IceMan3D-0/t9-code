@@ -1,0 +1,11 @@
+[
+  { "id": "classic", "label": "Classic" },
+  { "id": "glass", "label": "Liquid Glass" },
+  { "id": "void", "label": "Void" },
+  { "id": "frost", "label": "Frost" },
+  { "id": "terminal", "label": "Terminal" },
+  { "id": "neon", "label": "Neon" },
+  { "id": "blueprint", "label": "Blueprint" },
+  { "id": "pixel", "label": "Pixel" },
+  { "id": "brutal", "label": "Brutal" }
+]

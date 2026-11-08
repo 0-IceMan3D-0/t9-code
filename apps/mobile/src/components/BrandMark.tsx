@@ -4,6 +4,7 @@ import { View } from "react-native";
 
 import { AppText as Text } from "./ui/AppText";
 import { T3_CODE_BRAND_MARK_SOURCE } from "./brandAssets";
+import { appIconPreview, useAppIconState } from "../features/app-icon/appIconModule";
 
 const appVariant = Constants.expoConfig?.extra?.appVariant;
 const DEFAULT_STAGE_LABEL =
@@ -13,11 +14,16 @@ export function BrandMark(props: { readonly compact?: boolean; readonly stageLab
   const compact = props.compact ?? false;
   const iconSize = compact ? 32 : 44;
   const stageLabel = props.stageLabel ?? DEFAULT_STAGE_LABEL;
+  const icon = useAppIconState()?.icon;
 
   return (
     <View className="flex-row items-center gap-3">
       <Image
-        source={T3_CODE_BRAND_MARK_SOURCE}
+        source={
+          icon === "classic"
+            ? T3_CODE_BRAND_MARK_SOURCE
+            : (appIconPreview(icon) ?? T3_CODE_BRAND_MARK_SOURCE)
+        }
         accessibilityIgnoresInvertColors
         style={{
           width: iconSize,

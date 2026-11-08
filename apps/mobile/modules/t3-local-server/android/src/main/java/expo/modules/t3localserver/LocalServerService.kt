@@ -165,8 +165,12 @@ class LocalServerService : Service() {
       Intent(this, LocalServerService::class.java).setAction(ACTION_STOP),
       flags,
     )
-    val open = packageManager.getLaunchIntentForPackage(packageName)?.let {
-      PendingIntent.getActivity(this, 0, it, flags)
+    // The launcher alias is disabled when the app icon changes; target the activity behind it.
+    val open = packageManager.getLaunchIntentForPackage(packageName)?.let { intent ->
+      intent.resolveActivityInfo(packageManager, 0)?.let {
+        intent.setClassName(packageName, it.targetActivity ?: it.name)
+      }
+      PendingIntent.getActivity(this, 0, intent, flags)
     }
     return builder
       .setSmallIcon(applicationInfo.icon)

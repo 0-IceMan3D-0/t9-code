@@ -384,6 +384,10 @@ object AgentNotifications {
     val route = threadPath?.takeUnless { it.contains('?') || it.contains('#') } ?: "/"
     val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
       ?: return null
+    // The launcher alias is disabled when the app icon changes; target the activity behind it.
+    intent.resolveActivityInfo(context.packageManager, 0)?.let {
+      intent.setClassName(context.packageName, it.targetActivity ?: it.name)
+    }
     intent.setAction(Intent.ACTION_VIEW).setData(Uri.parse("$scheme:/$route"))
       .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
     return PendingIntent.getActivity(
