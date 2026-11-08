@@ -264,6 +264,7 @@ object UsbBridge {
       "allow" -> socket.use { allow(it, request) }
       "selftest" -> socket.use { selftest(it) }
       "watch" -> watch(socket)
+      "listen" -> socket.use { DevServers.report(request) }
       else -> socket.use { send(it, "error\tunknown request\n") }
     }
   }

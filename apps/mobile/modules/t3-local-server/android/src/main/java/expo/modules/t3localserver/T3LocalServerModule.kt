@@ -24,6 +24,7 @@ private const val SHELL_EXIT_EVENT = "onShellExit"
 private const val DOWNLOAD_PROGRESS_EVENT = "onDownloadProgress"
 private const val USB_DEVICES_EVENT = "onUsbDevices"
 private const val MAINTENANCE_EVENT = "onMaintenance"
+private const val DEV_SERVERS_EVENT = "onDevServers"
 private const val CREATE_BACKUP_REQUEST = 7461
 private const val OPEN_BACKUP_REQUEST = 7462
 
@@ -39,6 +40,9 @@ class T3LocalServerModule : Module() {
   private val statusListener: (LocalServerStatus) -> Unit = { sendEvent(STATUS_EVENT, snapshot(it)) }
   private val usbListener: () -> Unit = { sendEvent(USB_DEVICES_EVENT, mapOf("devices" to usbDevices())) }
   private val maintenanceListener: (Map<String, Any?>) -> Unit = { sendEvent(MAINTENANCE_EVENT, it) }
+  private val devServersListener: (List<DevServers.Server>) -> Unit = { servers ->
+    sendEvent(DEV_SERVERS_EVENT, mapOf("servers" to servers.map { it.toMap() }))
+  }
   private var pendingDocument: Pair<Int, (Uri?) -> Unit>? = null
 
   private fun pickDocument(intent: Intent, requestCode: Int, promise: Promise, then: (Uri?) -> Unit) {
@@ -147,7 +151,15 @@ class T3LocalServerModule : Module() {
 
   override fun definition() = ModuleDefinition {
     Name("T3LocalServer")
-    Events(STATUS_EVENT, SHELL_OUTPUT_EVENT, SHELL_EXIT_EVENT, DOWNLOAD_PROGRESS_EVENT, USB_DEVICES_EVENT, MAINTENANCE_EVENT)
+    Events(
+      STATUS_EVENT,
+      SHELL_OUTPUT_EVENT,
+      SHELL_EXIT_EVENT,
+      DOWNLOAD_PROGRESS_EVENT,
+      USB_DEVICES_EVENT,
+      MAINTENANCE_EVENT,
+      DEV_SERVERS_EVENT,
+    )
 
     OnCreate {
       LocalServerStatusStore.addListener(statusListener)
@@ -159,12 +171,14 @@ class T3LocalServerModule : Module() {
         startOnAppOpen(it)
       }
       UsbBridge.addListener(usbListener)
+      DevServers.addListener(devServersListener)
       removeRetiredTermux()
     }
     OnDestroy {
       LocalServerStatusStore.removeListener(statusListener)
       LinuxMaintenance.removeListener(maintenanceListener)
       UsbBridge.removeListener(usbListener)
+      DevServers.removeListener(devServersListener)
     }
 
     OnActivityResult { _, payload ->
@@ -176,6 +190,7 @@ class T3LocalServerModule : Module() {
 
     Function("getStatus") { snapshot() }
     Function("listUsbDevices") { usbDevices() }
+    Function("listDevServers") { DevServers.current.map { it.toMap() } }
     Function("allowUsbDevice") { name: String -> UsbBridge.requestAccess(name) }
     Function("start") {
       if (LinuxMaintenance.busy) throw CodedException("ERR_BUSY", "Wait for the backup or restore to finish", null)

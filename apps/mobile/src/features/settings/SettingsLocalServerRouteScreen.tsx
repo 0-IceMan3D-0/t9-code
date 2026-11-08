@@ -24,6 +24,7 @@ import { SettingsScreen } from "./components/SettingsScreen";
 import { SettingsSection } from "./components/SettingsSection";
 import { SettingsSwitchRow } from "./components/SettingsSwitchRow";
 import { LocalServerBatterySection } from "./LocalServerBatterySection";
+import { LocalServerDevServersSection } from "./LocalServerDevServersSection";
 import { LocalServerHealthSection } from "./LocalServerHealthSection";
 import { LocalServerMaintenanceRows } from "./LocalServerMaintenanceRows";
 
@@ -281,6 +282,10 @@ export function SettingsLocalServerRouteScreen() {
               onPress={() => navigation.navigate("LinuxShell")}
             />
           </SettingsSection>
+        )}
+
+        {state === "notInstalled" || state === "installing" ? null : (
+          <LocalServerDevServersSection />
         )}
 
         {state === "notInstalled" || state === "installing" ? null : <LocalServerHealthSection />}

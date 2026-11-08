@@ -68,6 +68,17 @@ if command -v lsusb >/dev/null; then
   check "lsusb lists allowed devices" "Bus 001 Device 005: ID 18d1:4ee0" "$(LD_PRELOAD=$lib "$work/lsusb" 2>&1)"
 fi
 check "other character devices keep their sysfs links" "$(readlink /sys/dev/char/1:3)" "$(LD_PRELOAD=$lib readlink /sys/dev/char/1:3)"
+# Android hides /proc/net, so the app learns about TCP listeners from the preload library.
+LD_PRELOAD=$lib python3 -I -c 'import socket,time
+for family, host in ((socket.AF_INET, "127.0.0.1"), (socket.AF_INET6, "::")):
+    s = socket.socket(family); s.bind((host, 0)); s.listen(); print(s.getsockname()[1], flush=True)
+u = socket.socket(socket.AF_UNIX); u.bind("\0t3usb-test-unix"); u.listen()
+time.sleep(0.5)' >"$work/ports"
+sleep 0.5
+port4=$(sed -n 1p "$work/ports") port6=$(sed -n 2p "$work/ports")
+check "listen on IPv4 is reported" "^listen	$port4	127.0.0.1	0	[0-9]*	[0-9]*$" "$(cat "$work/broker.log")"
+check "listen on IPv6 is reported" "^listen	$port6	::	0	" "$(cat "$work/broker.log")"
+check "unix sockets are not reported" "^2$" "$(grep -c '^listen' "$work/broker.log")"
 check "other paths are untouched" "$(ls /etc | head -1)" "$(LD_PRELOAD=$lib ls /etc | head -1)"
 kill "$broker"
 broker=

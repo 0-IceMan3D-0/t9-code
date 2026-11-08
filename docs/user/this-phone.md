@@ -15,6 +15,15 @@ Use **Sign in to Claude** after the server starts. Finish in the browser, and pa
 
 **Open Linux shell** gives a root shell in the same environment. `apt` works there. It does not need the server, but without the server Android may pause it while the app is in the background.
 
+## Web servers in Linux
+
+When a program in Linux starts a web server, such as an agent running `vite`, `next dev` or `python3 -m http.server`, it shows under **Running web servers** in **Settings > This phone**. Tap a server to open it in your browser, or copy its link. Threads on the built-in server show the same links above the composer: tap one to open it, long-press to copy it. While the server runs, its notification also names the newest web server and has an **Open** button.
+
+- Links point at `127.0.0.1` and work only on this phone. Other devices cannot reach these servers.
+- A server leaves the list when it stops listening.
+- The list shows servers started by most programs (Node, Python, Ruby, PHP, Java and other programs linked against the system's C library). Statically linked programs, such as many Go binaries, are not detected, but their links still work if you type them in the browser.
+- The first time a server shows while **This phone** is open, the app loads its page once to read the page title. Servers that log requests show that request.
+
 ## Health
 
 **Health** in **Settings > This phone** shows how much memory and CPU the built-in environment uses (the server, shells and agents in Linux), how much memory the phone has free, and how much storage Linux and private projects take. It updates every few seconds while the screen is open.

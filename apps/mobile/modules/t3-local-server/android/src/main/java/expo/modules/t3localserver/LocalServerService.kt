@@ -8,6 +8,7 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.net.Uri
 import android.os.Build
 import android.os.Handler
 import android.os.IBinder
@@ -42,6 +43,15 @@ class LocalServerService : Service() {
       thread(name = "t3-health") { runCatching { ServerHealth.checkInBackground(this@LocalServerService) } }
       handler.postDelayed(this, HEALTH_CHECK_MILLIS)
     }
+  }
+
+  private val devServersListener: (List<DevServers.Server>) -> Unit = {
+    handler.post { if (worker?.isAlive == true && !stopping) showNotification() }
+  }
+
+  override fun onCreate() {
+    super.onCreate()
+    DevServers.addListener(devServersListener)
   }
 
   override fun onBind(intent: Intent?): IBinder? = null
@@ -126,14 +136,27 @@ class LocalServerService : Service() {
 
   private fun publish(state: LocalServerState, detail: String, progress: Double = 0.0) {
     LocalServerStatusStore.publish(LocalServerStatus(state, detail, progress))
-    val text = if (state == LocalServerState.INSTALLING) "Setting up" else detail
-    if (text != lastNotification) {
-      lastNotification = text
-      (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).notify(NOTIFICATION_ID, notification(text))
-    }
+    notificationText = if (state == LocalServerState.INSTALLING) "Setting up" else detail
+    showNotification()
   }
 
+  @Volatile
+  private var notificationText = "Starting"
   private var lastNotification: String? = null
+
+  @Synchronized
+  private fun showNotification() {
+    val servers = DevServers.current
+    val text = notificationText + when (servers.size) {
+      0 -> ""
+      1 -> " · web server on port ${servers[0].port}"
+      else -> " · ${servers.size} web servers"
+    }
+    val key = text + servers.maxByOrNull { it.since }?.url
+    if (key == lastNotification) return
+    lastNotification = key
+    (getSystemService(NOTIFICATION_SERVICE) as NotificationManager).notify(NOTIFICATION_ID, notification(text))
+  }
 
   private fun finish(state: LocalServerState, detail: String = "") {
     handler.removeCallbacks(healthCheck)
@@ -147,6 +170,7 @@ class LocalServerService : Service() {
   }
 
   override fun onDestroy() {
+    DevServers.removeListener(devServersListener)
     handler.removeCallbacks(healthCheck)
     server?.destroy()
     if (wakeLock.isHeld) wakeLock.release()
@@ -180,14 +204,23 @@ class LocalServerService : Service() {
       flags,
     )
     val open = openAppIntent(this)
-    return builder
+    builder
       .setSmallIcon(applicationInfo.icon)
       .setContentTitle("Built-in server")
       .setContentText(text)
       .setOngoing(true)
       .setContentIntent(open)
       .addAction(Notification.Action.Builder(null, "Stop", stop).build())
-      .build()
+    DevServers.current.maxByOrNull { it.since }?.let { server ->
+      val browse = PendingIntent.getActivity(
+        this,
+        1,
+        Intent(Intent.ACTION_VIEW, Uri.parse(server.url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+        flags,
+      )
+      builder.addAction(Notification.Action.Builder(null, "Open port ${server.port}", browse).build())
+    }
+    return builder.build()
   }
 
   companion object {

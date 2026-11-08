@@ -10,6 +10,10 @@
  *   allow <bus> <dev>  -> per device "asking <bus> <dev>", then "granted|denied|error <bus> <dev>", "end" (or "allow all")
  *   watch              -> "add <bus> <dev>"..., "ready", then "add"/"remove" lines as they happen
  *   selftest           -> "ok" with a pipe fd attached that reads "fd passing works"
+ *   listen <port> <address> <v6only> <pid> <inode>  -> no reply; a TCP socket started listening
+ *
+ * The last one is not about USB: Android hides /proc/net from apps, so the preload library tells
+ * the app about listening sockets for its list of web servers (DevServers.kt).
  *
  * The app also keeps a fake sysfs and devfs tree for allowed devices under T3USB_ROOT, which the
  * preload library points /sys/bus/usb, /sys/dev/char and /dev/bus/usb at.
@@ -55,13 +59,14 @@ static int t3usb_socket_name(char *name, size_t size) {
   return name[0] ? 0 : -1;
 }
 
-static int t3usb_connect(void) {
+/* flags can add SOCK_NONBLOCK, for callers that must never wait on the app. */
+static int t3usb_connect_with(int flags) {
   char name[108];
   if (t3usb_socket_name(name, sizeof(name)) != 0) {
     errno = ENOENT;
     return -1;
   }
-  int sock = socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
+  int sock = socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC | flags, 0);
   if (sock < 0) return -1;
   struct sockaddr_un address;
   memset(&address, 0, sizeof(address));
@@ -78,6 +83,8 @@ static int t3usb_connect(void) {
   }
   return sock;
 }
+
+static int t3usb_connect(void) { return t3usb_connect_with(0); }
 
 static int t3usb_send(int sock, const char *line) {
   size_t length = strlen(line);

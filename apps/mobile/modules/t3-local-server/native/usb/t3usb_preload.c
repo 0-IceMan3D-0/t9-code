@@ -11,12 +11,17 @@
  *    enumerates and hotplugs through its normal code path, however it was loaded (pyusb's ctypes,
  *    a dlopen with RTLD_LOCAL, or a plain link), because its calls into libudev go through the PLT.
  *
+ * 3. listen() on a TCP socket is reported to the app, which cannot read /proc/net, so it can list
+ *    the web servers running in Linux. The report never waits: a busy or absent app is skipped.
+ *
  * Everything else passes straight to glibc: a prefix check is the whole cost of an unrelated call.
  */
 #define _GNU_SOURCE
+#include <arpa/inet.h>
 #include <dirent.h>
 #include <dlfcn.h>
 #include <linux/netlink.h>
+#include <netinet/in.h>
 #include <poll.h>
 #include <pthread.h>
 #include <stdarg.h>
@@ -343,6 +348,52 @@ EXPORT int inotify_add_watch(int fd, const char *path, uint32_t mask) {
   const char *source = rewrite(path, buffer, sizeof(buffer));
   if (real_inotify_add_watch) return real_inotify_add_watch(fd, source, mask);
   return (int)syscall(SYS_inotify_add_watch, fd, source, mask);
+}
+
+/* ---- Listening sockets ---------------------------------------------------------------------- */
+
+static void report_listen(int fd) {
+  int type = 0;
+  socklen_t type_size = sizeof(type);
+  struct sockaddr_storage address;
+  socklen_t address_size = sizeof(address);
+  struct stat info;
+  if (getsockopt(fd, SOL_SOCKET, SO_TYPE, &type, &type_size) != 0 || type != SOCK_STREAM) return;
+  if (getsockname(fd, (struct sockaddr *)&address, &address_size) != 0) return;
+  if (syscall(SYS_fstat, fd, &info) != 0) return;
+  char host[INET6_ADDRSTRLEN];
+  int port, v6only = 0;
+  if (address.ss_family == AF_INET) {
+    struct sockaddr_in *inet = (struct sockaddr_in *)&address;
+    if (!inet_ntop(AF_INET, &inet->sin_addr, host, sizeof(host))) return;
+    port = ntohs(inet->sin_port);
+  } else if (address.ss_family == AF_INET6) {
+    struct sockaddr_in6 *inet6 = (struct sockaddr_in6 *)&address;
+    if (!inet_ntop(AF_INET6, &inet6->sin6_addr, host, sizeof(host))) return;
+    port = ntohs(inet6->sin6_port);
+    socklen_t size = sizeof(v6only);
+    getsockopt(fd, IPPROTO_IPV6, IPV6_V6ONLY, &v6only, &size);
+  } else {
+    return;
+  }
+  char line[160];
+  snprintf(line, sizeof(line), "listen\t%d\t%s\t%d\t%d\t%llu\n", port, host, v6only ? 1 : 0, (int)getpid(),
+           (unsigned long long)info.st_ino);
+  int sock = t3usb_connect_with(SOCK_NONBLOCK);
+  if (sock < 0) return;
+  t3usb_send(sock, line);
+  close(sock);
+  debug("reported listening port %d", port);
+}
+
+EXPORT int listen(int fd, int backlog) {
+  int result = (int)syscall(SYS_listen, fd, backlog);
+  if (result == 0) {
+    int saved = errno;
+    report_listen(fd);
+    errno = saved;
+  }
+  return result;
 }
 
 /* ---- libudev for USB ---------------------------------------------------------------------- */

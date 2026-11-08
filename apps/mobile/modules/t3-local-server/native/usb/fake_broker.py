@@ -99,6 +99,8 @@ def serve(connection):
             if late and len(watchers) == 1:
                 threading.Thread(target=plug_late, daemon=True).start()
             connection.recv(1)
+        elif request[0] == "listen":
+            print("\t".join(request), flush=True)
         elif request[0] == "selftest":
             read, write = os.pipe()
             os.write(write, b"fd passing works\n")

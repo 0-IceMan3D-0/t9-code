@@ -27,6 +27,17 @@ export interface UsbDevice {
   readonly allowed: boolean;
 }
 
+/** A TCP socket a process in Linux is listening on, as the native side tracks it. */
+export interface DevServerListener {
+  readonly port: number;
+  readonly address: string;
+  readonly url: string;
+  readonly pid: number;
+  readonly command: string;
+  /** Milliseconds since boot. */
+  readonly since: number;
+}
+
 export interface BatteryState {
   readonly optimized: boolean;
   readonly hintDismissed: boolean;
@@ -66,6 +77,7 @@ export interface StorageSample {
 interface LocalServerNativeModule {
   getStatus(): LocalServerStatus;
   listUsbDevices(): ReadonlyArray<UsbDevice>;
+  listDevServers(): ReadonlyArray<DevServerListener>;
   allowUsbDevice(name: string): void;
   start(): void;
   stop(): void;
@@ -105,6 +117,10 @@ interface LocalServerNativeModule {
     listener: (event: { readonly data: string }) => void,
   ): EventSubscription;
   addListener(event: "onShellExit", listener: () => void): EventSubscription;
+  addListener(
+    event: "onDevServers",
+    listener: (event: { readonly servers: ReadonlyArray<DevServerListener> }) => void,
+  ): EventSubscription;
   addListener(
     event: "onMaintenance",
     listener: (snapshot: MaintenanceSnapshot) => void,
