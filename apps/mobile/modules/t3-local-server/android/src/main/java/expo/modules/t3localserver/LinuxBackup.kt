@@ -423,7 +423,11 @@ class MaintenancePaths(context: Context) {
  * build a fresh one, and moves it back before the install counts as finished.
  */
 object KeptFiles {
-  private val KEPT = listOf("root/projects", "root/.ssh", "root/.gitconfig", "root/.config/git", "root/.android", "root/.t3")
+  private val KEPT = listOf(
+    "root/projects", "root/.ssh", "root/.gitconfig", "root/.config/git", "root/.android", "root/.t3",
+    // OpenCode's settings, sign-ins and sessions; OpenCode itself is installed again from the app.
+    "root/.config/opencode", "root/.local/share/opencode",
+  )
   private val DROPPED = listOf("root/.t3/runtime", "root/.t3/caches")
 
   private fun directory(guest: GuestRuntime) = File(guest.root, "kept")

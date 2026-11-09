@@ -28,6 +28,7 @@ private const val DEV_SERVERS_EVENT = "onDevServers"
 private const val GIT_SETUP_EVENT = "onGitSetup"
 private const val OLLAMA_EVENT = "onOllama"
 private const val PHONE_MODELS_EVENT = "onPhoneModels"
+private const val OPENCODE_EVENT = "onOpenCode"
 private const val CREATE_BACKUP_REQUEST = 7461
 private const val OPEN_BACKUP_REQUEST = 7462
 
@@ -49,6 +50,7 @@ class T3LocalServerModule : Module() {
   private val maintenanceListener: (Map<String, Any?>) -> Unit = { sendEvent(MAINTENANCE_EVENT, it) }
   private val ollamaListener: (Ollama.State) -> Unit = { sendEvent(OLLAMA_EVENT, it.toMap()) }
   private val phoneModelsListener: (PhoneModels.State) -> Unit = { sendEvent(PHONE_MODELS_EVENT, it.toMap()) }
+  private val openCodeListener: (OpenCode.State) -> Unit = { sendEvent(OPENCODE_EVENT, it.toMap()) }
   private val devServersListener: (List<DevServers.Server>) -> Unit = { servers ->
     sendEvent(DEV_SERVERS_EVENT, mapOf("servers" to servers.map { it.toMap() }))
   }
@@ -173,6 +175,7 @@ class T3LocalServerModule : Module() {
       GIT_SETUP_EVENT,
       OLLAMA_EVENT,
       PHONE_MODELS_EVENT,
+      OPENCODE_EVENT,
     )
 
     OnCreate {
@@ -184,6 +187,7 @@ class T3LocalServerModule : Module() {
         UsbBridge.start(it)
         ServerTileService.watch(it)
         AutoStop.install(it)
+        OpenCode.watch(it)
         startOnAppOpen(it)
       }
       UsbBridge.addListener(usbListener)
@@ -191,6 +195,7 @@ class T3LocalServerModule : Module() {
       DevServers.addListener(devServersListener)
       Ollama.addListener(ollamaListener)
       PhoneModels.addListener(phoneModelsListener)
+      OpenCode.addListener(openCodeListener)
       removeRetiredTermux()
     }
     OnDestroy {
@@ -201,6 +206,7 @@ class T3LocalServerModule : Module() {
       DevServers.removeListener(devServersListener)
       Ollama.removeListener(ollamaListener)
       PhoneModels.removeListener(phoneModelsListener)
+      OpenCode.removeListener(openCodeListener)
       AutoStop.forgetThreads()
     }
 
@@ -241,6 +247,9 @@ class T3LocalServerModule : Module() {
     Function("downloadPhoneModel") { id: String -> PhoneModels.download(context, id) }
     Function("cancelPhoneModelDownload") { PhoneModels.cancelDownload() }
     Function("deletePhoneModel") { id: String -> PhoneModels.delete(context, id) }
+    Function("openCodeState") { OpenCode.refresh(context).toMap() }
+    AsyncFunction("installOpenCode") { OpenCode.install(context) }
+    AsyncFunction("removeOpenCode") { OpenCode.remove(context) }
     Function("reportThreadWork") { json: String -> AutoStop.reportThreads(json) }
     Function("setSharedStorage") { value: Boolean -> options.sharedStorage = value }
     Function("serverSwitchTarget") {

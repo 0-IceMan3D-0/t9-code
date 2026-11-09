@@ -25,6 +25,14 @@ export interface LocalServerStatus {
   readonly sharedStorageGranted: boolean;
 }
 
+export interface OpenCodeState {
+  readonly installed: boolean;
+  readonly version: string | null;
+  readonly busy: string | null;
+  readonly detail: string | null;
+  readonly error: string | null;
+}
+
 export interface UsbDevice {
   readonly name: string;
   readonly vendorId: number;
@@ -218,6 +226,11 @@ interface LocalServerNativeModule {
   downloadPhoneModel(id: string): void;
   cancelPhoneModelDownload(): void;
   deletePhoneModel(id: string): void;
+  openCodeState(): OpenCodeState;
+  /** Installs OpenCode or updates it, resolving once npm is done. */
+  installOpenCode(): Promise<void>;
+  removeOpenCode(): Promise<void>;
+  addListener(event: "onOpenCode", listener: (state: OpenCodeState) => void): EventSubscription;
   addListener(event: "onOllama", listener: (state: OllamaState) => void): EventSubscription;
   addListener(
     event: "onPhoneModels",
@@ -338,4 +351,18 @@ function subscribePhoneModels(onChange: () => void) {
 
 export function usePhoneModels(): PhoneModelsState | null {
   return useSyncExternalStore(subscribePhoneModels, () => phoneModels);
+}
+
+let openCode: OpenCodeState | null = localServer?.openCodeState() ?? null;
+
+function subscribeOpenCode(onChange: () => void) {
+  const subscription = localServer?.addListener("onOpenCode", (next) => {
+    openCode = next;
+    onChange();
+  });
+  return () => subscription?.remove();
+}
+
+export function useOpenCode(): OpenCodeState | null {
+  return useSyncExternalStore(subscribeOpenCode, () => openCode);
 }

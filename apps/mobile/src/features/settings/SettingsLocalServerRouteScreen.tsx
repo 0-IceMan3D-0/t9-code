@@ -28,6 +28,7 @@ import { LocalServerGitSection } from "./LocalServerGitSection";
 import { LocalServerHealthSection } from "./LocalServerHealthSection";
 import { LocalServerMaintenanceRows } from "./LocalServerMaintenanceRows";
 import { LocalServerOllamaSection } from "./LocalServerOllamaSection";
+import { LocalServerOpenCodeSection } from "./LocalServerOpenCodeSection";
 import { LocalServerPhoneGpuSection } from "./LocalServerPhoneGpuSection";
 
 const STATE_LABELS: Record<LocalServerStatus["state"], string> = {
@@ -307,6 +308,10 @@ export function SettingsLocalServerRouteScreen() {
 
         {state === "notInstalled" || state === "installing" || maintaining ? null : (
           <LocalServerPhoneGpuSection serverRunning={running} />
+        )}
+
+        {state === "notInstalled" || state === "installing" || maintaining ? null : (
+          <LocalServerOpenCodeSection />
         )}
 
         {state === "notInstalled" || state === "installing" ? null : <LocalServerHealthSection />}

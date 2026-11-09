@@ -91,6 +91,14 @@ When a program in Linux starts a web server, such as an agent running `vite`, `n
 - Some GPUs cannot load these models at all. **Phone GPU** then says so; use Ollama on that phone instead.
 - Models are kept outside Linux, so backups and **Reset Linux** do not touch them. Tap a model to delete it.
 
+## OpenCode
+
+**OpenCode** in **Settings > This phone** installs OpenCode in Linux and turns it on for the built-in server. Pick **OpenCode** in a thread's model picker to use it.
+
+- OpenCode's free models work without an account. To use your own providers, run `opencode auth login` in a Linux shell.
+- Models from Ollama and Phone GPU on this phone show up in OpenCode as **Ollama on this phone** and **Phone GPU**.
+- **Update OpenCode** installs the newest release. **Reset Linux** removes OpenCode but keeps its settings and sign-ins; install it again to pick them up.
+
 ## Health
 
 **Health** in **Settings > This phone** shows how much memory and CPU the built-in environment uses (the server, shells and agents in Linux), how much memory the phone has free, and how much storage Linux and private projects take. It updates every few seconds while the screen is open.
@@ -103,7 +111,7 @@ When the phone runs low on memory, or Linux uses a large share of it, Android ma
 
 - **Back up Linux** saves one `.tar.gz` file with Linux and its installed packages, private projects, threads on This phone, and Claude Code's sign-in and settings. Choose **Save to Downloads** (it goes to `Downloads/T3² code`) or **Choose location**. Caches that refill themselves are left out: `/tmp`, apt's downloaded packages, npm's download cache and `/root/.cache`. Projects in the shared folder are not included. The backup keeps running in the background behind a notification, and you can cancel it.
 - **Restore from backup** checks the file you pick, shows when and by which app version it was made, and asks before it replaces the current environment. It unpacks next to the current environment and switches over only when the whole file checked out, so a damaged file or a cancel leaves everything as it was. Restoring needs free space for both copies until it finishes.
-- **Reset Linux** downloads a fresh Linux, about 500 MB, and sets it up again, like the first setup. It keeps private projects, Claude Code's sign-in and settings (`~/.claude` and `~/.claude.json`), threads on This phone, git settings (`~/.gitconfig`), SSH keys (`~/.ssh`) and adb keys (`~/.android`). Packages you installed and other files in Linux are lost. Use it when Linux is broken.
+- **Reset Linux** downloads a fresh Linux, about 500 MB, and sets it up again, like the first setup. It keeps private projects, Claude Code's sign-in and settings (`~/.claude` and `~/.claude.json`), threads on This phone, git settings (`~/.gitconfig`), SSH keys (`~/.ssh`), adb keys (`~/.android`) and OpenCode's settings and sign-ins. Packages you installed and other files in Linux are lost. Use it when Linux is broken.
 
 **Keep backups private.** A backup holds your Claude sign-in and any SSH keys, so anyone with the file can use your Claude account. A backup is also a normal tar archive: on a computer, `tar -xzf` unpacks `t3-backup.json` and the Linux files under `rootfs/`.
 
