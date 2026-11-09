@@ -88,6 +88,12 @@ import {
   FilesystemBrowseInput,
   FilesystemBrowseResult,
   FilesystemBrowseError,
+  FilesystemListDirectoryInput,
+  FilesystemListDirectoryResult,
+  FilesystemMutateInput,
+  FilesystemMutateResult,
+  FilesystemOperationError,
+  FilesystemWriteBytesInput,
 } from "./filesystem.ts";
 import {
   AgentSessionImportInput,
@@ -422,6 +428,9 @@ export const WS_METHODS = {
 
   filesystemBrowse: "filesystem.browse",
   filesystemGetMetadata: "filesystem.getMetadata",
+  filesystemListDirectory: "filesystem.listDirectory",
+  filesystemMutate: "filesystem.mutate",
+  filesystemWriteBytes: "filesystem.writeBytes",
   agentSessionsScan: "agentSessions.scan",
   agentSessionsImport: "agentSessions.import",
   assetsCreateUrl: "assets.createUrl",
@@ -1377,6 +1386,24 @@ const WsFilesystemBrowseRpc = Rpc.make(WS_METHODS.filesystemBrowse, {
   error: Schema.Union([FilesystemBrowseError, EnvironmentAuthorizationError]),
 });
 
+const WsFilesystemListDirectoryRpc = Rpc.make(WS_METHODS.filesystemListDirectory, {
+  payload: FilesystemListDirectoryInput,
+  success: FilesystemListDirectoryResult,
+  error: Schema.Union([FilesystemOperationError, EnvironmentAuthorizationError]),
+});
+
+const WsFilesystemMutateRpc = Rpc.make(WS_METHODS.filesystemMutate, {
+  payload: FilesystemMutateInput,
+  success: FilesystemMutateResult,
+  error: Schema.Union([FilesystemOperationError, EnvironmentAuthorizationError]),
+});
+
+const WsFilesystemWriteBytesRpc = Rpc.make(WS_METHODS.filesystemWriteBytes, {
+  payload: FilesystemWriteBytesInput,
+  success: FilesystemMutateResult,
+  error: Schema.Union([FilesystemOperationError, EnvironmentAuthorizationError]),
+});
+
 const WsAgentSessionsScanRpc = Rpc.make(WS_METHODS.agentSessionsScan, {
   payload: AgentSessionScanInput,
   success: AgentSessionScanResult,
@@ -2127,6 +2154,9 @@ export const WsRpcGroup = RpcGroup.make(
   WsProjectsMutateRpc,
   WsShellOpenInEditorRpc,
   WsFilesystemBrowseRpc,
+  WsFilesystemListDirectoryRpc,
+  WsFilesystemMutateRpc,
+  WsFilesystemWriteBytesRpc,
   WsFilesystemGetMetadataRpc,
   WsAgentSessionsScanRpc,
   WsAgentSessionsImportRpc,

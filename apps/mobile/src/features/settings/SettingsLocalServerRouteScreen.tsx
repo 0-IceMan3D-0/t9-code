@@ -94,9 +94,11 @@ function ClaudeSection() {
   };
 
   const submit = async () => {
+    const server = localServer;
+    if (!server) return;
     setError(null);
     try {
-      await localServer?.submitClaudeCode(code.trim());
+      await server.submitClaudeCode(code.trim());
     } catch (cause) {
       setError(signInErrorMessage(cause));
     }
@@ -287,6 +289,12 @@ export function SettingsLocalServerRouteScreen() {
               label="Open Linux shell"
               disabled={maintaining}
               onPress={() => navigation.navigate("LinuxShell")}
+            />
+            <SettingsActionRow
+              icon="folder"
+              label="Browse files"
+              disabled={maintaining}
+              onPress={() => navigation.navigate("LocalFileExplorer", { volume: "linux" })}
             />
           </SettingsSection>
         )}

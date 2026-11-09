@@ -21,6 +21,17 @@ Use **Sign in to Claude** after the server starts. Finish in the browser, and pa
 - **Links**: tap a web link in the output, such as `http://localhost:5173`, to open it in your browser. Long-press it for **Copy link**. Links to `0.0.0.0` open as `127.0.0.1`.
 - **Copy and paste**: long-press to select, drag the handles, then **Copy** or **Select all**. The clipboard key in the key row pastes. **Copy screen** in the **⋮** menu copies what is on screen.
 
+## Files
+
+**Browse files** in **Settings > This phone** opens a file explorer that works on the phone directly, even while the server is stopped. **Linux** shows Linux's files, starting in `/root`. **Phone storage** shows the phone's shared storage once you allow "manage all files". To browse another computer, open **Settings > Environments**, pick the environment, then **Browse files**.
+
+- Tap a folder to open it and a file to view it. Long-press for **Edit**, **Open with…**, **Share…**, **Save to Downloads**, **Rename**, **Duplicate**, **Copy**, **Move**, **Copy path**, **Info** and **Delete**. **Info** on a folder adds up its size.
+- The **⋮** menu has **New folder**, **New file**, **Import from phone**, **Go to path…**, sorting and **Show hidden files**. **Select** picks several items to copy, move or delete together.
+- Type in the search field to filter the folder. On the phone, **Search in all subfolders** finds names anywhere below it.
+- After **Copy** or **Move**, open the destination and tap **Paste** or **Move here**. This works between Linux and phone storage too. Name clashes get a "copy" name instead of replacing anything.
+- Files open with a viewer for their type: code with highlighting, Markdown and CSV previews, images, video, audio and a hex view. **Edit** opens a text editor with find and replace (including regular expressions), undo and redo, go to line, word wrap, text size and a row of coding symbols. Files over 512 KB open read-only.
+- The built-in server's own data in `/root/.t3/userdata` can't be changed from here. On another computer, uploads and saves are limited to 32 MB per file, and a server older than the explorer can only browse, view and download.
+
 ## Git and GitHub
 
 **Git and GitHub** in **Settings > This phone** sets up git for Linux. The built-in server's agents run as the same root user, so they commit with this identity and push with this key.

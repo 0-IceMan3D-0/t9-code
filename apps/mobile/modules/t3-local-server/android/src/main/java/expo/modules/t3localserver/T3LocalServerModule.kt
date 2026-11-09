@@ -92,6 +92,8 @@ class T3LocalServerModule : Module() {
     }
   }
 
+  private fun files() = LocalFiles(context, guest)
+
   private fun gitSetup(): GitSetup {
     if (!guest.isInstalled) throw CodedException("ERR_NOT_INSTALLED", "Linux is not set up", null)
     if (LinuxMaintenance.busy) throw CodedException("ERR_BUSY", "Wait for the backup or restore to finish", null)
@@ -316,6 +318,55 @@ class T3LocalServerModule : Module() {
       LinuxShells.closeAll()
       RuntimeInstaller.removeTree(guest.root)
       LocalServerStatusStore.publish(LocalServerStatus(LocalServerState.NOT_INSTALLED))
+    }
+
+    // File explorer calls walk folders and copy files, so they run off the module's queue too.
+    Function("filesStorageGranted") { files().storageGranted() }
+    Function("filesUri") { volume: String, path: String -> files().fileUri(volume, path) }
+    AsyncFunction("filesList") { volume: String, path: String, promise: Promise ->
+      inBackground("t3-files", promise) { files().list(volume, path) }
+    }
+    AsyncFunction("filesStat") { volume: String, path: String, promise: Promise ->
+      inBackground("t3-files", promise) { files().stat(volume, path) }
+    }
+    AsyncFunction("filesCreateDirectory") { volume: String, path: String, promise: Promise ->
+      inBackground("t3-files", promise) { files().createDirectory(volume, path) }
+    }
+    AsyncFunction("filesCreateFile") { volume: String, path: String, promise: Promise ->
+      inBackground("t3-files", promise) { files().createFile(volume, path) }
+    }
+    AsyncFunction("filesCopy") { fromVolume: String, from: String, toVolume: String, to: String, promise: Promise ->
+      inBackground("t3-files", promise) { files().copy(fromVolume, from, toVolume, to) }
+    }
+    AsyncFunction("filesMove") { fromVolume: String, from: String, toVolume: String, to: String, promise: Promise ->
+      inBackground("t3-files", promise) { files().move(fromVolume, from, toVolume, to) }
+    }
+    AsyncFunction("filesDelete") { volume: String, paths: List<String>, promise: Promise ->
+      inBackground("t3-files", promise) { files().delete(volume, paths) }
+    }
+    AsyncFunction("filesReadText") { volume: String, path: String, maxBytes: Int, promise: Promise ->
+      inBackground("t3-files", promise) { files().readText(volume, path, maxBytes) }
+    }
+    AsyncFunction("filesWriteText") { volume: String, path: String, contents: String, expectedModifiedAt: Double?, promise: Promise ->
+      inBackground("t3-files", promise) { files().writeText(volume, path, contents, expectedModifiedAt) }
+    }
+    AsyncFunction("filesReadBase64") { volume: String, path: String, offset: Double, length: Int, promise: Promise ->
+      inBackground("t3-files", promise) { files().readBase64(volume, path, offset, length) }
+    }
+    AsyncFunction("filesImport") { volume: String, path: String, sourceUri: String, promise: Promise ->
+      inBackground("t3-files", promise) { files().importFile(volume, path, sourceUri) }
+    }
+    AsyncFunction("filesSaveToDownloads") { volume: String, path: String, promise: Promise ->
+      inBackground("t3-files", promise) { files().saveToDownloads(volume, path) }
+    }
+    AsyncFunction("filesOpen") { volume: String, path: String, share: Boolean, promise: Promise ->
+      inBackground("t3-files", promise) { files().open(volume, path, share) }
+    }
+    AsyncFunction("filesSearch") { volume: String, path: String, query: String, limit: Int, promise: Promise ->
+      inBackground("t3-files", promise) { files().search(volume, path, query, limit) }
+    }
+    AsyncFunction("filesSize") { volume: String, path: String, promise: Promise ->
+      inBackground("t3-files", promise) { files().size(volume, path) }
     }
 
     AsyncFunction("requestStorageAccess") { promise: Promise ->

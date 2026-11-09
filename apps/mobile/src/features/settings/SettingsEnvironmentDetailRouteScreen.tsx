@@ -307,6 +307,16 @@ function EnvironmentDetail({ environmentId }: { readonly environmentId: Environm
                     />
                   ) : null}
                 </SettingsSection>
+                <SettingsSection title="Files">
+                  <SettingsActionRow
+                    icon="folder"
+                    label="Browse files"
+                    disabled={!connected}
+                    onPress={() =>
+                      navigation.navigate("FileExplorer", { environmentId: String(environmentId) })
+                    }
+                  />
+                </SettingsSection>
                 <SettingsSection title="Providers">
                   <SettingsActionRow
                     icon="arrow.clockwise"

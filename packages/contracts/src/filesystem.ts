@@ -89,3 +89,79 @@ export class FilesystemBrowseError extends Schema.TaggedError<FilesystemBrowseEr
     } as any);
   }
 }
+
+const FilesystemPath = TrimmedNonEmptyString.check(Schema.isMaxLength(4096));
+
+export const FILESYSTEM_LIST_DIRECTORY_LIMIT = 5000;
+export const FILESYSTEM_WRITE_BYTES_MAX = 32 * 1024 * 1024;
+
+export const FilesystemListDirectoryInput = Schema.Struct({
+  // Absolute host path or ~/; `~` alone is the home directory.
+  path: FilesystemPath,
+});
+export type FilesystemListDirectoryInput = typeof FilesystemListDirectoryInput.Type;
+
+export const FilesystemDirectoryEntry = Schema.Struct({
+  name: TrimmedNonEmptyString,
+  kind: Schema.Literals(["file", "directory", "other"]),
+  symlink: Schema.Boolean,
+  byteLength: Schema.optionalKey(NonNegativeInt),
+  modifiedAt: Schema.optionalKey(NonNegativeInt),
+});
+export type FilesystemDirectoryEntry = typeof FilesystemDirectoryEntry.Type;
+
+export const FilesystemListDirectoryResult = Schema.Struct({
+  path: TrimmedNonEmptyString,
+  parentPath: Schema.NullOr(TrimmedNonEmptyString),
+  homePath: TrimmedNonEmptyString,
+  separator: Schema.Literals(["/", "\\"]),
+  entries: Schema.Array(FilesystemDirectoryEntry),
+  truncated: Schema.Boolean,
+});
+export type FilesystemListDirectoryResult = typeof FilesystemListDirectoryResult.Type;
+
+export const FilesystemMutateInput = Schema.Union([
+  Schema.TaggedStruct("createDirectory", { path: FilesystemPath }),
+  Schema.TaggedStruct("createFile", { path: FilesystemPath }),
+  // Also moves: `to` may name another directory.
+  Schema.TaggedStruct("rename", { from: FilesystemPath, to: FilesystemPath }),
+  Schema.TaggedStruct("copy", { from: FilesystemPath, to: FilesystemPath }),
+  Schema.TaggedStruct("delete", {
+    paths: Schema.Array(FilesystemPath).check(Schema.isMinLength(1), Schema.isMaxLength(500)),
+  }),
+]);
+export type FilesystemMutateInput = typeof FilesystemMutateInput.Type;
+
+export const FilesystemMutateResult = Schema.Struct({
+  // Absolute paths created or changed, so clients can refresh their listings.
+  paths: Schema.Array(TrimmedNonEmptyString),
+});
+export type FilesystemMutateResult = typeof FilesystemMutateResult.Type;
+
+export const FilesystemWriteBytesInput = Schema.Struct({
+  path: FilesystemPath,
+  base64: Schema.String.check(Schema.isMaxLength(Math.ceil(FILESYSTEM_WRITE_BYTES_MAX / 3) * 4)),
+  overwrite: Schema.Boolean,
+});
+export type FilesystemWriteBytesInput = typeof FilesystemWriteBytesInput.Type;
+
+export const FilesystemOperationFailure = Schema.Literals([
+  "not_found",
+  "already_exists",
+  "permission_denied",
+  "not_directory",
+  "invalid_path",
+  "failed",
+]);
+export type FilesystemOperationFailure = typeof FilesystemOperationFailure.Type;
+
+export class FilesystemOperationError extends Schema.TaggedError<FilesystemOperationError>()(
+  "FilesystemOperationError",
+  {
+    operation: TrimmedNonEmptyString,
+    path: Schema.String,
+    failure: FilesystemOperationFailure,
+    message: TrimmedNonEmptyString,
+    cause: Schema.optional(Schema.Defect()),
+  },
+) {}

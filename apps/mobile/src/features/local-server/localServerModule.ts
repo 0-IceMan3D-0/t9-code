@@ -85,6 +85,9 @@ export interface StorageSample {
   readonly totalBytes: number;
 }
 
+/** Linux's own files, or the phone's shared storage. */
+export type LocalFilesVolume = "linux" | "phone";
+
 interface LocalServerNativeModule {
   getStatus(): LocalServerStatus;
   listUsbDevices(): ReadonlyArray<UsbDevice>;
@@ -141,6 +144,55 @@ interface LocalServerNativeModule {
   writeShell(id: string, data: string): void;
   resizeShell(id: string, cols: number, rows: number): void;
   saveToDownloads(id: string, url: string, fileName: string): Promise<string>;
+  filesStorageGranted(): boolean;
+  /** A file:// URI for previews; Linux symlinks are resolved inside Linux. */
+  filesUri(volume: LocalFilesVolume, path: string): string;
+  /** JSON of a FilesystemListDirectoryResult. */
+  filesList(volume: LocalFilesVolume, path: string): Promise<string>;
+  filesStat(volume: LocalFilesVolume, path: string): Promise<string>;
+  filesCreateDirectory(volume: LocalFilesVolume, path: string): Promise<void>;
+  filesCreateFile(volume: LocalFilesVolume, path: string): Promise<void>;
+  filesCopy(
+    fromVolume: LocalFilesVolume,
+    from: string,
+    toVolume: LocalFilesVolume,
+    to: string,
+  ): Promise<void>;
+  filesMove(
+    fromVolume: LocalFilesVolume,
+    from: string,
+    toVolume: LocalFilesVolume,
+    to: string,
+  ): Promise<void>;
+  filesDelete(volume: LocalFilesVolume, paths: ReadonlyArray<string>): Promise<void>;
+  /** JSON of `{ contents, byteLength, truncated, binary, modifiedAt }`. */
+  filesReadText(volume: LocalFilesVolume, path: string, maxBytes: number): Promise<string>;
+  /** Rejects with ERR_CHANGED when the file's modification time is not `expectedModifiedAt`. */
+  filesWriteText(
+    volume: LocalFilesVolume,
+    path: string,
+    contents: string,
+    expectedModifiedAt: number | null,
+  ): Promise<void>;
+  filesReadBase64(
+    volume: LocalFilesVolume,
+    path: string,
+    offset: number,
+    length: number,
+  ): Promise<string>;
+  filesImport(volume: LocalFilesVolume, path: string, sourceUri: string): Promise<void>;
+  /** Resolves with the saved file's name. */
+  filesSaveToDownloads(volume: LocalFilesVolume, path: string): Promise<string>;
+  filesOpen(volume: LocalFilesVolume, path: string, share: boolean): Promise<void>;
+  /** JSON of `{ entries, truncated }`; each entry also carries its `path`. */
+  filesSearch(
+    volume: LocalFilesVolume,
+    path: string,
+    query: string,
+    limit: number,
+  ): Promise<string>;
+  /** JSON of `{ byteLength, files, folders, complete }`. */
+  filesSize(volume: LocalFilesVolume, path: string): Promise<string>;
   /** Git identity and SSH key state in Linux, as JSON. */
   gitStatus(): Promise<string>;
   /** An empty value removes that setting. */

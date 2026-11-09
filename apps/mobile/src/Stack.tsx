@@ -46,6 +46,8 @@ import { ArchivedThreadsRouteScreen } from "./features/archive/ArchivedThreadsRo
 import { ConnectOnboardingRouteScreen } from "./features/cloud/ConnectOnboardingRouteScreen";
 import { AttachmentFileScreen } from "./features/files/AttachmentFileScreen";
 import { ThreadFilesTreeScreen, ThreadFileScreen } from "./features/files/ThreadFilesRouteScreen";
+import { ExplorerFileScreen } from "./features/files/ExplorerFileScreen";
+import { FileExplorerRouteScreen } from "./features/files/FileExplorerRouteScreen";
 import { AdaptiveWorkspaceLayout } from "./features/layout/AdaptiveWorkspaceLayout";
 import {
   HardwareKeyboardCommandOverlay,
@@ -614,6 +616,21 @@ const RootStackConfig = createWorkspaceStackNavigator({
       screen: NewTaskThreadSettingsRouteScreen,
       linking: "new/draft/settings",
       options: THREAD_SETTINGS_ROUTE,
+    }),
+    FileExplorer: createNativeStackScreen({
+      screen: FileExplorerRouteScreen,
+      linking: "files/:environmentId",
+      options: pageRoute({ header: "solid" }),
+    }),
+    LocalFileExplorer: createNativeStackScreen({
+      screen: FileExplorerRouteScreen,
+      linking: "settings/this-phone/files/:volume",
+      options: pageRoute({ header: "solid" }),
+    }),
+    ExplorerFile: createNativeStackScreen({
+      screen: ExplorerFileScreen,
+      linking: "files/open",
+      options: pageRoute({ header: "solid" }),
     }),
     LinuxShell: createNativeStackScreen({
       screen: LinuxShellRouteScreen,

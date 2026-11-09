@@ -20,7 +20,7 @@ import {
   hasTrailingPathSeparator,
   isFilesystemBrowseQuery,
 } from "./projects.ts";
-import { createEnvironmentRpcQueryAtomFamily } from "./runtime.ts";
+import { createEnvironmentRpcCommand, createEnvironmentRpcQueryAtomFamily } from "./runtime.ts";
 
 const BROWSE_IDLE_TTL_MS = 5_000;
 
@@ -153,6 +153,19 @@ export function createFilesystemEnvironmentAtoms<R, E>(
       // A listing kept alive while unread is never revalidated, so reopening the browser
       // would show folders as they were. Keep it only long enough for a prefetch to land.
       idleTtlMs: BROWSE_IDLE_TTL_MS,
+    }),
+    listDirectory: createEnvironmentRpcQueryAtomFamily(runtime, {
+      label: "environment-data:filesystem:list-directory",
+      tag: WS_METHODS.filesystemListDirectory,
+      idleTtlMs: 60_000,
+    }),
+    mutate: createEnvironmentRpcCommand(runtime, {
+      label: "environment-data:filesystem:mutate",
+      tag: WS_METHODS.filesystemMutate,
+    }),
+    writeBytes: createEnvironmentRpcCommand(runtime, {
+      label: "environment-data:filesystem:write-bytes",
+      tag: WS_METHODS.filesystemWriteBytes,
     }),
   };
 }
