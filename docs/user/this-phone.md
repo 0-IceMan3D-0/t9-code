@@ -65,15 +65,15 @@ When a program in Linux starts a web server, such as an agent running `vite`, `n
 
 ## Local models with Ollama
 
-**Ollama** in **Settings > This phone** runs open models on the phone's processor, so Claude Code can work with your code staying on the phone.
+**Ollama** in **Settings > This phone** runs open models on the phone's processor, so Claude Code or OpenCode can work with your code staying on the phone.
 
 1. Tap **Install Ollama**. It downloads 1.6 GB once and keeps about 60 MB.
 2. With the server running, type a model name from [ollama.com](https://ollama.com/library) and tap **Download model**. Small models that use tools work best, such as `qwen3:1.7b` or `qwen3:4b`.
-3. In a thread on the built-in server, pick the model under **Ollama** in the model picker.
+3. In a thread on the built-in server, pick the model under **Ollama** in the model picker to use it with Claude Code, or under **OpenCode** once [OpenCode](#opencode) is installed.
 
 - Ollama starts and stops with the built-in server.
-- **Expect each turn to take minutes.** Claude Code sends long instructions with every turn, and a phone's processor reads them slowly. A short reply from `qwen3:1.7b` takes about 13 minutes on a 2020 phone. Ollama keeps a model loaded for 30 minutes after a turn, so the next one starts sooner.
-- A model needs about as much free memory as its download size plus a few GB for Claude Code's instructions.
+- **Expect each turn to take minutes.** The agent sends long instructions with every turn, and a phone's processor reads them slowly. A short reply from `qwen3:1.7b` takes about 13 minutes on a 2020 phone. Ollama keeps a model loaded for 30 minutes after a turn, so the next one starts sooner.
+- A model needs about as much free memory as its download size plus a few GB for the agent's instructions.
 - Tap a model to delete it. **Remove Ollama** deletes Ollama and every model, and removes the **Ollama** choice from the model picker.
 - Backups leave out downloaded models; download them again after a restore. Ollama's log is `/var/log/ollama.log` in Linux.
 
@@ -82,12 +82,12 @@ When a program in Linux starts a web server, such as an agent running `vite`, `n
 **Phone GPU** in **Settings > This phone** runs Google's Gemma 4 models on the phone's graphics processor, much faster than Ollama.
 
 1. Tap **Download Gemma 4 E2B** (2.6 GB, fastest) or **Download Gemma 4 E4B** (3.7 GB, writes better). A dropped download continues where it stopped.
-2. In a thread on the built-in server, pick the model under **Phone GPU** in the model picker.
+2. In a thread on the built-in server, pick the model under **Phone GPU** in the model picker to use it with Claude Code, or under **OpenCode** once [OpenCode](#opencode) is installed.
 
-- The first message in a thread reads Claude Code's instructions, about 15,000 tokens: a few seconds on a recent flagship phone, about a minute on a phone from 2020. Each later step in the same thread continues from there and takes seconds. Switching between threads reads the instructions again.
+- The first message in a thread reads the agent's instructions, about 15,000 tokens for Claude Code: a few seconds on a recent flagship phone, about a minute on a phone from 2020. Each later step in the same thread continues from there and takes seconds. Switching between threads reads the instructions again.
 - The model loads with the first message and stays loaded for 30 minutes after the last one. One model runs at a time, and threads take turns.
-- A thread holds 32,000 tokens, or 24,000 on phones whose GPU has less memory; **Phone GPU** shows which. Claude Code summarizes older messages when a thread fills up.
-- Small models make mistakes, such as a tool call Claude Code cannot read. Claude Code retries it.
+- A thread holds 32,000 tokens, or 24,000 on phones whose GPU has less memory; **Phone GPU** shows which. Claude Code and OpenCode summarize older messages when a thread fills up.
+- Small models make mistakes, such as a tool call the agent cannot read. The agent retries it.
 - Some GPUs cannot load these models at all. **Phone GPU** then says so; use Ollama on that phone instead.
 - Models are kept outside Linux, so backups and **Reset Linux** do not touch them. Tap a model to delete it.
 

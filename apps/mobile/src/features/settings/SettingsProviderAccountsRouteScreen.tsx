@@ -87,6 +87,14 @@ function EnvironmentProviders({
   const claudeAccounts = providers.filter(
     (provider) => provider.driver === CLAUDE_DRIVER && !canManageProvider(provider),
   );
+  // Providers such as OpenCode sign in through their own command line, so they only show status.
+  const cliProviders = providers.filter(
+    (provider) =>
+      provider.driver !== CLAUDE_DRIVER &&
+      !canManageProvider(provider) &&
+      provider.enabled &&
+      provider.installed,
+  );
   const canAddClaude = isManagedDriverAllowed(
     environment.serverConfig.managedPolicy,
     CLAUDE_DRIVER,
@@ -101,7 +109,29 @@ function EnvironmentProviders({
           divider={index > 0}
         />
       ))}
-      {accounts.length === 0 ? (
+      {cliProviders.map((provider, index) => (
+        <View
+          key={provider.instanceId}
+          className={
+            accounts.length + index > 0
+              ? "min-h-16 flex-row items-center border-t border-border-subtle px-4 py-3"
+              : "min-h-16 flex-row items-center px-4 py-3"
+          }
+        >
+          <ProviderAccountSummary
+            name={provider.displayName ?? provider.driver}
+            status={
+              provider.auth.status === "authenticated"
+                ? "Signed in"
+                : provider.status === "ready"
+                  ? "Ready"
+                  : (provider.message ?? "Not ready")
+            }
+            email={undefined}
+          />
+        </View>
+      ))}
+      {accounts.length === 0 && cliProviders.length === 0 ? (
         <Text className="p-4 text-foreground-muted">
           Configure a provider with in-app sign-in in web or desktop Settings.
         </Text>

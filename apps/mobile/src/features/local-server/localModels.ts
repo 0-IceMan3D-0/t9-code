@@ -1,10 +1,13 @@
 import {
+  type ModelSelection,
   ProviderDriverKind,
   ProviderInstanceId,
   type ProviderInstanceConfig,
   type ProviderInstanceMutation,
+  type ServerProvider,
   type ServerSettings,
 } from "@t3tools/contracts";
+import { fallbackTextGenerationModelSelection } from "@t3tools/shared/serverSettings";
 
 const CLAUDE_DRIVER = ProviderDriverKind.make("claudeAgent");
 
@@ -167,4 +170,36 @@ export function claudeModelsToHide(
   return models
     .filter((model) => !model.isCustom && !hidden.includes(model.slug))
     .map((model) => model.slug);
+}
+
+/**
+ * The server falls back from a turned-off provider for thread titles, but not from one that is on
+ * and missing, such as Codex on this phone. Returns the provider to use instead, if any.
+ */
+export function planTextGenerationFallback(
+  settings: ServerSettings,
+  providers: ReadonlyArray<ServerProvider>,
+): ModelSelection | null {
+  const usable = (instanceId: string) =>
+    providers.some(
+      (provider) =>
+        provider.instanceId === instanceId &&
+        provider.enabled &&
+        provider.installed &&
+        provider.status !== "error" &&
+        provider.auth.status !== "unauthenticated",
+    );
+  const current = providers.find(
+    (provider) => provider.instanceId === settings.textGenerationModelSelection.instanceId,
+  );
+  // The server leaves a provider it cannot find out of the list, such as Codex on this phone.
+  if (
+    providers.length === 0 ||
+    (current !== undefined && (!current.enabled || current.installed))
+  ) {
+    return null;
+  }
+  return fallbackTextGenerationModelSelection(settings.providerInstances, usable, {
+    defaultModelSelection: settings.defaultModelSelection,
+  });
 }

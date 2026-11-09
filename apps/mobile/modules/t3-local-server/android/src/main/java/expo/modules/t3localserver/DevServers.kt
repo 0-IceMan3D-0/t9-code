@@ -129,6 +129,9 @@ object DevServers {
     if (program in INTERNAL_PROGRAMS) return true
     // npm installs t3 and claude as scripts that node runs.
     val script = argv.getOrNull(1)?.takeIf { program == "node" || program.startsWith("node") }
-    return script != null && (script.substringAfterLast('/') in INTERNAL_PROGRAMS || script.contains("@anthropic-ai/claude-code"))
+    if (script != null && (script.substringAfterLast('/') in INTERNAL_PROGRAMS || script.contains("@anthropic-ai/claude-code"))) return true
+    // T3's OpenCode provider runs `opencode serve`; `opencode web` stays listed.
+    val opencode = argv.indexOfFirst { it.substringAfterLast('/') == "opencode" }
+    return opencode >= 0 && argv.getOrNull(opencode + 1) == "serve"
   }
 }

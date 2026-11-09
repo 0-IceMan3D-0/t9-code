@@ -1,3 +1,9 @@
+import {
+  DEFAULT_SERVER_SETTINGS,
+  ProviderDriverKind,
+  ProviderInstanceId,
+  type ServerProvider,
+} from "@t3tools/contracts";
 import { describe, expect, it } from "vite-plus/test";
 
 import {
@@ -5,6 +11,7 @@ import {
   OLLAMA_PROVIDER,
   PHONE_GPU_PROVIDER,
   planLocalInstance,
+  planTextGenerationFallback,
 } from "./localModels";
 
 const OLLAMA_INSTANCE_ID = OLLAMA_PROVIDER.instanceId;
@@ -83,5 +90,48 @@ describe("claudeModelsToHide", () => {
     ];
     expect(claudeModelsToHide(models, ["claude-haiku-5-5"])).toEqual(["claude-opus-5-5"]);
     expect(claudeModelsToHide(models, ["claude-opus-5-5", "claude-haiku-5-5"])).toEqual([]);
+  });
+});
+
+describe("planTextGenerationFallback", () => {
+  const provider = (driver: string, overrides: Partial<ServerProvider> = {}) =>
+    ({
+      instanceId: ProviderInstanceId.make(driver),
+      driver: ProviderDriverKind.make(driver),
+      enabled: true,
+      installed: true,
+      status: "ready",
+      auth: { status: "unknown" },
+      ...overrides,
+    }) as ServerProvider;
+
+  it("moves titles off a provider that is on but not installed", () => {
+    const providers = [
+      provider("codex", { installed: false, status: "error" }),
+      provider("claudeAgent", { auth: { status: "unauthenticated" } }),
+      provider("opencode"),
+    ];
+    expect(planTextGenerationFallback(DEFAULT_SERVER_SETTINGS, providers)).toEqual({
+      instanceId: "opencode",
+      model: "opencode/big-pickle",
+    });
+  });
+
+  it("moves titles off a provider the server does not list", () => {
+    expect(planTextGenerationFallback(DEFAULT_SERVER_SETTINGS, [provider("opencode")])).toEqual({
+      instanceId: "opencode",
+      model: "opencode/big-pickle",
+    });
+    expect(planTextGenerationFallback(DEFAULT_SERVER_SETTINGS, [])).toBeNull();
+  });
+
+  it("keeps an installed provider, and leaves a turned-off one to the server", () => {
+    expect(planTextGenerationFallback(DEFAULT_SERVER_SETTINGS, [provider("codex")])).toBeNull();
+    expect(
+      planTextGenerationFallback(DEFAULT_SERVER_SETTINGS, [
+        provider("codex", { enabled: false, installed: false }),
+        provider("opencode"),
+      ]),
+    ).toBeNull();
   });
 });

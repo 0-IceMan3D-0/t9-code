@@ -36,7 +36,7 @@ export function LocalServerOllamaSection(props: { readonly serverRunning: boolea
   return (
     <SettingsSection
       title="Ollama"
-      footer="Runs models on this phone's processor. Pick Ollama in a thread's model picker to use them with Claude Code. Every turn starts with Claude Code's long instructions, so expect it to take a few minutes on a phone."
+      footer="Runs models on this phone's processor. In a thread's model picker, pick them under Ollama to use them with Claude Code, or under OpenCode. Every turn starts with the agent's long instructions, so expect it to take a few minutes on a phone."
     >
       <View className="gap-1 p-4">
         <Text className="text-base text-foreground">{summary}</Text>

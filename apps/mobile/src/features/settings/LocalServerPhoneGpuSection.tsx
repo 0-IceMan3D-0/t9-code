@@ -27,7 +27,7 @@ export function LocalServerPhoneGpuSection(props: { readonly serverRunning: bool
   return (
     <SettingsSection
       title="Phone GPU"
-      footer="Runs Google's Gemma models on this phone's graphics processor, much faster than Ollama. Pick Phone GPU in a thread's model picker to use them with Claude Code."
+      footer="Runs Google's Gemma models on this phone's graphics processor, much faster than Ollama. In a thread's model picker, pick them under Phone GPU to use them with Claude Code, or under OpenCode."
     >
       <View className="gap-1 p-4">
         <Text className="text-base text-foreground">{summary}</Text>

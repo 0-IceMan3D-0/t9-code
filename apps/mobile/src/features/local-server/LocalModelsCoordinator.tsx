@@ -13,6 +13,7 @@ import {
   OLLAMA_PROVIDER,
   PHONE_GPU_PROVIDER,
   planLocalInstance,
+  planTextGenerationFallback,
 } from "./localModels";
 import { useLocalConnection } from "./useLocalConnection";
 
@@ -109,6 +110,43 @@ function useLocalInstanceSync(
   }, [environmentId, requestKey, settled]);
 }
 
+/** Thread titles and commit messages on this phone use a provider that is installed here. */
+function useTextGenerationFallback(environmentId: EnvironmentId | null) {
+  const config = useEnvironmentServerConfig(environmentId);
+  const update = useAtomCommand(serverEnvironment.updateSettings, {
+    reportFailure: false,
+    reportDefect: false,
+  });
+  const done = useRef(new Set<string>());
+  const failures = useRef(0);
+  const busy = useRef(false);
+  const [settled, setSettled] = useState(0);
+  const fallback =
+    config === null ? null : planTextGenerationFallback(config.settings, config.providers);
+  const key = fallback === null ? null : `${fallback.instanceId}/${fallback.model}`;
+  // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- writes the server's title provider when the current one is not installed
+  useEffect(() => {
+    if (environmentId === null || key === null || busy.current || done.current.has(key)) return;
+    if (failures.current >= MAX_FAILURES) return;
+    busy.current = true;
+    void update({
+      environmentId,
+      // oxlint-disable-next-line react/exhaustive-effect-dependencies -- the key stands for the fallback.
+      input: { patch: { textGenerationModelSelection: { ...fallback, options: [] } } },
+    }).then((result) => {
+      if (result._tag === "Success") done.current.add(key);
+      else failures.current += 1;
+      setTimeout(
+        () => {
+          busy.current = false;
+          setSettled((count) => count + 1);
+        },
+        result._tag === "Success" ? 0 : RETRY_MS,
+      );
+    });
+  }, [environmentId, key, settled]);
+}
+
 /** Mounted for the app's lifetime, so the model picker matches the phone's models from any screen. */
 export function LocalModelsCoordinator() {
   const status = useLocalServerStatus();
@@ -124,5 +162,6 @@ export function LocalModelsCoordinator() {
     (phoneModels?.length ?? 0) > 0,
     phoneModels,
   );
+  useTextGenerationFallback(environmentId);
   return null;
 }
