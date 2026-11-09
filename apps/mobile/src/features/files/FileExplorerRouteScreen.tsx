@@ -247,6 +247,8 @@ function Breadcrumbs(props: {
     <ScrollView
       ref={scroll}
       horizontal
+      // A ScrollView grows by default, which would push the list halfway down the screen.
+      className="grow-0"
       showsHorizontalScrollIndicator={false}
       onContentSizeChange={() => scroll.current?.scrollToEnd({ animated: false })}
       contentContainerClassName="items-center gap-1 px-4 py-2"
