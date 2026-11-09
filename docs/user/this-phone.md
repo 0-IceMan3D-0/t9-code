@@ -77,6 +77,20 @@ When a program in Linux starts a web server, such as an agent running `vite`, `n
 - Tap a model to delete it. **Remove Ollama** deletes Ollama and every model, and removes the **Ollama** choice from the model picker.
 - Backups leave out downloaded models; download them again after a restore. Ollama's log is `/var/log/ollama.log` in Linux.
 
+## Local models on the GPU
+
+**Phone GPU** in **Settings > This phone** runs Google's Gemma 4 models on the phone's graphics processor, much faster than Ollama.
+
+1. Tap **Download Gemma 4 E2B** (2.6 GB, fastest) or **Download Gemma 4 E4B** (3.7 GB, writes better). A dropped download continues where it stopped.
+2. In a thread on the built-in server, pick the model under **Phone GPU** in the model picker.
+
+- The first message in a thread reads Claude Code's instructions, about 15,000 tokens: a few seconds on a recent flagship phone, about a minute on a phone from 2020. Each later step in the same thread continues from there and takes seconds. Switching between threads reads the instructions again.
+- The model loads with the first message and stays loaded for 30 minutes after the last one. One model runs at a time, and threads take turns.
+- A thread holds 32,000 tokens, or 24,000 on phones whose GPU has less memory; **Phone GPU** shows which. Claude Code summarizes older messages when a thread fills up.
+- Small models make mistakes, such as a tool call Claude Code cannot read. Claude Code retries it.
+- Some GPUs cannot load these models at all. **Phone GPU** then says so; use Ollama on that phone instead.
+- Models are kept outside Linux, so backups and **Reset Linux** do not touch them. Tap a model to delete it.
+
 ## Health
 
 **Health** in **Settings > This phone** shows how much memory and CPU the built-in environment uses (the server, shells and agents in Linux), how much memory the phone has free, and how much storage Linux and private projects take. It updates every few seconds while the screen is open.

@@ -27,6 +27,7 @@ private const val MAINTENANCE_EVENT = "onMaintenance"
 private const val DEV_SERVERS_EVENT = "onDevServers"
 private const val GIT_SETUP_EVENT = "onGitSetup"
 private const val OLLAMA_EVENT = "onOllama"
+private const val PHONE_MODELS_EVENT = "onPhoneModels"
 private const val CREATE_BACKUP_REQUEST = 7461
 private const val OPEN_BACKUP_REQUEST = 7462
 
@@ -47,6 +48,7 @@ class T3LocalServerModule : Module() {
   private val usbListener: () -> Unit = { sendEvent(USB_DEVICES_EVENT, mapOf("devices" to usbDevices())) }
   private val maintenanceListener: (Map<String, Any?>) -> Unit = { sendEvent(MAINTENANCE_EVENT, it) }
   private val ollamaListener: (Ollama.State) -> Unit = { sendEvent(OLLAMA_EVENT, it.toMap()) }
+  private val phoneModelsListener: (PhoneModels.State) -> Unit = { sendEvent(PHONE_MODELS_EVENT, it.toMap()) }
   private val devServersListener: (List<DevServers.Server>) -> Unit = { servers ->
     sendEvent(DEV_SERVERS_EVENT, mapOf("servers" to servers.map { it.toMap() }))
   }
@@ -170,6 +172,7 @@ class T3LocalServerModule : Module() {
       DEV_SERVERS_EVENT,
       GIT_SETUP_EVENT,
       OLLAMA_EVENT,
+      PHONE_MODELS_EVENT,
     )
 
     OnCreate {
@@ -187,6 +190,7 @@ class T3LocalServerModule : Module() {
       LinuxShells.addListener(shellListener)
       DevServers.addListener(devServersListener)
       Ollama.addListener(ollamaListener)
+      PhoneModels.addListener(phoneModelsListener)
       removeRetiredTermux()
     }
     OnDestroy {
@@ -196,6 +200,7 @@ class T3LocalServerModule : Module() {
       LinuxShells.removeListener(shellListener)
       DevServers.removeListener(devServersListener)
       Ollama.removeListener(ollamaListener)
+      PhoneModels.removeListener(phoneModelsListener)
       AutoStop.forgetThreads()
     }
 
@@ -232,6 +237,10 @@ class T3LocalServerModule : Module() {
     Function("uninstallOllama") { Ollama.uninstall(context) }
     Function("pullOllamaModel") { name: String -> Ollama.pull(name) }
     Function("deleteOllamaModel") { name: String -> Ollama.delete(name) }
+    Function("phoneModelsState") { PhoneModels.refresh(context).toMap() }
+    Function("downloadPhoneModel") { id: String -> PhoneModels.download(context, id) }
+    Function("cancelPhoneModelDownload") { PhoneModels.cancelDownload() }
+    Function("deletePhoneModel") { id: String -> PhoneModels.delete(context, id) }
     Function("reportThreadWork") { json: String -> AutoStop.reportThreads(json) }
     Function("setSharedStorage") { value: Boolean -> options.sharedStorage = value }
     Function("serverSwitchTarget") {

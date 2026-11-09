@@ -2,7 +2,7 @@ import { requireOptionalNativeModule, type EventSubscription } from "expo";
 import Constants from "expo-constants";
 import { useSyncExternalStore } from "react";
 
-import type { OllamaState } from "./ollama";
+import type { OllamaState, PhoneModelsState } from "./localModels";
 
 export type LocalServerState =
   | "notInstalled"
@@ -214,7 +214,15 @@ interface LocalServerNativeModule {
   uninstallOllama(): void;
   pullOllamaModel(name: string): void;
   deleteOllamaModel(name: string): void;
+  phoneModelsState(): PhoneModelsState;
+  downloadPhoneModel(id: string): void;
+  cancelPhoneModelDownload(): void;
+  deletePhoneModel(id: string): void;
   addListener(event: "onOllama", listener: (state: OllamaState) => void): EventSubscription;
+  addListener(
+    event: "onPhoneModels",
+    listener: (state: PhoneModelsState) => void,
+  ): EventSubscription;
   addListener(event: "onStatus", listener: (status: LocalServerStatus) => void): EventSubscription;
   addListener(
     event: "onShellOutput",
@@ -316,4 +324,18 @@ function subscribeOllama(onChange: () => void) {
 
 export function useOllama(): OllamaState | null {
   return useSyncExternalStore(subscribeOllama, () => ollama);
+}
+
+let phoneModels: PhoneModelsState | null = localServer?.phoneModelsState() ?? null;
+
+function subscribePhoneModels(onChange: () => void) {
+  const subscription = localServer?.addListener("onPhoneModels", (next) => {
+    phoneModels = next;
+    onChange();
+  });
+  return () => subscription?.remove();
+}
+
+export function usePhoneModels(): PhoneModelsState | null {
+  return useSyncExternalStore(subscribePhoneModels, () => phoneModels);
 }

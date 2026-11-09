@@ -17,6 +17,8 @@ dependencies {
   implementation project(':expo-modules-core')
   implementation 'androidx.lifecycle:lifecycle-process:2.9.3'
   implementation 'androidx.core:core:1.16.0'
+  // 0.17 and later are built with Kotlin 2.4, newer than the app's.
+  implementation 'com.google.ai.edge.litertlm:litertlm-android:0.16.1'
   testImplementation 'junit:junit:4.13.2'
   implementation project(':t3-app-icon')
 }
