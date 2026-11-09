@@ -16,5 +16,10 @@
   <string name="t3w_gauges_description">The built-in server\'s memory and how many agents are working.</string>
   <string name="t3w_status_label">Status line</string>
   <string name="t3w_status_description">Working threads, who needs you, and the built-in server, in one line.</string>
+  <string name="t3w_limits_label">Limits</string>
+  <string name="t3w_limits_description">How much of each Claude and Codex usage limit is left, as gauges.</string>
+  <string name="t3w_tokens_label">Tokens today</string>
+  <string name="t3w_tokens_description">Tokens used today against your daily average, as a gauge.</string>
+  <string name="t3w_tokens_title">Tokens today</string>
   <string name="t3w_loading">Open T3² code to load</string>
 </resources>

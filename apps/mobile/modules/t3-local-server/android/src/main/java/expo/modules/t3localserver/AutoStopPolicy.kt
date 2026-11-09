@@ -54,7 +54,7 @@ sealed class AutoStopDecision {
 
 /** The pure part of "Stop when I leave the app", so it can be tested without Android. */
 object AutoStopPolicy {
-  /** Long enough for a share sheet, a sign-in in the browser, a photo picker or a quick app switch. */
+  /** The default delay: long enough for a share sheet, a browser sign-in, a photo picker or an app switch. */
   const val GRACE_MILLIS = 120_000L
 
   /** After the last work ends, in case the agent or the person starts something right away. */
@@ -73,6 +73,7 @@ object AutoStopPolicy {
   /**
    * @param leftAt when the app left the foreground, or null while it is open.
    * @param clearedAt when the last work seen after leaving ended, or null when none was seen.
+   * @param graceMillis how long after leaving the server may stop, from the person's setting.
    */
   fun decide(
     armed: Boolean,
@@ -80,10 +81,11 @@ object AutoStopPolicy {
     leftAt: Long?,
     clearedAt: Long?,
     work: AutoStopWork,
+    graceMillis: Long = GRACE_MILLIS,
   ): AutoStopDecision {
     if (!armed || leftAt == null) return AutoStopDecision.Idle
     if (work.blocked) return AutoStopDecision.Waiting(waitingText(work))
-    val stopAt = maxOf(leftAt + GRACE_MILLIS, clearedAt?.plus(SETTLE_MILLIS) ?: Long.MIN_VALUE)
+    val stopAt = maxOf(leftAt + graceMillis, clearedAt?.plus(SETTLE_MILLIS) ?: Long.MIN_VALUE)
     return if (now >= stopAt) AutoStopDecision.Stop else AutoStopDecision.Countdown(stopAt)
   }
 }

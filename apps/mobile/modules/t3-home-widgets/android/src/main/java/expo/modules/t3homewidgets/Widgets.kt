@@ -366,10 +366,13 @@ data class UsageWidgetModel(
   companion object {
     private const val DAY_MILLIS = 24 * 60 * 60_000L
 
+    /** Totals belong to one local day; a day later they would be wrong, not just old. */
+    fun today(data: StoredData?): JSONObject? =
+      data?.json?.takeIf { System.currentTimeMillis() - it.optLong("since") < DAY_MILLIS }
+
     fun from(context: Context, size: WidgetSize): UsageWidgetModel {
       val data = HomeWidgets.read(context, "usage")
-      // Totals belong to one local day; a day later they would be wrong, not just old.
-      val json: JSONObject? = data?.json?.takeIf { System.currentTimeMillis() - it.optLong("since") < DAY_MILLIS }
+      val json = today(data)
       return UsageWidgetModel(
         compact = WidgetSizing.isCompact(size.heightDp),
         icon = WidgetIcon.resource(context),
@@ -537,5 +540,116 @@ data class StatusWidgetModel(val server: ServerLine, val threads: ActiveThreads?
 
   companion object {
     fun from(context: Context) = StatusWidgetModel(ServerLine.read(context), ActiveThreads.read(context))
+  }
+}
+
+/** Arc colour for how much of something is left: green, then orange, then red. */
+private fun remainingColor(remaining: Int) = when {
+  remaining > 30 -> R.color.t3w_done
+  remaining > 10 -> R.color.t3w_needs
+  else -> R.color.t3w_failed
+}
+
+// ---- Limits --------------------------------------------------------------------------------
+
+data class LimitGauge(val tag: String, val name: String, val remaining: Int)
+
+data class LimitsWidgetModel(val gauges: List<LimitGauge>, val empty: String?, val path: String) : WidgetModel {
+  override fun views(context: Context): RemoteViews {
+    val views = RemoteViews(context.packageName, R.layout.t3w_limits)
+    views.setOnClickPendingIntent(R.id.t3w_root, HomeWidgets.openApp(context, path))
+    views.show(R.id.t3w_empty, empty != null)
+    views.setTextViewText(R.id.t3w_empty, empty ?: "")
+    SLOTS.forEachIndexed { index, ids ->
+      val gauge = gauges.getOrNull(index)
+      views.show(ids[0], gauge != null)
+      if (gauge == null) return@forEachIndexed
+      val remaining = gauge.remaining
+      views.setImageViewBitmap(ids[1], Gauge.bitmap(context, listOf(remaining / 100f to context.getColor(remainingColor(remaining)))))
+      views.setTextViewText(ids[2], gauge.tag)
+      views.setTextViewText(ids[3], "$remaining%")
+      views.setContentDescription(ids[0], "${gauge.name}: $remaining% left")
+    }
+    return views
+  }
+
+  companion object {
+    private const val GAUGE_WIDTH_DP = 68
+
+    private val SLOTS = listOf(
+      intArrayOf(R.id.t3w_limit_0, R.id.t3w_limit_0_arc, R.id.t3w_limit_0_tag, R.id.t3w_limit_0_label),
+      intArrayOf(R.id.t3w_limit_1, R.id.t3w_limit_1_arc, R.id.t3w_limit_1_tag, R.id.t3w_limit_1_label),
+      intArrayOf(R.id.t3w_limit_2, R.id.t3w_limit_2_arc, R.id.t3w_limit_2_tag, R.id.t3w_limit_2_label),
+      intArrayOf(R.id.t3w_limit_3, R.id.t3w_limit_3_arc, R.id.t3w_limit_3_tag, R.id.t3w_limit_3_label),
+    )
+
+    fun from(context: Context, size: WidgetSize): LimitsWidgetModel {
+      val json = HomeWidgets.read(context, "limits")?.json
+        ?: return LimitsWidgetModel(emptyList(), context.getString(R.string.t3w_loading), "/")
+      val now = System.currentTimeMillis()
+      val array = json.optJSONArray("gauges")
+      val fits = if (size.widthDp <= 0) SLOTS.size else (size.widthDp / GAUGE_WIDTH_DP).coerceIn(1, SLOTS.size)
+      val gauges = (0 until (array?.length() ?: 0)).mapNotNull { array?.optJSONObject(it) }.take(fits).map {
+        val resetAt = it.optLong("resetAt")
+        LimitGauge(
+          tag = it.optString("tag"),
+          name = it.optString("name"),
+          remaining = if (resetAt in 1..now) 100 else it.optInt("remaining"),
+        )
+      }
+      return LimitsWidgetModel(
+        gauges = gauges,
+        empty = if (gauges.isEmpty()) json.optString("empty").ifEmpty { "No limits available" } else null,
+        path = json.optString("path").ifEmpty { "/" },
+      )
+    }
+  }
+}
+
+// ---- Tokens today --------------------------------------------------------------------------
+
+data class TokensWidgetModel(
+  val tokens: String?,
+  /** Today's tokens over the average of the six days before; null when there is nothing to compare. */
+  val ratio: Float?,
+  val detail: String,
+  val path: String,
+) : WidgetModel {
+  override fun views(context: Context): RemoteViews {
+    val views = RemoteViews(context.packageName, R.layout.t3w_tokens)
+    // Under the average stays green, up to half again is orange, beyond that red.
+    val color = when {
+      ratio == null || ratio < 1f -> R.color.t3w_done
+      ratio < 1.5f -> R.color.t3w_needs
+      else -> R.color.t3w_failed
+    }
+    views.setImageViewBitmap(R.id.t3w_tokens_arc, Gauge.bitmap(context, listOf((ratio ?: 0f) to context.getColor(color))))
+    views.setTextViewText(R.id.t3w_tokens_label, tokens ?: "–")
+    views.setTextViewText(
+      R.id.t3w_compare,
+      when {
+        tokens == null -> context.getString(R.string.t3w_loading)
+        ratio == null -> "No earlier days to compare"
+        else -> "${(ratio * 100).roundToInt()}% of a usual day"
+      },
+    )
+    views.setTextViewText(R.id.t3w_busiest, detail)
+    views.setOnClickPendingIntent(R.id.t3w_root, HomeWidgets.openApp(context, path))
+    return views
+  }
+
+  companion object {
+    fun from(context: Context): TokensWidgetModel {
+      val data = HomeWidgets.read(context, "usage")
+      val json = UsageWidgetModel.today(data)
+      val today = json?.optDouble("todayTokens", Double.NaN) ?: Double.NaN
+      val average = json?.optDouble("averageTokens", Double.NaN) ?: Double.NaN
+      return TokensWidgetModel(
+        tokens = json?.optString("tokens")?.ifEmpty { null },
+        ratio = if (today.isNaN() || average.isNaN() || average <= 0.0) null else (today / average).toFloat(),
+        detail = (if (json != null) data?.stamp() else null) ?: json?.optString("detail")?.ifEmpty { null } ?: "",
+        path = json?.optString("path")?.ifEmpty { null } ?: "/",
+      )
+    }
   }
 }

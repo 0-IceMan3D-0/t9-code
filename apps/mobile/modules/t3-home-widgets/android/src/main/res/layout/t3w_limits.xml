@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Up to four limit windows as arc gauges; the widget's width decides how many show. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:id="@+id/t3w_root"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:gravity="center"
+  android:orientation="horizontal"
+  android:padding="4dp">
+  <TextView
+    android:id="@+id/t3w_empty"
+    style="@style/T3wLine"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:visibility="gone" />
+  <FrameLayout
+    android:id="@+id/t3w_limit_0"
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="1"
+    android:background="@drawable/t3w_row_bg">
+    <FrameLayout
+      android:layout_width="64dp"
+      android:layout_height="72dp"
+      android:layout_gravity="center">
+      <ImageView
+        android:id="@+id/t3w_limit_0_arc"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:importantForAccessibility="no" />
+      <TextView
+        android:id="@+id/t3w_limit_0_tag"
+        style="@style/T3wGaugeTag"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="22dp" />
+      <TextView
+        android:id="@+id/t3w_limit_0_label"
+        style="@style/T3wGaugeLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:text="–" />
+    </FrameLayout>
+  </FrameLayout>
+  <FrameLayout
+    android:id="@+id/t3w_limit_1"
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="1"
+    android:background="@drawable/t3w_row_bg">
+    <FrameLayout
+      android:layout_width="64dp"
+      android:layout_height="72dp"
+      android:layout_gravity="center">
+      <ImageView
+        android:id="@+id/t3w_limit_1_arc"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:importantForAccessibility="no" />
+      <TextView
+        android:id="@+id/t3w_limit_1_tag"
+        style="@style/T3wGaugeTag"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="22dp" />
+      <TextView
+        android:id="@+id/t3w_limit_1_label"
+        style="@style/T3wGaugeLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:text="–" />
+    </FrameLayout>
+  </FrameLayout>
+  <FrameLayout
+    android:id="@+id/t3w_limit_2"
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="1"
+    android:background="@drawable/t3w_row_bg">
+    <FrameLayout
+      android:layout_width="64dp"
+      android:layout_height="72dp"
+      android:layout_gravity="center">
+      <ImageView
+        android:id="@+id/t3w_limit_2_arc"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:importantForAccessibility="no" />
+      <TextView
+        android:id="@+id/t3w_limit_2_tag"
+        style="@style/T3wGaugeTag"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="22dp" />
+      <TextView
+        android:id="@+id/t3w_limit_2_label"
+        style="@style/T3wGaugeLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:text="–" />
+    </FrameLayout>
+  </FrameLayout>
+  <FrameLayout
+    android:id="@+id/t3w_limit_3"
+    android:layout_width="0dp"
+    android:layout_height="match_parent"
+    android:layout_weight="1"
+    android:background="@drawable/t3w_row_bg">
+    <FrameLayout
+      android:layout_width="64dp"
+      android:layout_height="72dp"
+      android:layout_gravity="center">
+      <ImageView
+        android:id="@+id/t3w_limit_3_arc"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:importantForAccessibility="no" />
+      <TextView
+        android:id="@+id/t3w_limit_3_tag"
+        style="@style/T3wGaugeTag"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="22dp" />
+      <TextView
+        android:id="@+id/t3w_limit_3_label"
+        style="@style/T3wGaugeLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:text="–" />
+    </FrameLayout>
+  </FrameLayout>
+</LinearLayout>

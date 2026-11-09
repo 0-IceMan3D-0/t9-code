@@ -12,6 +12,7 @@ import { describe, expect, it } from "vite-plus/test";
 import { makeRawThreadShell } from "../../test-fixtures";
 import {
   buildHomeThreadsPayload,
+  buildHomeLimitsPayload,
   buildHomeUsagePayload,
   formatWidgetTokens,
   homeThreadsSignature,
@@ -195,5 +196,63 @@ describe("usage today", () => {
       tokens: "0",
       detail: "No tokens used yet today",
     });
+  });
+
+  it("averages the six days before today once they are counted", () => {
+    const base = { since: 0, totalTokens: 1_000, topProject: null, live: true, asOf: 0 };
+    expect(buildHomeUsagePayload({ ...base, loading: false, weekTokens: 7_000 })).toMatchObject({
+      todayTokens: 1_000,
+      averageTokens: 1_000,
+    });
+    expect(buildHomeUsagePayload({ ...base, loading: true, weekTokens: 7_000 }).averageTokens).toBe(
+      null,
+    );
+    expect(buildHomeUsagePayload({ ...base, loading: false }).averageTokens).toBe(null);
+  });
+});
+
+describe("buildHomeLimitsPayload", () => {
+  const window = (kind: string, label: string, remaining: number) => ({
+    kind,
+    label,
+    remaining,
+    reset: "",
+    resetAt: 9,
+  });
+  const provider = (name: string, windows: ReturnType<typeof window>[]) => ({
+    name,
+    detail: "Open T3 to refresh",
+    windows,
+    expiresAt: 5,
+    totalWindows: windows.length,
+  });
+
+  it("orders session before weekly and names the provider only when two show", () => {
+    const claude = provider("Claude", [
+      window("weekly", "Weekly · Opus", 40),
+      window("weekly", "Weekly", 70),
+      window("session", "Session", 12),
+    ]);
+    expect(
+      buildHomeLimitsPayload({ providers: [claude] }, "/settings/usage").gauges.map((g) => [
+        g.tag,
+        g.remaining,
+      ]),
+    ).toEqual([
+      ["5H", 12],
+      ["WK", 70],
+      ["OPUS", 40],
+    ]);
+    const codex = provider("Codex", [window("session", "5h", 90)]);
+    expect(
+      buildHomeLimitsPayload({ providers: [claude, codex] }, "/").gauges.map((g) => g.tag),
+    ).toEqual(["CL 5H", "CL WK", "CL OPUS", "CO 5H"]);
+  });
+
+  it("explains an empty widget", () => {
+    expect(buildHomeLimitsPayload({ providers: [] }, "/").empty).toBe("No Claude or Codex limits");
+    expect(buildHomeLimitsPayload({ providers: [provider("Claude", [])] }, "/").empty).toBe(
+      "Open T3 to refresh",
+    );
   });
 });

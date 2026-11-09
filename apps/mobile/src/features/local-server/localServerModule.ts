@@ -17,6 +17,8 @@ export interface LocalServerStatus {
   readonly port: number;
   readonly startOnAppOpen: boolean;
   readonly stopOnLeave: boolean;
+  /** Minutes after leaving the app before "Stop when I leave the app" stops the server. */
+  readonly stopAfterMinutes: number;
   readonly sharedStorage: boolean;
   readonly sharedStorageGranted: boolean;
 }
@@ -98,6 +100,7 @@ interface LocalServerNativeModule {
   takePairingUrl(): string | null;
   setStartOnAppOpen(value: boolean): void;
   setStopOnLeave(value: boolean): void;
+  setStopAfterMinutes(minutes: number): void;
   /** JSON of `{ known, working, needsYou }` for the built-in server's threads. */
   reportThreadWork(json: string): void;
   setSharedStorage(value: boolean): void;

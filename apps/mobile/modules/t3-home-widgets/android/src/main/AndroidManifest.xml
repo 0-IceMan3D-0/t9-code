@@ -38,5 +38,13 @@
       <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
       <meta-data android:name="android.appwidget.provider" android:resource="@xml/t3w_info_status" />
     </receiver>
+    <receiver android:name="expo.modules.t3homewidgets.LimitsWidget" android:exported="true" android:label="@string/t3w_limits_label">
+      <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+      <meta-data android:name="android.appwidget.provider" android:resource="@xml/t3w_info_limits" />
+    </receiver>
+    <receiver android:name="expo.modules.t3homewidgets.TokensTodayWidget" android:exported="true" android:label="@string/t3w_tokens_label">
+      <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+      <meta-data android:name="android.appwidget.provider" android:resource="@xml/t3w_info_tokens" />
+    </receiver>
   </application>
 </manifest>

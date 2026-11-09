@@ -136,6 +136,7 @@ class T3LocalServerModule : Module() {
     "port" to LocalServerService.PORT,
     "startOnAppOpen" to options.startOnAppOpen,
     "stopOnLeave" to options.stopOnLeave,
+    "stopAfterMinutes" to options.stopAfterMinutes,
     "sharedStorage" to options.sharedStorage,
     "sharedStorageGranted" to storageGranted(),
   )
@@ -215,6 +216,10 @@ class T3LocalServerModule : Module() {
     Function("setStartOnAppOpen") { value: Boolean -> options.startOnAppOpen = value }
     Function("setStopOnLeave") { value: Boolean ->
       options.stopOnLeave = value
+      AutoStop.optionChanged()
+    }
+    Function("setStopAfterMinutes") { minutes: Int ->
+      options.stopAfterMinutes = minutes
       AutoStop.optionChanged()
     }
     Function("reportThreadWork") { json: String -> AutoStop.reportThreads(json) }

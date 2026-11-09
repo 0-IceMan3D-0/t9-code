@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:id="@+id/t3w_root"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:background="@drawable/t3w_row_bg"
+  android:gravity="center_vertical"
+  android:orientation="horizontal"
+  android:paddingStart="8dp"
+  android:paddingEnd="8dp">
+  <FrameLayout
+    android:layout_width="64dp"
+    android:layout_height="72dp">
+    <ImageView
+      android:id="@+id/t3w_tokens_arc"
+      android:layout_width="64dp"
+      android:layout_height="64dp"
+      android:importantForAccessibility="no" />
+    <ImageView
+      android:layout_width="22dp"
+      android:layout_height="22dp"
+      android:layout_gravity="top|center_horizontal"
+      android:layout_marginTop="18dp"
+      android:importantForAccessibility="no"
+      android:src="@drawable/t3w_ic_bolt" />
+    <TextView
+      android:id="@+id/t3w_tokens_label"
+      style="@style/T3wGaugeLabel"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_gravity="bottom|center_horizontal"
+      android:text="–" />
+  </FrameLayout>
+  <LinearLayout
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="12dp"
+    android:layout_weight="1"
+    android:orientation="vertical">
+    <TextView
+      style="@style/T3wHeader"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:text="@string/t3w_tokens_title" />
+    <TextView
+      android:id="@+id/t3w_compare"
+      style="@style/T3wLine"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="2dp" />
+    <TextView
+      android:id="@+id/t3w_busiest"
+      style="@style/T3wSecondary"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content" />
+  </LinearLayout>
+</LinearLayout>

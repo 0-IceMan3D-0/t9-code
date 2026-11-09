@@ -20,6 +20,7 @@ import {
 } from "./homeWidgetsModel";
 import { createHomeWidgetPublisher, watchingInBackground } from "./homeWidgetPublisher";
 import { homeWidgetsNative as native } from "./homeWidgetsNative";
+import { installLimitsWidget } from "./limitsWidget";
 import { installUsageTodayWidget } from "./usageTodayWidget";
 
 interface EnvironmentRows {
@@ -164,6 +165,7 @@ export function installHomeWidgets(): () => void {
   );
 
   const usage = installUsageTodayWidget();
+  const limits = installLimitsWidget();
 
   const appState = AppState.addEventListener("change", (state) => {
     leftAt = state === "active" ? null : (leftAt ?? Date.now());
@@ -174,6 +176,7 @@ export function installHomeWidgets(): () => void {
   const placed = native.addListener("onPlacedChanged", () => {
     threads.request();
     usage.request();
+    limits.request();
   });
 
   return () => {
@@ -185,5 +188,6 @@ export function installHomeWidgets(): () => void {
     placed.remove();
     threads.dispose();
     usage.dispose();
+    limits.dispose();
   };
 }

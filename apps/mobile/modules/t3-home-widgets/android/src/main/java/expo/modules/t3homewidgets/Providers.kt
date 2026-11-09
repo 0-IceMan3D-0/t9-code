@@ -56,6 +56,10 @@ class GaugesWidget : HomeWidgetProvider(WidgetKind.GAUGES)
 
 class StatusLineWidget : HomeWidgetProvider(WidgetKind.STATUS)
 
+class LimitsWidget : HomeWidgetProvider(WidgetKind.LIMITS)
+
+class TokensTodayWidget : HomeWidgetProvider(WidgetKind.TOKENS)
+
 /**
  * Created at every start of the app's process, before any screen or service. Lets the server
  * and quick action widgets follow the server when the tile or a shortcut started it.

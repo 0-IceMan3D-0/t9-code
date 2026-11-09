@@ -1,6 +1,7 @@
 import type { EnvironmentThreadShell } from "@t3tools/client-runtime/state/shell";
 
 import { resolveThreadListV2Status } from "../../features/threads/threadListV2";
+import type { SubscriptionUsageSnapshot } from "../subscriptionUsageSnapshot";
 
 /** Must match the dot drawables in modules/t3-home-widgets (t3w_dot_<tone>). */
 export type WidgetTone = "needs" | "working" | "failed" | "done" | "idle";
@@ -168,6 +169,9 @@ export interface HomeUsagePayload {
   readonly tokens: string;
   readonly detail: string;
   readonly path: string;
+  readonly todayTokens: number;
+  /** Mean of the six days before today, for the Tokens today gauge; null until it is known. */
+  readonly averageTokens: number | null;
 }
 
 export function buildHomeUsagePayload(input: {
@@ -177,6 +181,8 @@ export function buildHomeUsagePayload(input: {
   readonly loading: boolean;
   readonly live: boolean;
   readonly asOf: number;
+  /** Tokens over the last seven days including today, or null when not counted. */
+  readonly weekTokens?: number | null;
 }): HomeUsagePayload {
   const top = input.topProject;
   const detail =
@@ -193,5 +199,72 @@ export function buildHomeUsagePayload(input: {
     tokens: formatWidgetTokens(input.totalTokens),
     detail,
     path: "/settings/usage",
+    todayTokens: input.totalTokens,
+    averageTokens:
+      input.weekTokens == null || input.loading
+        ? null
+        : Math.max(0, input.weekTokens - input.totalTokens) / 6,
+  };
+}
+
+export interface HomeLimitGauge {
+  /** Fits inside a gauge: the window, prefixed with the provider when two show. */
+  readonly tag: string;
+  readonly name: string;
+  readonly remaining: number;
+  /** Once past, the window has refilled, so the widget shows it full. 0 when unknown. */
+  readonly resetAt: number;
+}
+
+export interface HomeLimitsPayload {
+  readonly v: 1;
+  readonly gauges: ReadonlyArray<HomeLimitGauge>;
+  readonly empty: string | null;
+  readonly path: string;
+}
+
+const LIMIT_KIND_ORDER: Record<string, number> = { session: 0, weekly: 1, monthly: 2 };
+
+function limitWindowTag(window: { readonly kind?: string; readonly label: string }): string {
+  const scope = window.label.split(" · ")[1];
+  if (scope) return scope.slice(0, 4).toUpperCase();
+  if (window.kind === "session") return "5H";
+  if (window.kind === "weekly") return "WK";
+  if (window.kind === "monthly") return "MO";
+  return window.label.slice(0, 4).toUpperCase();
+}
+
+export function buildHomeLimitsPayload(
+  snapshot: Pick<SubscriptionUsageSnapshot, "providers">,
+  path: string,
+): HomeLimitsPayload {
+  const shown = snapshot.providers.filter((provider) => provider.windows.length > 0);
+  const gauges = shown.flatMap((provider) =>
+    [...provider.windows]
+      .sort(
+        (a, b) =>
+          (LIMIT_KIND_ORDER[a.kind ?? ""] ?? 3) - (LIMIT_KIND_ORDER[b.kind ?? ""] ?? 3) ||
+          a.label.localeCompare(b.label),
+      )
+      .map((window) => ({
+        tag:
+          shown.length > 1
+            ? `${provider.name.slice(0, 2).toUpperCase()} ${limitWindowTag(window)}`
+            : limitWindowTag(window),
+        name: `${provider.name} ${window.label}`,
+        remaining: window.remaining,
+        resetAt: window.resetAt ?? 0,
+      })),
+  );
+  return {
+    v: 1,
+    gauges,
+    empty:
+      gauges.length > 0
+        ? null
+        : snapshot.providers.length === 0
+          ? "No Claude or Codex limits"
+          : (snapshot.providers[0]?.detail ?? "No limits available"),
+    path,
   };
 }

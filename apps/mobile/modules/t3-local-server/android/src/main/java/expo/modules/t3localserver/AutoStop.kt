@@ -16,8 +16,8 @@ import org.json.JSONObject
 import java.util.concurrent.CopyOnWriteArraySet
 
 /**
- * "Stop when I leave the app": once the app's own screens are all stopped, waits out a grace
- * period, then stops the built-in server unless something still uses it. Runs on the main
+ * "Stop when I leave the app": once the app's own screens are all stopped, waits out the chosen
+ * delay, then stops the built-in server unless something still uses it. Runs on the main
  * looper, which keeps going in the background because the server's service holds a wake lock.
  */
 object AutoStop {
@@ -156,7 +156,8 @@ object AutoStop {
     // A server started from the tile or a shortcut while away is not one the person left running.
     if (serverUp && !serverWasUp) leftAt = null
     serverWasUp = serverUp
-    val armed = serverUp && !keepRunning && leftAt != null && LocalServerOptions(context).stopOnLeave
+    val options = LocalServerOptions(context)
+    val armed = serverUp && !keepRunning && leftAt != null && options.stopOnLeave
     val now = SystemClock.elapsedRealtime()
     val work = if (armed) currentWork() else AutoStopWork()
     if (armed && work.blocked) {
@@ -165,7 +166,7 @@ object AutoStop {
       wasBlocked = false
       clearedAt = now
     }
-    val next = AutoStopPolicy.decide(armed, now, leftAt, clearedAt, work)
+    val next = AutoStopPolicy.decide(armed, now, leftAt, clearedAt, work, options.stopAfterMinutes * 60_000L)
     when (next) {
       is AutoStopDecision.Stop -> {
         stoppedByUs = true

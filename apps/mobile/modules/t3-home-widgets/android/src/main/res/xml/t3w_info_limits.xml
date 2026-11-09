@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+  android:description="@string/t3w_limits_description"
+  android:initialLayout="@layout/t3w_limits"
+  android:minWidth="250dp"
+  android:minHeight="40dp"
+  android:minResizeWidth="110dp"
+  android:minResizeHeight="40dp"
+  android:previewImage="@drawable/t3w_preview_limits"
+  android:resizeMode="horizontal"
+  android:targetCellWidth="4"
+  android:targetCellHeight="1"
+  android:updatePeriodMillis="0"
+  android:widgetCategory="home_screen" />

@@ -9,8 +9,10 @@ export type HomeWidgetKind =
   | "usage"
   | "prompt"
   | "gauges"
-  | "status";
-export type HomeWidgetDataKey = "threads" | "usage";
+  | "status"
+  | "limits"
+  | "tokens";
+export type HomeWidgetDataKey = "threads" | "usage" | "limits";
 
 interface HomeWidgetsNativeModule {
   configure(scheme: string): void;

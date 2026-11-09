@@ -21,6 +21,9 @@ class AutoStopPolicyTest {
   fun countsDownTheGraceThenStops() {
     assertEquals(AutoStopDecision.Countdown(left + GRACE_MILLIS), decide(left + 5_000))
     assertEquals(AutoStopDecision.Stop, decide(left + GRACE_MILLIS))
+    val custom = 30 * 60_000L
+    assertEquals(AutoStopDecision.Countdown(left + custom), AutoStopPolicy.decide(true, left + GRACE_MILLIS, left, null, AutoStopWork(), custom))
+    assertEquals(AutoStopDecision.Stop, AutoStopPolicy.decide(true, left + custom, left, null, AutoStopWork(), custom))
   }
 
   @Test

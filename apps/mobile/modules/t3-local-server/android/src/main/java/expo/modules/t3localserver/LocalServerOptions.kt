@@ -15,6 +15,11 @@ class LocalServerOptions(context: Context) {
     get() = preferences.getBoolean("stopOnLeave", false)
     set(value) = preferences.edit().putBoolean("stopOnLeave", value).apply()
 
+  /** How long after leaving the app [AutoStop] stops the server. */
+  var stopAfterMinutes: Int
+    get() = preferences.getInt("stopAfterMinutes", DEFAULT_STOP_AFTER_MINUTES)
+    set(value) = preferences.edit().putInt("stopAfterMinutes", value.coerceIn(MIN_STOP_AFTER_MINUTES, MAX_STOP_AFTER_MINUTES)).apply()
+
   var sharedStorage: Boolean
     get() = preferences.getBoolean("sharedStorage", false)
     set(value) = preferences.edit().putBoolean("sharedStorage", value).apply()
@@ -28,4 +33,10 @@ class LocalServerOptions(context: Context) {
   var batteryHintDismissed: Boolean
     get() = preferences.getBoolean("batteryHintDismissed", false)
     set(value) = preferences.edit().putBoolean("batteryHintDismissed", value).apply()
+
+  companion object {
+    const val DEFAULT_STOP_AFTER_MINUTES = 2
+    const val MIN_STOP_AFTER_MINUTES = 1
+    const val MAX_STOP_AFTER_MINUTES = 240
+  }
 }

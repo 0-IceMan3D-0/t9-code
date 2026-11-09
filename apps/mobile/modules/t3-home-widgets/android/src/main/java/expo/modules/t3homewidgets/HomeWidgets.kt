@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArraySet
 import java.util.concurrent.atomic.AtomicBoolean
 
-/** Which stored data a widget draws: the app publishes "threads" and "usage"; the rest is native. */
+/** Which stored data a widget draws: the app publishes "threads", "usage" and "limits"; the rest is native. */
 enum class WidgetKind(val id: String, val provider: Class<out AppWidgetProvider>, val dataKey: String?) {
   WORKING("working", WorkingThreadsWidget::class.java, "threads"),
   RECENT("recent", RecentThreadsWidget::class.java, "threads"),
@@ -34,6 +34,8 @@ enum class WidgetKind(val id: String, val provider: Class<out AppWidgetProvider>
   PROMPT("prompt", NewThreadBarWidget::class.java, null),
   GAUGES("gauges", GaugesWidget::class.java, "threads"),
   STATUS("status", StatusLineWidget::class.java, "threads"),
+  LIMITS("limits", LimitsWidget::class.java, "limits"),
+  TOKENS("tokens", TokensTodayWidget::class.java, "usage"),
   ;
 
   companion object {
@@ -180,6 +182,8 @@ object HomeWidgets {
         WidgetKind.PROMPT -> PromptWidgetModel.from(context)
         WidgetKind.GAUGES -> GaugesWidgetModel.from(context)
         WidgetKind.STATUS -> StatusWidgetModel.from(context)
+        WidgetKind.LIMITS -> LimitsWidgetModel.from(context, size)
+        WidgetKind.TOKENS -> TokensWidgetModel.from(context)
       }
       if (!force && shown[id] == model) continue
       manager.updateAppWidget(id, model.views(context))
