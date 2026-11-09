@@ -6,7 +6,7 @@
   android:minHeight="40dp"
   android:minResizeWidth="110dp"
   android:minResizeHeight="40dp"
-  android:previewImage="@drawable/t3w_preview_gauges"
+  android:previewLayout="@layout/t3w_gauges"
   android:resizeMode="horizontal"
   android:targetCellWidth="2"
   android:targetCellHeight="1"

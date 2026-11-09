@@ -6,7 +6,7 @@
   android:minHeight="110dp"
   android:minResizeWidth="180dp"
   android:minResizeHeight="40dp"
-  android:previewImage="@drawable/t3w_preview_recent"
+  android:previewLayout="@layout/t3w_threads"
   android:resizeMode="horizontal|vertical"
   android:targetCellWidth="4"
   android:targetCellHeight="2"
