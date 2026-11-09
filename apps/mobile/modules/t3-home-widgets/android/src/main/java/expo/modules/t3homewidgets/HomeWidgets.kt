@@ -31,6 +31,17 @@ enum class WidgetKind(val id: String, val provider: Class<out AppWidgetProvider>
   SERVER("server", ServerWidget::class.java, null),
   ACTIONS("actions", QuickActionsWidget::class.java, null),
   USAGE("usage", UsageTodayWidget::class.java, "usage"),
+  PROMPT("prompt", NewThreadBarWidget::class.java, null),
+  GAUGES("gauges", GaugesWidget::class.java, "threads"),
+  STATUS("status", StatusLineWidget::class.java, "threads"),
+  ;
+
+  companion object {
+    /** Widgets that show the built-in server's state or memory. */
+    val SERVER_STATE = arrayOf(SERVER, GAUGES, STATUS)
+    /** Widgets that link the newest web server. */
+    val WEB_SERVER = arrayOf(SERVER, ACTIONS, PROMPT)
+  }
 }
 
 class WidgetSize(val widthDp: Int, val heightDp: Int) {
@@ -166,12 +177,15 @@ object HomeWidgets {
         WidgetKind.SERVER -> ServerWidgetModel.from(context, size)
         WidgetKind.ACTIONS -> ActionsWidgetModel.from(context, size)
         WidgetKind.USAGE -> UsageWidgetModel.from(context, size)
+        WidgetKind.PROMPT -> PromptWidgetModel.from(context)
+        WidgetKind.GAUGES -> GaugesWidgetModel.from(context)
+        WidgetKind.STATUS -> StatusWidgetModel.from(context)
       }
       if (!force && shown[id] == model) continue
       manager.updateAppWidget(id, model.views(context))
       shown[id] = model
     }
-    if (kind == WidgetKind.SERVER) ServerWidgetWatcher.afterRender(context)
+    if (kind in WidgetKind.SERVER_STATE) ServerWidgetWatcher.afterRender(context)
   }
 
   // ---- freshness checks ------------------------------------------------------------------

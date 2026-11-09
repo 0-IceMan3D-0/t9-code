@@ -79,6 +79,13 @@ object WidgetText {
     return if (mb < 1000) "${(mb / 10) * 10} MB" else "${mb * 10 / 1024 / 10.0} GB"
   }
 
+  fun activeThreads(total: Int, needs: Int): String = when {
+    total == 0 -> "No agents running"
+    needs == 0 -> "$total working"
+    needs == total -> if (needs == 1) "1 needs you" else "$needs need you"
+    else -> "${total - needs} working · $needs ${if (needs == 1) "needs" else "need"} you"
+  }
+
   fun port(url: String): String = url.substringAfterLast(':').trimEnd('/').let { if (it.all(Char::isDigit) && it.isNotEmpty()) "Port $it" else "Web server" }
 
   fun webServer(url: String, command: String): String {

@@ -123,6 +123,7 @@ describe("buildHomeThreadsPayload", () => {
     });
     expect(payload.working.rows.map((entry) => entry.key)).toEqual(["ask", "old"]);
     expect(payload.working.count).toBe("1 needs you");
+    expect(payload.active).toEqual({ total: 2, needs: 1 });
     expect(payload.recent.rows.map((entry) => entry.key)).toEqual(["done", "ask", "old"]);
   });
 
@@ -131,6 +132,7 @@ describe("buildHomeThreadsPayload", () => {
     const payload = buildHomeThreadsPayload({ rows, live: true, asOf: 0 });
     expect(payload.working.rows).toHaveLength(6);
     expect(payload.working.count).toBe("9 running");
+    expect(payload.active).toEqual({ total: 9, needs: 0 });
     expect(buildHomeThreadsPayload({ rows: [], live: true, asOf: 0 }).working.count).toBe("");
   });
 

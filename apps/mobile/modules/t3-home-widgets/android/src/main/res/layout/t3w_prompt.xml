@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Shaped like One UI's search bar widget. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:id="@+id/t3w_root"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:paddingStart="4dp"
+  android:paddingEnd="4dp">
+  <LinearLayout
+    android:id="@+id/t3w_new"
+    android:layout_width="match_parent"
+    android:layout_height="52dp"
+    android:layout_gravity="center_vertical"
+    android:background="@drawable/t3w_control_bg"
+    android:contentDescription="New thread"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingStart="12dp"
+    android:paddingEnd="6dp">
+    <ImageView
+      android:id="@+id/t3w_icon"
+      android:layout_width="30dp"
+      android:layout_height="30dp"
+      android:importantForAccessibility="no" />
+    <TextView
+      android:layout_width="0dp"
+      android:layout_height="wrap_content"
+      android:layout_marginStart="14dp"
+      android:layout_weight="1"
+      android:ellipsize="end"
+      android:importantForAccessibility="no"
+      android:singleLine="true"
+      android:text="New thread"
+      android:textColor="@color/t3w_pill_text"
+      android:textSize="16sp" />
+    <ImageView
+      android:id="@+id/t3w_web"
+      android:layout_width="44dp"
+      android:layout_height="44dp"
+      android:background="@drawable/t3w_icon_button_bg"
+      android:contentDescription="Web server"
+      android:padding="11dp"
+      android:src="@drawable/t3w_ic_globe"
+      android:visibility="gone" />
+    <ImageView
+      android:id="@+id/t3w_shell"
+      android:layout_width="44dp"
+      android:layout_height="44dp"
+      android:background="@drawable/t3w_icon_button_bg"
+      android:contentDescription="Linux shell"
+      android:padding="11dp"
+      android:src="@drawable/t3w_ic_terminal" />
+  </LinearLayout>
+</FrameLayout>

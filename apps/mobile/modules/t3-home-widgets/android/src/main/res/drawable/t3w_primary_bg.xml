@@ -2,15 +2,14 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
   <item android:state_pressed="true">
     <shape android:shape="rectangle">
-      <solid android:color="@color/t3w_working" />
-      <corners android:radius="16dp" />
-      <stroke android:width="2dp" android:color="@color/t3w_pressed" />
+      <solid android:color="@color/t3w_text_secondary" />
+      <corners android:radius="100dp" />
     </shape>
   </item>
   <item>
     <shape android:shape="rectangle">
       <solid android:color="@color/t3w_accent" />
-      <corners android:radius="16dp" />
+      <corners android:radius="100dp" />
     </shape>
   </item>
 </selector>

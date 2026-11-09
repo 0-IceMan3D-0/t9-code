@@ -1,10 +1,15 @@
 package expo.modules.t3homewidgets
 
+import android.app.ActivityManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.RectF
 import android.os.PowerManager
 import android.view.View
 import android.widget.RemoteViews
@@ -16,6 +21,7 @@ import expo.modules.t3localserver.ServerHealth
 import expo.modules.t3localserver.ServerSwitchActivity
 import org.json.JSONObject
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.math.roundToInt
 
 private const val THIS_PHONE_PATH = "/settings/this-phone"
 
@@ -121,7 +127,7 @@ enum class ServerButton { START, SETUP, STOP, BUSY }
 
 data class ServerWidgetModel(
   val compact: Boolean,
-  /** About one launcher row: the memory figure joins the status so the button stays visible. */
+  /** Under two launcher rows: the web server line and the detail line do not both fit. */
   val short: Boolean,
   val icon: Int,
   val status: String,
@@ -138,7 +144,8 @@ data class ServerWidgetModel(
     views.setOnClickPendingIntent(R.id.t3w_root, thisPhone)
     views.setImageViewResource(R.id.t3w_icon, icon)
     views.setImageViewResource(R.id.t3w_status_dot, dot(tone))
-    val inline = (compact || short) && memory != null
+    // Memory gets its own line when there is room; the uppercase header leaves little beside it.
+    val inline = memory != null && (compact || (short && webUrl != null))
     views.setTextViewText(R.id.t3w_status, if (inline) "$status · $memory" else status)
     val primary = button == ServerButton.START || button == ServerButton.SETUP
     views.show(R.id.t3w_start, primary)
@@ -162,7 +169,7 @@ data class ServerWidgetModel(
       }
     }
     if (!compact) {
-      views.show(R.id.t3w_detail, detail != null && !(short && (memory != null || webUrl != null)))
+      views.show(R.id.t3w_detail, detail != null && !(short && webUrl != null))
       views.setTextViewText(R.id.t3w_detail, detail ?: "")
       views.show(R.id.t3w_web, webUrl != null)
       if (webUrl != null) {
@@ -232,39 +239,54 @@ object ServerWidgetWatcher {
   private val started = AtomicBoolean(false)
   private val ticking = AtomicBoolean(false)
   private val waitingForScreen = AtomicBoolean(false)
-  @Volatile private var memoryLabel: String? = null
+  @Volatile private var memoryBytes: Long? = null
   @Volatile private var memoryAt = 0L
+  @Volatile private var totalBytes = 0L
 
   fun start(context: Context) {
     if (!started.compareAndSet(false, true)) return
     val app = context.applicationContext
-    LocalServerStatusStore.addListener { HomeWidgets.refresh(app, WidgetKind.SERVER) }
+    LocalServerStatusStore.addListener { HomeWidgets.refresh(app, *WidgetKind.SERVER_STATE, *WidgetKind.WEB_SERVER) }
     LinuxMaintenance.addListener { HomeWidgets.refresh(app, WidgetKind.SERVER) }
-    DevServers.addListener { HomeWidgets.refresh(app, WidgetKind.SERVER, WidgetKind.ACTIONS) }
+    DevServers.addListener { HomeWidgets.refresh(app, *WidgetKind.WEB_SERVER) }
   }
 
   /** Sampled at most every two minutes; reading every guest's /proc entry is not free. */
-  fun memory(): String? {
+  fun memoryBytes(): Long? {
     val now = System.currentTimeMillis()
-    if (memoryLabel == null || now - memoryAt >= MEMORY_MILLIS - 5_000) {
-      memoryLabel = runCatching { ServerHealth.tree().rssBytes }.getOrNull()?.takeIf { it > 0 }?.let(WidgetText::memory)
+    if (memoryBytes == null || now - memoryAt >= MEMORY_MILLIS - 5_000) {
+      memoryBytes = runCatching { ServerHealth.tree().rssBytes }.getOrNull()?.takeIf { it > 0 }
       memoryAt = now
     }
-    return memoryLabel
+    return memoryBytes
+  }
+
+  fun memory(): String? = memoryBytes()?.let(WidgetText::memory)
+
+  /** The server's share of the phone's RAM, in whole percent so small swings do not redraw. */
+  fun memoryShare(context: Context): Float? {
+    val used = memoryBytes() ?: return null
+    if (totalBytes == 0L) {
+      val info = ActivityManager.MemoryInfo()
+      context.getSystemService(ActivityManager::class.java)?.getMemoryInfo(info)
+      totalBytes = info.totalMem
+    }
+    if (totalBytes <= 0L) return null
+    return (used * 100 / totalBytes).coerceIn(1, 100) / 100f
   }
 
   /** Re-samples memory while the server runs and the screen is on; nothing runs otherwise. */
   fun afterRender(context: Context) {
     val running = LocalServerStatusStore.resolve(context).state == LocalServerState.RUNNING
     if (!running) {
-      memoryLabel = null
+      memoryBytes = null
       return
     }
     if (!ticking.compareAndSet(false, true)) return
     HomeWidgets.postDelayed(MEMORY_MILLIS) {
       ticking.set(false)
       val power = context.getSystemService(PowerManager::class.java)
-      if (power?.isInteractive == false) waitForScreen(context) else HomeWidgets.refresh(context, WidgetKind.SERVER)
+      if (power?.isInteractive == false) waitForScreen(context) else HomeWidgets.refresh(context, *WidgetKind.SERVER_STATE)
     }
   }
 
@@ -275,7 +297,7 @@ object ServerWidgetWatcher {
         override fun onReceive(receiverContext: Context, intent: Intent) {
           receiverContext.applicationContext.unregisterReceiver(this)
           waitingForScreen.set(false)
-          HomeWidgets.refresh(receiverContext, WidgetKind.SERVER)
+          HomeWidgets.refresh(receiverContext, *WidgetKind.SERVER_STATE)
         }
       },
       IntentFilter(Intent.ACTION_SCREEN_ON),
@@ -357,5 +379,163 @@ data class UsageWidgetModel(
         path = json?.optString("path")?.ifEmpty { null } ?: "/",
       )
     }
+  }
+}
+
+// ---- New thread bar ------------------------------------------------------------------------
+
+data class PromptWidgetModel(val icon: Int, val webUrl: String?, val webLabel: String?) : WidgetModel {
+  override fun views(context: Context): RemoteViews {
+    val views = RemoteViews(context.packageName, R.layout.t3w_prompt)
+    views.setImageViewResource(R.id.t3w_icon, icon)
+    views.setOnClickPendingIntent(R.id.t3w_new, HomeWidgets.openApp(context, "/new"))
+    views.setOnClickPendingIntent(R.id.t3w_shell, HomeWidgets.openApp(context, "/settings/this-phone/shell"))
+    views.show(R.id.t3w_web, webUrl != null)
+    if (webUrl != null) {
+      views.setOnClickPendingIntent(R.id.t3w_web, HomeWidgets.openUrl(context, webUrl))
+      views.setContentDescription(R.id.t3w_web, "Open $webLabel")
+    }
+    return views
+  }
+
+  companion object {
+    fun from(context: Context): PromptWidgetModel {
+      val running = LocalServerStatusStore.resolve(context).state == LocalServerState.RUNNING
+      val web = if (running) DevServers.current.maxByOrNull { it.since } else null
+      return PromptWidgetModel(WidgetIcon.resource(context), web?.url, web?.let { WidgetText.port(it.url) })
+    }
+  }
+}
+
+// ---- Gauges and the status line ------------------------------------------------------------
+
+/** Active thread totals from the app's data; null until the app has published any. */
+data class ActiveThreads(val total: Int, val needs: Int, val stamp: String?) {
+  companion object {
+    fun read(context: Context): ActiveThreads? {
+      val data = HomeWidgets.read(context, "threads") ?: return null
+      val active = data.json.optJSONObject("active")
+      val rows = data.json.optJSONObject("working")?.optJSONArray("rows")
+      val total = active?.optInt("total") ?: rows?.length() ?: 0
+      val needs = active?.optInt("needs")
+        ?: (0 until (rows?.length() ?: 0)).count { rows?.optJSONObject(it)?.optBoolean("needsYou") == true }
+      return ActiveThreads(total, needs, data.stamp())
+    }
+  }
+}
+
+/** The server as the one-line widgets name it: label, dot tone, and memory while it runs. */
+data class ServerLine(val label: String, val tone: String, val memory: String?, val share: Float?) {
+  companion object {
+    fun read(context: Context): ServerLine {
+      val state = LocalServerStatusStore.resolve(context).state
+      if (LinuxMaintenance.busy) return ServerLine("Busy", "working", null, null)
+      return when (state) {
+        LocalServerState.RUNNING -> ServerLine("Running", "done", ServerWidgetWatcher.memory(), ServerWidgetWatcher.memoryShare(context))
+        LocalServerState.STARTING -> ServerLine("Starting", "working", null, null)
+        LocalServerState.INSTALLING -> ServerLine("Setting up", "working", null, null)
+        LocalServerState.FAILED -> ServerLine("Failed", "failed", null, null)
+        LocalServerState.STOPPED -> ServerLine("Off", "idle", null, null)
+        LocalServerState.NOT_INSTALLED -> ServerLine("Not set up", "idle", null, null)
+      }
+    }
+  }
+}
+
+/** Arcs like One UI's battery gauges: a dark track open at the bottom, filled clockwise. */
+object Gauge {
+  private const val START = 140f
+  private const val SWEEP = 260f
+  private const val SIZE_DP = 64
+
+  fun bitmap(context: Context, segments: List<Pair<Float, Int>>): Bitmap {
+    val px = (SIZE_DP * context.resources.displayMetrics.density).roundToInt()
+    val bitmap = Bitmap.createBitmap(px, px, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bitmap)
+    val stroke = px * 0.1f
+    val bounds = RectF(stroke / 2, stroke / 2, px - stroke / 2, px - stroke / 2)
+    val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+      style = Paint.Style.STROKE
+      strokeWidth = stroke
+      strokeCap = Paint.Cap.ROUND
+      color = context.getColor(R.color.t3w_track)
+    }
+    canvas.drawArc(bounds, START, SWEEP, false, paint)
+    var at = START
+    for ((fraction, color) in segments) {
+      val sweep = SWEEP * fraction.coerceIn(0f, 1f)
+      if (sweep <= 0f) continue
+      paint.color = color
+      canvas.drawArc(bounds, at, sweep, false, paint)
+      at += sweep
+    }
+    return bitmap
+  }
+}
+
+data class GaugesWidgetModel(val server: ServerLine, val threads: ActiveThreads?) : WidgetModel {
+  override fun views(context: Context): RemoteViews {
+    val views = RemoteViews(context.packageName, R.layout.t3w_gauges)
+    val share = server.share
+    val memoryColor = when {
+      share == null || share < 0.6f -> R.color.t3w_done
+      share < 0.8f -> R.color.t3w_needs
+      else -> R.color.t3w_failed
+    }
+    views.setImageViewBitmap(
+      R.id.t3w_memory_arc,
+      Gauge.bitmap(context, if (share == null) emptyList() else listOf(share to context.getColor(memoryColor))),
+    )
+    val memoryLabel = server.memory?.replace(" MB", "M")?.replace(" GB", "G") ?: server.label
+    views.setTextViewText(R.id.t3w_memory_label, memoryLabel)
+    views.setContentDescription(R.id.t3w_memory, "Server ${server.label}${server.memory?.let { ", $it" } ?: ""}")
+    views.setOnClickPendingIntent(R.id.t3w_memory, HomeWidgets.openApp(context, THIS_PHONE_PATH))
+
+    // The whole arc splits between threads that need the user and threads that are working.
+    val segments = if (threads == null || threads.total == 0) emptyList() else listOf(
+      threads.needs.toFloat() / threads.total to context.getColor(R.color.t3w_needs),
+      (threads.total - threads.needs).toFloat() / threads.total to context.getColor(R.color.t3w_working),
+    )
+    views.setImageViewBitmap(R.id.t3w_threads_arc, Gauge.bitmap(context, segments))
+    views.setTextViewText(R.id.t3w_threads_label, threads?.total?.toString() ?: "–")
+    views.setContentDescription(R.id.t3w_threads, threads?.let { WidgetText.activeThreads(it.total, it.needs) } ?: "Agents")
+    views.setOnClickPendingIntent(R.id.t3w_threads, HomeWidgets.openApp(context, "/"))
+    views.setOnClickPendingIntent(R.id.t3w_root, HomeWidgets.openApp(context, "/"))
+    return views
+  }
+
+  companion object {
+    fun from(context: Context) = GaugesWidgetModel(ServerLine.read(context), ActiveThreads.read(context))
+  }
+}
+
+data class StatusWidgetModel(val server: ServerLine, val threads: ActiveThreads?) : WidgetModel {
+  override fun views(context: Context): RemoteViews {
+    val views = RemoteViews(context.packageName, R.layout.t3w_status)
+    val tone = when {
+      threads == null -> "idle"
+      threads.needs > 0 -> "needs"
+      threads.total > 0 -> "working"
+      else -> "idle"
+    }
+    views.setImageViewResource(R.id.t3w_threads_dot, dot(tone))
+    views.setTextViewText(
+      R.id.t3w_threads_text,
+      threads?.let { WidgetText.activeThreads(it.total, it.needs) } ?: context.getString(R.string.t3w_loading),
+    )
+    val stamp = threads?.stamp?.removePrefix("Updated ")
+    views.show(R.id.t3w_stamp, stamp != null)
+    views.setTextViewText(R.id.t3w_stamp, stamp ?: "")
+    views.setOnClickPendingIntent(R.id.t3w_threads, HomeWidgets.openApp(context, "/"))
+    views.setImageViewResource(R.id.t3w_server_dot, dot(server.tone))
+    views.setTextViewText(R.id.t3w_server_text, "Server ${server.memory ?: server.label.lowercase()}")
+    views.setContentDescription(R.id.t3w_server, "Server ${server.label}${server.memory?.let { ", $it" } ?: ""}")
+    views.setOnClickPendingIntent(R.id.t3w_server, HomeWidgets.openApp(context, THIS_PHONE_PATH))
+    views.setOnClickPendingIntent(R.id.t3w_root, HomeWidgets.openApp(context, "/"))
+    return views
+  }
+
+  companion object {
+    fun from(context: Context) = StatusWidgetModel(ServerLine.read(context), ActiveThreads.read(context))
   }
 }

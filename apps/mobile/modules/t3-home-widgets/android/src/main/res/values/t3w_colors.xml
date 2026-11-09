@@ -1,20 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The app's Liquid Glass palette, light. values-night holds the dark one. -->
+<!-- One UI dark home screen: content floats on the wallpaper, white text, grey pills and gauge tracks. -->
 <resources>
-  <color name="t3w_surface">#F2F7F7FA</color>
-  <color name="t3w_sheen">#B3FFFFFF</color>
-  <color name="t3w_edge">#2E3C3C43</color>
-  <color name="t3w_text">#FF000000</color>
-  <color name="t3w_text_secondary">#FF636366</color>
-  <color name="t3w_accent">#FF006DCC</color>
-  <color name="t3w_on_accent">#FFFFFFFF</color>
-  <color name="t3w_control">#1F787880</color>
-  <color name="t3w_control_pressed">#38787880</color>
-  <color name="t3w_pressed">#14000000</color>
-  <color name="t3w_needs">#FFC93400</color>
-  <color name="t3w_needs_fill">#29FF9500</color>
-  <color name="t3w_working">#FF006DCC</color>
-  <color name="t3w_failed">#FFD70015</color>
-  <color name="t3w_done">#FF248A3D</color>
+  <color name="t3w_frame">#FFFFFFFF</color>
+  <color name="t3w_text">#FFFFFFFF</color>
+  <color name="t3w_text_secondary">#FFA1A1A6</color>
+  <color name="t3w_pill_text">#FFE6E6E8</color>
+  <color name="t3w_accent">#FFFFFFFF</color>
+  <color name="t3w_on_accent">#FF000000</color>
+  <color name="t3w_control">#FF1F1F21</color>
+  <color name="t3w_control_pressed">#FF333336</color>
+  <color name="t3w_pressed">#24FFFFFF</color>
+  <color name="t3w_track">#FF333335</color>
+  <color name="t3w_needs">#FFFF9F0A</color>
+  <color name="t3w_needs_fill">#33FF9F0A</color>
+  <color name="t3w_working">#FF4DA3FF</color>
+  <color name="t3w_failed">#FFF0616D</color>
+  <color name="t3w_done">#FF2DCB70</color>
   <color name="t3w_idle">#FF8E8E93</color>
 </resources>

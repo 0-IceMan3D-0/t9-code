@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+  <!-- Uppercase like the date on One UI's clock widgets. -->
   <style name="T3wHeader">
     <item name="android:textSize">14sp</item>
     <item name="android:textColor">@color/t3w_text</item>
-    <item name="android:fontFamily">sans-serif-medium</item>
+    <item name="android:textAllCaps">true</item>
+    <item name="android:letterSpacing">0.04</item>
     <item name="android:singleLine">true</item>
     <item name="android:ellipsize">end</item>
   </style>
@@ -52,9 +54,21 @@
     <item name="android:background">@drawable/t3w_control_bg</item>
   </style>
   <style name="T3wBig">
-    <item name="android:textSize">30sp</item>
+    <item name="android:textSize">36sp</item>
     <item name="android:textColor">@color/t3w_text</item>
     <item name="android:fontFamily">sans-serif-medium</item>
     <item name="android:singleLine">true</item>
+  </style>
+  <style name="T3wGaugeLabel">
+    <item name="android:textSize">17sp</item>
+    <item name="android:textColor">@color/t3w_text</item>
+    <item name="android:gravity">center</item>
+    <item name="android:singleLine">true</item>
+  </style>
+  <style name="T3wLine">
+    <item name="android:textSize">15sp</item>
+    <item name="android:textColor">@color/t3w_text</item>
+    <item name="android:singleLine">true</item>
+    <item name="android:ellipsize">end</item>
   </style>
 </resources>

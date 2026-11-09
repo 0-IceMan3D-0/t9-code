@@ -3,8 +3,7 @@
   android:id="@+id/t3w_root"
   android:layout_width="match_parent"
   android:layout_height="match_parent"
-  android:background="@drawable/t3w_bg"
-  android:gravity="center_vertical"
+    android:gravity="center_vertical"
   android:orientation="horizontal"
   android:padding="6dp">
   <LinearLayout

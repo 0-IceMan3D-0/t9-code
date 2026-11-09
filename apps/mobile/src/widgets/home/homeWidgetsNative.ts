@@ -1,7 +1,15 @@
 import { requireOptionalNativeModule, type EventSubscription } from "expo";
 import { Platform } from "react-native";
 
-export type HomeWidgetKind = "working" | "recent" | "server" | "actions" | "usage";
+export type HomeWidgetKind =
+  | "working"
+  | "recent"
+  | "server"
+  | "actions"
+  | "usage"
+  | "prompt"
+  | "gauges"
+  | "status";
 export type HomeWidgetDataKey = "threads" | "usage";
 
 interface HomeWidgetsNativeModule {

@@ -10,5 +10,11 @@
   <string name="t3w_actions_description">New thread, Linux shell and your newest web server.</string>
   <string name="t3w_usage_label">Usage today</string>
   <string name="t3w_usage_description">Tokens used today and your busiest project.</string>
+  <string name="t3w_prompt_label">New thread bar</string>
+  <string name="t3w_prompt_description">A search bar style shortcut to start a thread, open the Linux shell or your web server.</string>
+  <string name="t3w_gauges_label">Gauges</string>
+  <string name="t3w_gauges_description">The built-in server\'s memory and how many agents are working.</string>
+  <string name="t3w_status_label">Status line</string>
+  <string name="t3w_status_description">Working threads, who needs you, and the built-in server, in one line.</string>
   <string name="t3w_loading">Open T3² code to load</string>
 </resources>

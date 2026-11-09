@@ -50,6 +50,12 @@ class QuickActionsWidget : HomeWidgetProvider(WidgetKind.ACTIONS)
 
 class UsageTodayWidget : HomeWidgetProvider(WidgetKind.USAGE)
 
+class NewThreadBarWidget : HomeWidgetProvider(WidgetKind.PROMPT)
+
+class GaugesWidget : HomeWidgetProvider(WidgetKind.GAUGES)
+
+class StatusLineWidget : HomeWidgetProvider(WidgetKind.STATUS)
+
 /**
  * Created at every start of the app's process, before any screen or service. Lets the server
  * and quick action widgets follow the server when the tile or a shortcut started it.
@@ -62,7 +68,7 @@ class HomeWidgetsInit : ContentProvider() {
       if (placed.isEmpty()) return@post
       ServerWidgetWatcher.start(app)
       // A new process means the server stopped with the old one, unless its service restarts it.
-      HomeWidgets.refresh(app, WidgetKind.SERVER, WidgetKind.ACTIONS)
+      HomeWidgets.refresh(app, *WidgetKind.SERVER_STATE, *WidgetKind.WEB_SERVER)
       HomeWidgets.scheduleCheck(app)
     }
     return true

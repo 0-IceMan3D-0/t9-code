@@ -72,26 +72,30 @@ export function installHomeWidgets(): () => void {
   }
   let leftAt = AppState.currentState === "active" ? null : Date.now();
 
-  const threads = createHomeWidgetPublisher("threads", ["working", "recent"], () => {
-    const now = Date.now();
-    let live = true;
-    let asOf = now;
-    const rows: WidgetThreadRow[] = [];
-    for (const entry of environments.values()) {
-      rows.push(...entry.rows);
-      // An environment with nothing to show cannot make the widget wrong.
-      if (!entry.live && entry.rows.length > 0) {
-        live = false;
-        asOf = Math.min(asOf, entry.liveAt);
+  const threads = createHomeWidgetPublisher(
+    "threads",
+    ["working", "recent", "gauges", "status"],
+    () => {
+      const now = Date.now();
+      let live = true;
+      let asOf = now;
+      const rows: WidgetThreadRow[] = [];
+      for (const entry of environments.values()) {
+        rows.push(...entry.rows);
+        // An environment with nothing to show cannot make the widget wrong.
+        if (!entry.live && entry.rows.length > 0) {
+          live = false;
+          asOf = Math.min(asOf, entry.liveAt);
+        }
       }
-    }
-    if (leftAt !== null && !watchingInBackground()) {
-      live = false;
-      asOf = Math.min(asOf, leftAt);
-    }
-    const payload = buildHomeThreadsPayload({ rows, live, asOf });
-    return { payload, signature: homeThreadsSignature(payload) };
-  });
+      if (leftAt !== null && !watchingInBackground()) {
+        live = false;
+        asOf = Math.min(asOf, leftAt);
+      }
+      const payload = buildHomeThreadsPayload({ rows, live, asOf });
+      return { payload, signature: homeThreadsSignature(payload) };
+    },
+  );
 
   const multipleEnvironments = () =>
     appAtomRegistry.get(environmentCatalog.catalogValueAtom).entries.size > 1;

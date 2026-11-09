@@ -26,5 +26,17 @@
       <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
       <meta-data android:name="android.appwidget.provider" android:resource="@xml/t3w_info_recent" />
     </receiver>
+    <receiver android:name="expo.modules.t3homewidgets.NewThreadBarWidget" android:exported="true" android:label="@string/t3w_prompt_label">
+      <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+      <meta-data android:name="android.appwidget.provider" android:resource="@xml/t3w_info_prompt" />
+    </receiver>
+    <receiver android:name="expo.modules.t3homewidgets.GaugesWidget" android:exported="true" android:label="@string/t3w_gauges_label">
+      <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+      <meta-data android:name="android.appwidget.provider" android:resource="@xml/t3w_info_gauges" />
+    </receiver>
+    <receiver android:name="expo.modules.t3homewidgets.StatusLineWidget" android:exported="true" android:label="@string/t3w_status_label">
+      <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+      <meta-data android:name="android.appwidget.provider" android:resource="@xml/t3w_info_status" />
+    </receiver>
   </application>
 </manifest>

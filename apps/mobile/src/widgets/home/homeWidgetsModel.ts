@@ -31,6 +31,8 @@ export interface HomeThreadsPayload {
   readonly asOf: number;
   readonly working: HomeThreadsSection;
   readonly recent: HomeThreadsSection;
+  /** Uncapped totals of active threads; the row lists stop at the widget's slot count. */
+  readonly active: { readonly total: number; readonly needs: number };
 }
 
 /** Six rows fill the tallest layout; the widget shows as many as fit. */
@@ -108,6 +110,7 @@ export function buildHomeThreadsPayload(input: {
     asOf: input.asOf,
     working: { count: workingCount(working), rows: working.slice(0, HOME_WIDGET_MAX_ROWS) },
     recent: { count: "", rows: newest.slice(0, HOME_WIDGET_MAX_ROWS) },
+    active: { total: working.length, needs: working.filter((row) => row.needsYou).length },
   };
 }
 
