@@ -71,7 +71,6 @@ import {
 import { useAndroidControlSizing } from "../../components/ui/useAndroidControlSizing";
 import { useEnabledNavigationTabs } from "./workspace/navigation-tabs";
 import { FLOATING_TABS, floatingTabsMetrics } from "./workspace/floating-workspace-tabs";
-import { GlassTabTarget, useGlassTabTarget } from "./workspace/GlassTabTarget";
 import {
   AndroidWorkspaceNavigation,
   FloatingWorkspaceTabs,
@@ -623,10 +622,6 @@ function AdaptiveWorkspaceLayoutContent(
   const projects = useProjects();
   const compactAndroidSettings =
     Platform.OS === "android" && androidSettingsOpen && !layout.usesSplitView;
-  // Not tied to Settings being open: toggling this wrapper would remount every route inside it.
-  const settingsBlurTarget = useGlassTabTarget(
-    Platform.OS === "android" && floatingTabsEnabled && !layout.usesSplitView,
-  );
   // Reads the open page when pressed, so the layout context doesn't change on every navigation.
   const handleStartNewTask = () => {
     const state = rootStackState(navigation);
@@ -1159,18 +1154,15 @@ function AdaptiveWorkspaceLayoutContent(
                       : safeAreaInsets
                 }
               >
-                <GlassTabTarget target={settingsBlurTarget}>
-                  <View className="flex-1">
-                    <PaneContext value="content">
-                      <SettingsWorkspaceLayout>{children}</SettingsWorkspaceLayout>
-                    </PaneContext>
-                  </View>
-                </GlassTabTarget>
+                <View className="flex-1">
+                  <PaneContext value="content">
+                    <SettingsWorkspaceLayout>{children}</SettingsWorkspaceLayout>
+                  </PaneContext>
+                </View>
               </SafeAreaInsetsContext>
               {floatingTabsEnabled &&
               (compactAndroidSettings || (layout.usesSplitView && workspacePage)) ? (
                 <FloatingWorkspaceTabs
-                  blurTarget={settingsBlurTarget}
                   paneWidth={layout.usesSplitView ? (layout.listPaneWidth ?? undefined) : undefined}
                   fillWidth={compactAndroidSettings}
                   onNewThread={handleStartNewTask}

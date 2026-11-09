@@ -132,5 +132,20 @@ object AppIconStyle {
     }
   }
 
+  /**
+   * An update that drops the chosen preset leaves every remaining alias disabled, so the app would
+   * vanish from the launcher. Turns the default preset back on when nothing is enabled.
+   */
+  fun ensureLauncherEntry(ctx: Context) {
+    if (enabledAliases(ctx).isNotEmpty()) return
+    val fallback = aliases(ctx).firstOrNull { aliasPreset(it.name) == "original" } ?: aliases(ctx).firstOrNull() ?: return
+    ctx.packageManager.setComponentEnabledSetting(
+      component(ctx, fallback),
+      PackageManager.COMPONENT_ENABLED_STATE_ENABLED,
+      PackageManager.DONT_KILL_APP,
+    )
+    cached = null
+  }
+
   private fun component(ctx: Context, alias: ActivityInfo) = ComponentName(ctx.packageName, alias.name)
 }

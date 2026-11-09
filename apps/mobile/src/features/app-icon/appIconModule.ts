@@ -59,7 +59,6 @@ export const setLauncherShortcuts = native
 const PREVIEWS: Record<string, number> = {
   original: require("../../../assets/app-icons/original.png"),
   classic: require("../../../assets/app-icons/classic.png"),
-  glass: require("../../../assets/app-icons/glass.png"),
   void: require("../../../assets/app-icons/void.png"),
   frost: require("../../../assets/app-icons/frost.png"),
   terminal: require("../../../assets/app-icons/terminal.png"),

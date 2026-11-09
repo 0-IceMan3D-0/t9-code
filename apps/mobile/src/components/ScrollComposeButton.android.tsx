@@ -1,12 +1,10 @@
 import { NativeThemeHost } from "./ui/NativeThemeHost.android";
 import { Box, ExtendedFloatingActionButton, Icon, Text } from "@expo/ui/jetpack-compose";
 import {
-  clip,
   defaultMinSize,
   fillMaxWidth,
   height,
   onSizeChanged,
-  Shapes,
   size,
 } from "@expo/ui/jetpack-compose/modifiers";
 import { useState } from "react";
@@ -23,7 +21,7 @@ export function ScrollComposeButton(props: {
   readonly className?: string;
   readonly style?: StyleProp<ViewStyle>;
 }) {
-  const { appearance, themeId, themeVariables: colors } = useAppearancePreferences();
+  const { appearance, themeVariables: colors } = useAppearancePreferences();
   const typography = resolveScaledTextRole("footnote", appearance.baseFontSize);
   const { iconSize, fabSize: scaledFabSize } = useAndroidControlSizing();
   const fabSize = props.size ?? scaledFabSize;
@@ -61,7 +59,6 @@ export function ScrollComposeButton(props: {
                 defaultMinSize({ minWidth: nativeSize }),
                 height(nativeSize),
                 onSizeChanged(rememberWidth),
-                ...(themeId === "liquid-glass" && !props.expanded ? [clip(Shapes.Circle)] : []),
               ]}
             >
               <ExtendedFloatingActionButton.Icon>

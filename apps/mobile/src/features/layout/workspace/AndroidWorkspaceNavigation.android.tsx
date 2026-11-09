@@ -1,9 +1,7 @@
 import { selectedNavigationTab, visibleNavigationTabs } from "./navigation-tab-order";
 import { requireNativeView } from "expo";
-import { useLayoutEffect, useState } from "react";
 import { CommonActions, useNavigation } from "@react-navigation/native";
 import {
-  findNodeHandle,
   Keyboard,
   processColor,
   useWindowDimensions,
@@ -17,10 +15,7 @@ import { useAndroidControlSizing } from "../../../components/ui/useAndroidContro
 import { useToolbarLayout } from "../../../components/ui/useToolbarLayout";
 import { rootNavigationRef } from "../../../lib/rootNavigation";
 import { useWorkspaceConnectionState } from "../../../state/workspace";
-import {
-  androidGlassTabColors,
-  androidWorkspaceNavigationColors,
-} from "./android-workspace-navigation-colors";
+import { androidWorkspaceNavigationColors } from "./android-workspace-navigation-colors";
 import {
   androidWorkspaceTabNavigationState,
   type AndroidWorkspaceNavigationTab,
@@ -32,7 +27,6 @@ import { useAndroidWorkspaceRoot } from "./AndroidWorkspaceTabsProvider";
 import { useNavigationTabOrder, useHiddenNavigationTabs } from "./navigation-tabs";
 import { useWorkspaceTabs } from "./WorkspaceTabsContext";
 import { FLOATING_TABS, floatingTabsMetrics } from "./floating-workspace-tabs";
-import type { GlassTabTargetRef } from "./GlassTabTarget";
 
 // Matches RAIL_WIDTH in the native rail.
 export const ANDROID_WORKSPACE_RAIL_WIDTH = 72;
@@ -49,7 +43,6 @@ interface NativeNavigationProps extends ViewProps {
   readonly safeAreaBottom: number;
   readonly headerHeight: number;
   readonly containerColor: number;
-  readonly rimColor: number;
   readonly selectedColor: number;
   readonly indicatorColor: number;
   readonly unselectedColor: number;
@@ -63,56 +56,16 @@ interface NativeNavigationProps extends ViewProps {
 }
 
 const NativeNavigation = requireNativeView<NativeNavigationProps>("T3WorkspaceNavigation");
-const NativeGlassLens = requireNativeView<
-  ViewProps & {
-    readonly targetTag: number;
-    readonly tintColor: number;
-    readonly backdropColor: number;
-    readonly dark: boolean;
-  }
->("T3GlassLens");
 
 function nativeColor(value: string) {
   const color = processColor(value);
   return typeof color === "number" ? color : 0;
 }
 
-function GlassTabLens(props: {
-  readonly target: GlassTabTargetRef;
-  readonly width: number;
-  readonly height: number;
-}) {
-  const { themeAppearance, themeVariables: colors } = useAppearancePreferences();
-  const [targetTag, setTargetTag] = useState(0);
-  // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- The native tag only exists after commit.
-  useLayoutEffect(() => {
-    // oxlint-disable-next-line react/set-state-in-effect -- The native tag only exists after commit.
-    setTargetTag(findNodeHandle(props.target.current) ?? 0);
-  }, [props.target]);
-  return (
-    <NativeGlassLens
-      pointerEvents="none"
-      backdropColor={nativeColor(colors["--color-screen"])}
-      dark={themeAppearance === "dark"}
-      style={{
-        position: "absolute",
-        top: FLOATING_TABS.shadow,
-        left: FLOATING_TABS.shadow,
-        width: props.width,
-        height: props.height,
-      }}
-      targetTag={targetTag}
-      tintColor={nativeColor(androidGlassTabColors(colors).tintColor)}
-    />
-  );
-}
-
 export function AndroidWorkspaceNavigation(props: {
   readonly onNewThread: () => void;
   readonly rail?: boolean;
   readonly floating?: boolean;
-  /** Content behind a floating bar, which turns the bar into glass. */
-  readonly blurTarget?: GlassTabTargetRef;
   readonly fillWidth?: boolean;
   readonly paneWidth?: number;
   readonly onSelect?: () => void;
@@ -135,11 +88,8 @@ export function AndroidWorkspaceNavigation(props: {
   const rail = Boolean(props.rail);
   const floating = !rail && Boolean(props.floating);
   const tabs = [...visibleNavigationTabs(order, hidden, rail ? 5 : 4), "settings"];
-  const glass = floating && props.blurTarget !== undefined;
-  const barColors = androidWorkspaceNavigationColors(colors, rail, floating);
-  const { containerColor, indicatorColor, selectedColor, unselectedColor } = glass
-    ? androidGlassTabColors(colors)
-    : barColors;
+  const { containerColor, indicatorColor, selectedColor, unselectedColor } =
+    androidWorkspaceNavigationColors(colors, rail, floating);
   const selectedTab = selectedNavigationTab(
     order,
     workspace.state.selectedTab,
@@ -167,9 +117,6 @@ export function AndroidWorkspaceNavigation(props: {
             : { backgroundColor: containerColor, paddingBottom: insets.bottom }
       }
     >
-      {glass && props.blurTarget ? (
-        <GlassTabLens height={metrics.height} target={props.blurTarget} width={metrics.pill} />
-      ) : null}
       <NativeNavigation
         rail={rail}
         floating={floating}
@@ -182,7 +129,6 @@ export function AndroidWorkspaceNavigation(props: {
         safeAreaBottom={insets.bottom}
         headerHeight={toolbar.height}
         containerColor={nativeColor(containerColor)}
-        rimColor={glass ? nativeColor(androidGlassTabColors(colors).rimColor) : 0}
         selectedColor={nativeColor(selectedColor)}
         indicatorColor={nativeColor(indicatorColor)}
         unselectedColor={nativeColor(unselectedColor)}
@@ -227,7 +173,6 @@ export function AndroidWorkspaceNavigation(props: {
 }
 
 export function FloatingWorkspaceTabs(props: {
-  readonly blurTarget?: GlassTabTargetRef;
   readonly fillWidth?: boolean;
   readonly onNewThread: () => void;
   readonly paneWidth?: number;

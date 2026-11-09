@@ -176,82 +176,6 @@ interface PresetArt {
 
 const mono = (mark: Mark) => `<path d="${markPaths(mark)}" fill="#fff"/>`;
 
-function glass(): PresetArt {
-  const mark = layoutMark("dmBold", 18.5, 54, 55);
-  const tile = squirclePath(54, 54, 27, 4.2);
-  const inner = squirclePath(54, 54, 23.5, 4.2);
-  const blobs = `
-    <circle cx="34" cy="36" r="22" fill="#5b7cff"/>
-    <circle cx="78" cy="40" r="18" fill="#ff4fd8"/>
-    <circle cx="70" cy="80" r="24" fill="#22e3ff"/>
-    <circle cx="30" cy="82" r="14" fill="#8b5cff"/>`;
-  return {
-    background: `
-      <defs>
-        <radialGradient id="bg" cx="0.5" cy="0.45" r="0.75">
-          <stop offset="0" stop-color="#1b1f3a"/><stop offset="1" stop-color="#05060d"/>
-        </radialGradient>
-        <filter id="soft" ${filterBox}><feGaussianBlur stdDeviation="7"/></filter>
-      </defs>
-      <rect ${FULL} fill="url(#bg)"/>
-      <g filter="url(#soft)" opacity="0.95">${blobs}</g>`,
-    foreground: `
-      <defs>
-        <clipPath id="tile"><path d="${tile}"/></clipPath>
-        <clipPath id="edge"><path d="${tile}${inner}" clip-rule="evenodd"/></clipPath>
-        <filter id="bend" ${filterBox}><feGaussianBlur stdDeviation="1.6"/></filter>
-        <filter id="frost" ${filterBox}>
-          <feGaussianBlur stdDeviation="5.5" result="b"/>
-          <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/>
-          <feDisplacementMap in="b" in2="n" scale="2.2" xChannelSelector="R" yChannelSelector="G"/>
-        </filter>
-        <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stop-color="#fff" stop-opacity="0.38"/>
-          <stop offset="0.45" stop-color="#fff" stop-opacity="0.06"/>
-          <stop offset="1" stop-color="#fff" stop-opacity="0.16"/>
-        </linearGradient>
-        <linearGradient id="rim" x1="0.1" y1="0" x2="0.9" y2="1">
-          <stop offset="0" stop-color="#fff" stop-opacity="0.95"/>
-          <stop offset="0.35" stop-color="#fff" stop-opacity="0.15"/>
-          <stop offset="0.7" stop-color="#fff" stop-opacity="0.08"/>
-          <stop offset="1" stop-color="#fff" stop-opacity="0.75"/>
-        </linearGradient>
-        <filter id="shadow" ${filterBox}>
-          <feGaussianBlur in="SourceAlpha" stdDeviation="1.6"/>
-          <feOffset dy="1.2"/>
-          <feComponentTransfer><feFuncA type="linear" slope="0.45"/></feComponentTransfer>
-          <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-        <filter id="lift" ${filterBox}>
-          <feGaussianBlur in="SourceAlpha" stdDeviation="3"/><feOffset dy="2.5"/>
-          <feComponentTransfer><feFuncA type="linear" slope="0.5"/></feComponentTransfer>
-        </filter>
-      </defs>
-      <path d="${tile}" fill="#000" filter="url(#lift)"/>
-      <g clip-path="url(#tile)">
-        <g transform="translate(54 54) scale(1.18) translate(-54 -54)" filter="url(#frost)">
-          <rect ${FULL} fill="#14182e"/>${blobs}
-        </g>
-        <rect ${FULL} fill="url(#sheen)"/>
-        <ellipse cx="44" cy="32" rx="22" ry="7" fill="#fff" opacity="0.10" transform="rotate(-18 44 32)"/>
-      </g>
-      <g clip-path="url(#edge)">
-        <g transform="translate(54 54) scale(0.72) translate(-54 -54)" filter="url(#bend)">
-          <rect ${FULL} fill="#14182e"/>${blobs}
-        </g>
-        <rect ${FULL} fill="#fff" opacity="0.12"/>
-      </g>
-      <path d="${tile}" fill="none" stroke="#ff5a7a" stroke-opacity="0.55" stroke-width="0.7" transform="translate(-0.45 0)"/>
-      <path d="${tile}" fill="none" stroke="#3ad7ff" stroke-opacity="0.55" stroke-width="0.7" transform="translate(0.45 0)"/>
-      <path d="${tile}" fill="none" stroke="url(#rim)" stroke-width="1.1"/>
-      <g filter="url(#shadow)">
-        <path d="${mark.t}${mark.three}" fill="#fff"/>
-        <path d="${mark.two}" fill="#bff4ff"/>
-      </g>`,
-    monochrome: mono(mark),
-  };
-}
-
 function void_(): PresetArt {
   const mark = layoutMark("dmMed", 19, 54, 54.5);
   return {
@@ -529,7 +453,6 @@ function mulberry32(seed: number) {
 
 const ART: Record<string, () => PresetArt> = {
   original,
-  glass,
   void: void_,
   frost,
   terminal,

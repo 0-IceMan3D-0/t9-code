@@ -5,7 +5,6 @@ import android.view.ViewGroup
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -96,9 +95,6 @@ class T3WorkspaceNavigationModule : Module() {
       Prop("containerColor") { view: T3WorkspaceNavigationView, value: Int ->
         view.containerColor = value
       }
-      Prop("rimColor") { view: T3WorkspaceNavigationView, value: Int ->
-        view.rimColor = value
-      }
       Prop("selectedColor") { view: T3WorkspaceNavigationView, value: Int ->
         view.selectedColor = value
       }
@@ -141,7 +137,6 @@ class T3WorkspaceNavigationView(
   var safeAreaBottom by mutableStateOf(0f)
   var headerHeight by mutableStateOf(56f)
   var containerColor by mutableStateOf(0)
-  var rimColor by mutableStateOf(0)
   var selectedColor by mutableStateOf(0)
   var indicatorColor by mutableStateOf(0)
   var unselectedColor by mutableStateOf(0)
@@ -220,9 +215,7 @@ class T3WorkspaceNavigationView(
       modifier = Modifier.fillMaxSize().padding(8.dp),
       shape = CircleShape,
       color = Color(containerColor),
-      // A translucent surface would show its own shadow through the blurred backdrop.
-      shadowElevation = if (rimColor == 0) 6.dp else 0.dp,
-      border = if (rimColor == 0) null else BorderStroke(1.dp, Color(rimColor)),
+      shadowElevation = 6.dp,
     ) {
       Row(
         modifier = Modifier.fillMaxSize().selectableGroup(),

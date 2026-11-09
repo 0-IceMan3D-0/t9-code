@@ -3,7 +3,7 @@ import { Toast } from "../../components/ui/Toast";
 import { Progress } from "../../components/ui/Progress";
 import { useNavigation } from "@react-navigation/native";
 import { useRef, useState } from "react";
-import { Platform, View, type TextInputInstance } from "react-native";
+import { View, type TextInputInstance } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppText, AppTextInput } from "../../components/ui/AppText";
@@ -27,7 +27,7 @@ import { SegmentedControl } from "../../components/ui/SegmentedControl";
 import { SliderRow } from "../../components/ui/SliderRow";
 import * as Dialog from "../../components/ui/Dialog";
 import { useAppearancePreferences } from "../settings/appearance/AppearancePreferencesProvider";
-import { isMobileThemeAvailable, MOBILE_THEME_IDS } from "../../lib/mobileTheme";
+import { MOBILE_THEME_IDS } from "../../lib/mobileTheme";
 
 const CHOICES = [
   { value: "overview", label: "Overview" },
@@ -68,8 +68,8 @@ export function ComponentCatalogScreen() {
         <View className="gap-3">
           <AppText className="text-sm text-foreground-muted">Theme preview</AppText>
           <View className="flex-row flex-wrap gap-2">
-            {MOBILE_THEME_IDS.filter((id) =>
-              isMobileThemeAvailable(id, Platform.OS, appearance.systemColorsAvailable),
+            {MOBILE_THEME_IDS.filter(
+              (id) => id !== "material-you" || appearance.systemColorsAvailable,
             ).map((id) => (
               <Chip
                 key={id}
