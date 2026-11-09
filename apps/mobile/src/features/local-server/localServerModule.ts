@@ -2,6 +2,8 @@ import { requireOptionalNativeModule, type EventSubscription } from "expo";
 import Constants from "expo-constants";
 import { useSyncExternalStore } from "react";
 
+import type { OllamaState } from "./ollama";
+
 export type LocalServerState =
   | "notInstalled"
   | "installing"
@@ -206,6 +208,13 @@ interface LocalServerNativeModule {
   deleteSshKey(): Promise<void>;
   /** `ssh -T git@github.com`, as JSON with exitCode and output. */
   testGitHub(): Promise<string>;
+  ollamaState(): OllamaState;
+  installOllama(): void;
+  /** Removes Ollama and every downloaded model. */
+  uninstallOllama(): void;
+  pullOllamaModel(name: string): void;
+  deleteOllamaModel(name: string): void;
+  addListener(event: "onOllama", listener: (state: OllamaState) => void): EventSubscription;
   addListener(event: "onStatus", listener: (status: LocalServerStatus) => void): EventSubscription;
   addListener(
     event: "onShellOutput",
@@ -293,4 +302,18 @@ function subscribeUsb(onChange: () => void) {
 
 export function useUsbDevices(): ReadonlyArray<UsbDevice> {
   return useSyncExternalStore(subscribeUsb, () => usbDevices);
+}
+
+let ollama: OllamaState | null = localServer?.ollamaState() ?? null;
+
+function subscribeOllama(onChange: () => void) {
+  const subscription = localServer?.addListener("onOllama", (next) => {
+    ollama = next;
+    onChange();
+  });
+  return () => subscription?.remove();
+}
+
+export function useOllama(): OllamaState | null {
+  return useSyncExternalStore(subscribeOllama, () => ollama);
 }

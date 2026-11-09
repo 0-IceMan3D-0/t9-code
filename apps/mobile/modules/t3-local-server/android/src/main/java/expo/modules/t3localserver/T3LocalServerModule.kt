@@ -26,6 +26,7 @@ private const val USB_DEVICES_EVENT = "onUsbDevices"
 private const val MAINTENANCE_EVENT = "onMaintenance"
 private const val DEV_SERVERS_EVENT = "onDevServers"
 private const val GIT_SETUP_EVENT = "onGitSetup"
+private const val OLLAMA_EVENT = "onOllama"
 private const val CREATE_BACKUP_REQUEST = 7461
 private const val OPEN_BACKUP_REQUEST = 7462
 
@@ -45,6 +46,7 @@ class T3LocalServerModule : Module() {
   private val statusListener: (LocalServerStatus) -> Unit = { sendEvent(STATUS_EVENT, snapshot(it)) }
   private val usbListener: () -> Unit = { sendEvent(USB_DEVICES_EVENT, mapOf("devices" to usbDevices())) }
   private val maintenanceListener: (Map<String, Any?>) -> Unit = { sendEvent(MAINTENANCE_EVENT, it) }
+  private val ollamaListener: (Ollama.State) -> Unit = { sendEvent(OLLAMA_EVENT, it.toMap()) }
   private val devServersListener: (List<DevServers.Server>) -> Unit = { servers ->
     sendEvent(DEV_SERVERS_EVENT, mapOf("servers" to servers.map { it.toMap() }))
   }
@@ -167,6 +169,7 @@ class T3LocalServerModule : Module() {
       MAINTENANCE_EVENT,
       DEV_SERVERS_EVENT,
       GIT_SETUP_EVENT,
+      OLLAMA_EVENT,
     )
 
     OnCreate {
@@ -183,6 +186,7 @@ class T3LocalServerModule : Module() {
       UsbBridge.addListener(usbListener)
       LinuxShells.addListener(shellListener)
       DevServers.addListener(devServersListener)
+      Ollama.addListener(ollamaListener)
       removeRetiredTermux()
     }
     OnDestroy {
@@ -191,6 +195,7 @@ class T3LocalServerModule : Module() {
       UsbBridge.removeListener(usbListener)
       LinuxShells.removeListener(shellListener)
       DevServers.removeListener(devServersListener)
+      Ollama.removeListener(ollamaListener)
       AutoStop.forgetThreads()
     }
 
@@ -222,6 +227,11 @@ class T3LocalServerModule : Module() {
       options.stopAfterMinutes = minutes
       AutoStop.optionChanged()
     }
+    Function("ollamaState") { Ollama.refresh(context).toMap() }
+    Function("installOllama") { Ollama.install(context) }
+    Function("uninstallOllama") { Ollama.uninstall(context) }
+    Function("pullOllamaModel") { name: String -> Ollama.pull(name) }
+    Function("deleteOllamaModel") { name: String -> Ollama.delete(name) }
     Function("reportThreadWork") { json: String -> AutoStop.reportThreads(json) }
     Function("setSharedStorage") { value: Boolean -> options.sharedStorage = value }
     Function("serverSwitchTarget") {

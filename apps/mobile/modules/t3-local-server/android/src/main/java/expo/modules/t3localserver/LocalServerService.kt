@@ -106,6 +106,7 @@ class LocalServerService : Service() {
   }
 
   private fun serve() {
+    Ollama.startServe(this)
     var failures = 0
     while (!stopping) {
       publish(LocalServerState.STARTING, "Starting server")
@@ -135,6 +136,7 @@ class LocalServerService : Service() {
 
   // Process.destroy only sends SIGTERM to proot, which ignores it and leaves its guests running.
   private fun stopServer() {
+    Ollama.stopServe()
     val process = server ?: return
     signalServer("TERM")
     if (!process.waitFor(STOP_SECONDS, TimeUnit.SECONDS)) signalServer("KILL")
@@ -172,6 +174,7 @@ class LocalServerService : Service() {
   }
 
   private fun finish(state: LocalServerState, detail: String = "") {
+    Ollama.stopServe()
     handler.removeCallbacks(healthCheck)
     server = null
     LocalServerStatusStore.pairingUrl = null

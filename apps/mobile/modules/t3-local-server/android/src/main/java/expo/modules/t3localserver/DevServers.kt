@@ -21,7 +21,8 @@ object DevServers {
   private const val ADB_PORT = 5037
 
   // The server itself, Claude Code and adb listen for their own use, not as something to open.
-  private val INTERNAL_PROGRAMS = setOf("t3", "claude", "adb", "t3-resource-monitor")
+  // ollama serves on its own port and starts a llama-server per loaded model.
+  private val INTERNAL_PROGRAMS = setOf("t3", "claude", "adb", "t3-resource-monitor", "ollama", "llama-server")
 
   class Server(
     val port: Int,

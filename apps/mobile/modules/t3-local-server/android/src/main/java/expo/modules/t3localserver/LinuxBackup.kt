@@ -103,7 +103,7 @@ object LinuxBackup {
   /** Directories kept empty: mounts, scratch space and caches that refill themselves. */
   private val EMPTY_DIRECTORIES = setOf(
     "proc", "sys", "dev", "tmp", "var/tmp", "run/t3-usb", GuestRuntime.SHARED_PROJECTS_PATH.removePrefix("/"),
-    "root/.npm/_cacache", "root/.cache", "root/.t3/caches",
+    "root/.npm/_cacache", "root/.cache", "root/.t3/caches", Ollama.MODELS_PATH.removePrefix("/"),
   )
   val EXCLUDED = listOf(
     "/tmp and /var/tmp",
@@ -111,6 +111,7 @@ object LinuxBackup {
     "npm's download cache (/root/.npm/_cacache)",
     "/root/.cache",
     "the shared project folder (/root/shared-projects)",
+    "Ollama's downloaded models (/root/.ollama/models)",
   )
 
   private fun excludedFile(relative: String) =

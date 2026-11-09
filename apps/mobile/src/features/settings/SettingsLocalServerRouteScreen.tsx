@@ -17,10 +17,8 @@ import {
   useUsbDevices,
   type LocalServerStatus,
 } from "../local-server/localServerModule";
-import {
-  pairEnvironment,
-  useSavedRemoteConnections,
-} from "../../state/use-remote-environment-registry";
+import { useLocalConnection } from "../local-server/useLocalConnection";
+import { pairEnvironment } from "../../state/use-remote-environment-registry";
 import { SettingsScreen } from "./components/SettingsScreen";
 import { SettingsSection } from "./components/SettingsSection";
 import { SettingsSwitchRow } from "./components/SettingsSwitchRow";
@@ -29,6 +27,7 @@ import { LocalServerDevServersSection } from "./LocalServerDevServersSection";
 import { LocalServerGitSection } from "./LocalServerGitSection";
 import { LocalServerHealthSection } from "./LocalServerHealthSection";
 import { LocalServerMaintenanceRows } from "./LocalServerMaintenanceRows";
+import { LocalServerOllamaSection } from "./LocalServerOllamaSection";
 
 const STATE_LABELS: Record<LocalServerStatus["state"], string> = {
   notInstalled: "Not set up",
@@ -38,13 +37,6 @@ const STATE_LABELS: Record<LocalServerStatus["state"], string> = {
   running: "Running",
   failed: "Failed",
 };
-
-function useLocalConnection(port: number | undefined) {
-  const { savedConnectionsById } = useSavedRemoteConnections();
-  return Object.values(savedConnectionsById).find(
-    (connection) => connection.httpBaseUrl.replace(/\/$/, "") === `http://127.0.0.1:${port}`,
-  );
-}
 
 /** A saved connection to a wiped environment has a stale id, so it is replaced rather than kept. */
 async function pairLocalServer(
@@ -306,6 +298,10 @@ export function SettingsLocalServerRouteScreen() {
 
         {state === "notInstalled" || state === "installing" ? null : (
           <LocalServerDevServersSection />
+        )}
+
+        {state === "notInstalled" || state === "installing" || maintaining ? null : (
+          <LocalServerOllamaSection serverRunning={running} />
         )}
 
         {state === "notInstalled" || state === "installing" ? null : <LocalServerHealthSection />}

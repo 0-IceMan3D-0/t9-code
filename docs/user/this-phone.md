@@ -63,6 +63,20 @@ When a program in Linux starts a web server, such as an agent running `vite`, `n
 - The list shows servers started by most programs (Node, Python, Ruby, PHP, Java and other programs linked against the system's C library). Statically linked programs, such as many Go binaries, are not detected, but their links still work if you type them in the browser.
 - The first time a server shows while **This phone** is open, the app loads its page once to read the page title. Servers that log requests show that request.
 
+## Local models with Ollama
+
+**Ollama** in **Settings > This phone** runs open models on the phone's processor, so Claude Code can work with your code staying on the phone.
+
+1. Tap **Install Ollama**. It downloads 1.6 GB once and keeps about 60 MB.
+2. With the server running, type a model name from [ollama.com](https://ollama.com/library) and tap **Download model**. Small models that use tools work best, such as `qwen3:1.7b` or `qwen3:4b`.
+3. In a thread on the built-in server, pick the model under **Ollama** in the model picker.
+
+- Ollama starts and stops with the built-in server.
+- **Expect each turn to take minutes.** Claude Code sends long instructions with every turn, and a phone's processor reads them slowly. A short reply from `qwen3:1.7b` takes about 13 minutes on a 2020 phone. Ollama keeps a model loaded for 30 minutes after a turn, so the next one starts sooner.
+- A model needs about as much free memory as its download size plus a few GB for Claude Code's instructions.
+- Tap a model to delete it. **Remove Ollama** deletes Ollama and every model, and removes the **Ollama** choice from the model picker.
+- Backups leave out downloaded models; download them again after a restore. Ollama's log is `/var/log/ollama.log` in Linux.
+
 ## Health
 
 **Health** in **Settings > This phone** shows how much memory and CPU the built-in environment uses (the server, shells and agents in Linux), how much memory the phone has free, and how much storage Linux and private projects take. It updates every few seconds while the screen is open.
