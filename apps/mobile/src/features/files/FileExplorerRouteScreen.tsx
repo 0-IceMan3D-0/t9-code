@@ -769,6 +769,7 @@ function FileExplorer(props: {
       icon: preferences.showHidden ? "eye.slash" : "eye",
       onPress: () => setPreferences((current) => ({ ...current, showHidden: !current.showHidden })),
     },
+    { id: "refresh", title: "Refresh", icon: "arrow.clockwise", onPress: refresh },
     {
       id: "selectMode",
       title: "Select",
@@ -903,7 +904,6 @@ function FileExplorer(props: {
           closeAccessibilityLabel: "Close filter",
           clearAccessibilityLabel: "Clear filter",
         }}
-        refresh={{ accessibilityLabel: "Refresh folder", onPress: refresh }}
         menus={[{ title: "Folder actions", icon: "ellipsis", items: menuItems }]}
       />
       <ScreenContent>
