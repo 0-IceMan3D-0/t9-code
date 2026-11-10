@@ -93,7 +93,7 @@ Runs Google's Gemma 4 models on the phone's graphics processor. This is the fast
 - The model stays loaded for 30 minutes after the last message. One model runs at a time.
 
 > [!TIP]
-> Some GPUs cannot load these models. **Phone GPU** tells you when that happens; use Ollama on that phone instead.
+> Some GPUs cannot load these models. T3² Code tells you when that happens; use Ollama on that phone instead.
 
 ### Ollama models
 

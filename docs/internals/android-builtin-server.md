@@ -85,7 +85,7 @@ Transparent widgets use `t3w_clear_*` layouts that the module's [`build.gradle`]
 
 Every push to `main` runs [`t9-android-release.yml`](../../.github/workflows/t9-android-release.yml):
 
-1. It generates the Android project with `expo prebuild` using `APP_VARIANT=development` (package `io.github.iceman3d.t9code`) and `T3CODE_MOBILE_UPDATES_ENABLED=0`, so Expo's over-the-air updates are disabled.
+1. It generates the Android project with `expo prebuild` using `APP_VARIANT=development` (package `com.t3tools.t3code.dev`) and `T3CODE_MOBILE_UPDATES_ENABLED=0`, so Expo's over-the-air updates are disabled.
 2. It builds `app:assembleRelease` for `arm64-v8a` only.
 3. It publishes a GitHub release tagged `b<versionCode>` with the asset `t9-code.apk`.
 
@@ -93,7 +93,7 @@ The `versionCode` is the build time in minutes since the Unix epoch ([`withAndro
 
 ### Package ID
 
-The built app is `io.github.iceman3d.t9code`, not upstream's `com.t3tools.t3code.dev`. Only the development variant's Android package changed in [`app.config.ts`](../../apps/mobile/app.config.ts). Android ties updates to this ID, so never change it again: installed apps would stop receiving updates. Because app.t3.codes lists only upstream's apps in its asset links, links to `app.t3.codes/threads/...` are not verified for this app. Users approve the domain once in Android's **Open by default** settings; [This phone](../user/this-phone.md#opening-thread-links) has the steps.
+The built app is `com.t3tools.t3code.dev`, the ID of upstream's development variant. Builds from 2026-11-10 used `io.github.iceman3d.t9code`, but Clerk (`clerk.t3.codes`, run by upstream) rejected social sign-in for it: the native sign-in returns to `clerk://<package>.callback`, and Clerk accepts only upstream's IDs there. Email sign-in worked either way. Android ties updates to the ID, so apps installed under the old ID cannot update to this one; their updater reports that the download is for another app, and users install the new APK by hand. Do not change the ID again. Because app.t3.codes verifies links only for upstream's signing key, links to `app.t3.codes/threads/...` are not verified for this app. Users approve the domain once in Android's **Open by default** settings; [This phone](../user/this-phone.md#opening-thread-links) has the steps.
 
 ### Signing
 

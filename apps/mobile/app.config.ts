@@ -67,7 +67,7 @@ const VARIANT_CONFIG = {
     appName: "T3² Code",
     scheme: "t3code-dev",
     iosBundleIdentifier: "com.t3tools.t3code.dev",
-    androidPackage: "io.github.iceman3d.t9code",
+    androidPackage: "com.t3tools.t3code.dev",
     relyingParty: "clerk.t3.codes",
     assets: DEVELOPMENT_ASSETS,
   },

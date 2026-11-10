@@ -94,7 +94,7 @@ When a program in Linux starts a web server, such as an agent running `vite`, `n
 - The model loads with the first message and stays loaded for 30 minutes after the last one. One model runs at a time, and threads take turns.
 - A thread holds 32,000 tokens, or 24,000 on phones whose GPU has less memory; **Phone GPU** shows which. Claude Code and OpenCode summarize older messages when a thread fills up.
 - Small models make mistakes, such as a tool call the agent cannot read. The agent retries it.
-- Some GPUs cannot load these models at all. **Phone GPU** then says so; use Ollama on that phone instead.
+- Some GPUs cannot load these models. T3² Code tells you when that happens; use Ollama on that phone instead.
 - Models are kept outside Linux, so backups and **Reset Linux** do not touch them. Tap a model to delete it.
 
 ## OpenCode
@@ -163,5 +163,3 @@ The menu names differ slightly between phone makers. If the steps don't match, s
 ## App updates
 
 **Settings > About > Check for updates** looks for a newer build on GitHub, and the app also checks once a day when it opens. Tap **Update** to download it; Android asks you to confirm the install. The first time, Android asks you to allow installs from T3² Code: turn on **Allow from this source**, come back, and tap **Update** again. **Later** skips that build until a newer one comes out.
-
-Builds made before updates existed are a separate app and can't update. The new build installs next to the old one. To move over, back up Linux in the old app, restore the backup in the new one, then uninstall the old app. Later builds update in place and keep your data.

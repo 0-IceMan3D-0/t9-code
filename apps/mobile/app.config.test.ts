@@ -25,10 +25,10 @@ it.each(["prod", ""])("rejects APP_VARIANT=%j before selecting production IDs", 
   );
 });
 
-// app.t3.codes lists only upstream's apps, so T9's own ID gets no verified thread links.
-it("gives the development build T9's own Android package", async () => {
+// Clerk accepts social sign-in only for upstream's app IDs, so T9 keeps the development one.
+it("gives the development build upstream's development Android package", async () => {
   const config = await loadConfig("development");
-  expect(config.android?.package).toBe("io.github.iceman3d.t9code");
+  expect(config.android?.package).toBe("com.t3tools.t3code.dev");
 });
 
 it.each([
