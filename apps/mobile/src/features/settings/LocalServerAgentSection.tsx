@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { View } from "react-native";
 
 import { AppText as Text } from "../../components/ui/AppText";
@@ -11,6 +12,8 @@ export function LocalServerAgentSection(props: {
   readonly name: string;
   readonly footer: string;
   readonly removeMessage: string;
+  /** Rows shown above Update and Remove while the agent is installed. */
+  readonly children?: ReactNode;
 }) {
   const tool = useAgentTool(props.id);
   if (!tool) return null;
@@ -24,6 +27,7 @@ export function LocalServerAgentSection(props: {
           </Text>
         ) : null}
       </View>
+      {tool.installed ? props.children : null}
       <AgentToolRows
         id={props.id}
         name={props.name}

@@ -20,6 +20,19 @@ const PROVIDERS: Record<AgentToolId, { readonly instanceId: string; readonly dri
   pi: { instanceId: "pi", driver: "pi" },
 };
 
+/** The server checks providers on a timer; this shows a change at once. */
+export function useRefreshAgentProvider(id: AgentToolId) {
+  const status = useLocalServerStatus();
+  const connection = useLocalConnection(status?.state === "running" ? status.port : undefined);
+  const environmentId = connection?.environmentId ?? null;
+  const refresh = useAtomCommand(serverEnvironment.refreshProviders, { reportFailure: false });
+  return async () => {
+    if (environmentId === null) return;
+    const instanceId = ProviderInstanceId.make(PROVIDERS[id].instanceId);
+    await refresh({ environmentId, input: { instanceId, refreshModels: true } });
+  };
+}
+
 export function agentToolSummary(tool: AgentToolState): string {
   if (tool.busy !== null) return tool.detail ?? tool.busy;
   if (!tool.installed) return "Not installed";
@@ -38,17 +51,11 @@ export function AgentToolRows(props: {
   const environmentId = connection?.environmentId ?? null;
   const config = useEnvironmentServerConfig(environmentId);
   const mutate = useAtomCommand(serverEnvironment.mutateProviderInstance);
-  const refresh = useAtomCommand(serverEnvironment.refreshProviders, { reportFailure: false });
+  const refreshProvider = useRefreshAgentProvider(props.id);
   const server = localServer;
   if (!server) return null;
   const { id, name, tool } = props;
   const instanceId = ProviderInstanceId.make(PROVIDERS[id].instanceId);
-
-  // The server checks providers on a timer; this shows the change at once.
-  const refreshProvider = async () => {
-    if (environmentId === null) return;
-    await refresh({ environmentId, input: { instanceId, refreshModels: true } });
-  };
 
   // OpenCode and Pi are off on a new server, so installing a tool from here turns its provider on too.
   const install = async () => {

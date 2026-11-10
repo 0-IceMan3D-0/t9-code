@@ -75,7 +75,7 @@ When a program in Linux starts a web server, such as an agent running `vite`, `n
 
 1. Tap **Install Ollama**. It downloads 1.6 GB once and keeps about 60 MB.
 2. With the server running, type a model name from [ollama.com](https://ollama.com/library) and tap **Download model**. Small models that use tools work best, such as `qwen3:1.7b` or `qwen3:4b`.
-3. In a thread on the built-in server, pick the model under **Ollama** in the model picker to use it with Claude Code, or under **OpenCode** once [OpenCode](#opencode) is installed.
+3. In a thread on the built-in server, pick the model under **Ollama** in the model picker to use it with Claude Code, or under **OpenCode** or **Pi** once [OpenCode](#opencode) or [Pi](#pi) is installed.
 
 - Ollama starts and stops with the built-in server.
 - **Expect each turn to take minutes.** The agent sends long instructions with every turn, and a phone's processor reads them slowly. A short reply from `qwen3:1.7b` takes about 13 minutes on a 2020 phone. Ollama keeps a model loaded for 30 minutes after a turn, so the next one starts sooner.
@@ -88,7 +88,7 @@ When a program in Linux starts a web server, such as an agent running `vite`, `n
 **Phone GPU** in **Settings > This phone > Models** runs Google's Gemma 4 models on the phone's graphics processor, much faster than Ollama.
 
 1. Tap **Download Gemma 4 E2B** (2.6 GB, fastest) or **Download Gemma 4 E4B** (3.7 GB, writes better). A dropped download continues where it stopped.
-2. In a thread on the built-in server, pick the model under **Phone GPU** in the model picker to use it with Claude Code, or under **OpenCode** once [OpenCode](#opencode) is installed.
+2. In a thread on the built-in server, pick the model under **Phone GPU** in the model picker to use it with Claude Code, or under **OpenCode** or **Pi** once [OpenCode](#opencode) or [Pi](#pi) is installed.
 
 - The first message in a thread reads the agent's instructions, about 15,000 tokens for Claude Code: a few seconds on a recent flagship phone, about a minute on a phone from 2020. Each later step in the same thread continues from there and takes seconds. Switching between threads reads the instructions again.
 - The model loads with the first message and stays loaded for 30 minutes after the last one. One model runs at a time, and threads take turns.
@@ -107,8 +107,11 @@ When a program in Linux starts a web server, such as an agent running `vite`, `n
 
 ## Pi
 
-**Pi** in **Settings > This phone > Agents** installs the Pi coding agent in Linux and turns it on for the built-in server. It uses less memory than Claude Code or OpenCode. To sign in, run `pi` in a Linux shell and type `/login`, or run `pi auth login <provider>`. Then pick **Pi** in a thread's model picker.
+**Pi** in **Settings > This phone > Agents** installs the Pi coding agent in Linux and turns it on for the built-in server. It uses less memory than Claude Code or OpenCode. Pick **Pi** in a thread's model picker to use it.
 
+- **Sign in to Pi** offers account sign-in for Claude Pro or Max, ChatGPT Plus or Pro and GitHub Copilot. It opens the Linux shell; tap the link, sign in, and paste the code if Pi asks for one. You can also paste an API key for Anthropic, OpenAI, Google Gemini and other providers, or open Pi and type `/login` for every provider it supports.
+- Each saved sign-in shows under Pi, with **Sign out**.
+- Models from Ollama and Phone GPU on this phone show up in Pi as **Ollama on this phone** and **Phone GPU**, with no sign-in.
 - **Remove Pi** keeps its settings and sign-ins in `~/.pi`, so installing it again picks them up.
 
 ## Health

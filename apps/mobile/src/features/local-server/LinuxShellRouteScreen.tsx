@@ -1,4 +1,4 @@
-import { useIsFocused } from "@react-navigation/native";
+import { useIsFocused, type StaticScreenProps } from "@react-navigation/native";
 import type { MenuAction } from "@react-native-menu/menu";
 import type { TerminalOutputState } from "@t3tools/client-runtime/state/terminal";
 import * as Clipboard from "expo-clipboard";
@@ -62,7 +62,11 @@ function confirmCloseRunning(info: LinuxShellInfo, onConfirm: () => void) {
   });
 }
 
-export function LinuxShellRouteScreen() {
+/** `run` opens a new tab and types that command into it, such as a sign-in. */
+export type LinuxShellRouteParams = { readonly run?: string } | undefined;
+
+export function LinuxShellRouteScreen(props: StaticScreenProps<LinuxShellRouteParams>) {
+  const run = props.route.params?.run;
   const insets = useSafeAreaInsets();
   const keyboardVisible = useKeyboardState((state) => state.isVisible);
   const keyboardHeight = useKeyboardState((state) => state.height);
@@ -88,10 +92,13 @@ export function LinuxShellRouteScreen() {
   const size = useRef({ cols: 80, rows: 24 });
   const tabStrip = useRef<ComponentRef<typeof ScrollView>>(null);
 
-  const open = () =>
+  const open = (command?: string) =>
     localServer
       ?.openShell(size.current.cols, size.current.rows)
-      .then((id) => setTabs((current) => ({ ids: [...current.ids, id], active: id })))
+      .then((id) => {
+        setTabs((current) => ({ ids: [...current.ids, id], active: id }));
+        if (command) localServer?.writeShell(id, `${command}\r`);
+      })
       .catch((cause: unknown) => Dialog.alert("Could not open a shell", errorMessage(cause)));
 
   // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- Subscribes to the native shells, which keep running while this screen is closed.
@@ -113,27 +120,25 @@ export function LinuxShellRouteScreen() {
       setInfos((current) => withoutKey(current, event.id));
     });
     const existing = server.listShells();
-    const ready =
-      existing.length === 0
-        ? open()
-        : // History replaces whatever arrived meanwhile, which it already holds.
-          Promise.all(
-            existing.map(async (id) => [id, await server.shellHistory(id)] as const),
-          ).then((histories) =>
-            setOutputs((current) => {
-              const next = { ...current };
-              for (const [id, history] of histories) {
-                if (history !== null) next[id] = appendOutput(EMPTY_OUTPUT, history);
-              }
-              return next;
-            }),
-          );
-    void ready?.finally(() => setLoading(false));
+    // History replaces whatever arrived meanwhile, which it already holds.
+    const histories = Promise.all(
+      existing.map(async (id) => [id, await server.shellHistory(id)] as const),
+    ).then((loaded) =>
+      setOutputs((current) => {
+        const next = { ...current };
+        for (const [id, history] of loaded) {
+          if (history !== null) next[id] = appendOutput(EMPTY_OUTPUT, history);
+        }
+        return next;
+      }),
+    );
+    const opened = existing.length === 0 || run ? open(run) : undefined;
+    void Promise.all([histories, opened]).finally(() => setLoading(false));
     return () => {
       data.remove();
       exit.remove();
     };
-    // oxlint-disable-next-line react/exhaustive-effect-dependencies -- open only reads the native module and refs.
+    // oxlint-disable-next-line react/exhaustive-effect-dependencies -- open only reads the native module and refs; run is read once, when the screen opens.
   }, []);
 
   const visible = focused && appActive && ids.length > 0;

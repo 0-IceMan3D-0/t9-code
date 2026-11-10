@@ -190,6 +190,7 @@ class T3LocalServerModule : Module() {
         ServerTileService.watch(it)
         AutoStop.install(it)
         OpenCode.watch(it)
+        Pi.watch(it)
         startOnAppOpen(it)
       }
       UsbBridge.addListener(usbListener)
@@ -253,6 +254,15 @@ class T3LocalServerModule : Module() {
     AsyncFunction("installAgentTool") { id: String -> agentTool(id).install(context) }
     AsyncFunction("updateAgentTool") { id: String -> agentTool(id).upgrade(context) }
     AsyncFunction("removeAgentTool") { id: String -> agentTool(id).remove(context) }
+    Function("piSignedIn") { Pi.signedIn(context) }
+    AsyncFunction("savePiApiKey") { provider: String, key: String ->
+      try {
+        Pi.saveApiKey(context, provider, key)
+      } catch (error: IllegalArgumentException) {
+        throw CodedException("ERR_PI_KEY", error.message, error)
+      }
+    }
+    AsyncFunction("signOutPi") { provider: String -> Pi.signOut(context, provider) }
     Function("reportThreadWork") { json: String -> AutoStop.reportThreads(json) }
     Function("setSharedStorage") { value: Boolean -> options.sharedStorage = value }
     Function("serverSwitchTarget") {

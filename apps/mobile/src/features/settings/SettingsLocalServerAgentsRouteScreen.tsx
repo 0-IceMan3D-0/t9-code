@@ -6,6 +6,7 @@ import { SettingsSection } from "./components/SettingsSection";
 import { LocalServerAgentSection } from "./LocalServerAgentSection";
 import { LocalServerClaudeSection } from "./LocalServerClaudeSection";
 import { isSetUp, LocalServerPage } from "./LocalServerPage";
+import { PiSignInRows } from "./LocalServerPiSignIn";
 
 export function SettingsLocalServerAgentsRouteScreen() {
   const maintaining = useLinuxMaintenance()?.state === "running";
@@ -34,9 +35,11 @@ export function SettingsLocalServerAgentsRouteScreen() {
             <LocalServerAgentSection
               id="pi"
               name="Pi"
-              footer="A lighter agent for phones with less memory; to sign in, run pi in the Linux shell and type /login."
+              footer="A lighter agent for phones with less memory; it also runs the phone's Ollama and Phone GPU models."
               removeMessage="Its settings and sign-ins stay, so installing it again picks them up."
-            />
+            >
+              <PiSignInRows />
+            </LocalServerAgentSection>
           </>
         )
       }

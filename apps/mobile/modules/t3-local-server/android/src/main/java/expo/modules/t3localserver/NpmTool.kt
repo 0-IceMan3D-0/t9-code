@@ -88,9 +88,6 @@ open class NpmTool(
  */
 object ClaudeCode : NpmTool("Claude Code", "@anthropic-ai/claude-code", "2.1.319")
 
-/** T3's Pi provider installs it without npm scripts; its settings and sign-ins in ~/.pi stay when it is removed. */
-object Pi : NpmTool("Pi", "@earendil-works/pi-coding-agent", installFlags = listOf("--ignore-scripts"))
-
 /** Agent CLIs the app installs in Linux, by the id the app uses for them. */
 internal val AGENT_TOOLS: Map<String, NpmTool> = mapOf("opencode" to OpenCode, "claude" to ClaudeCode, "pi" to Pi)
 

@@ -234,6 +234,10 @@ interface LocalServerNativeModule {
   installAgentTool(id: AgentToolId): Promise<void>;
   updateAgentTool(id: AgentToolId): Promise<void>;
   removeAgentTool(id: AgentToolId): Promise<void>;
+  /** Providers Pi has a saved sign-in or API key for. */
+  piSignedIn(): ReadonlyArray<string>;
+  savePiApiKey(provider: string, key: string): Promise<void>;
+  signOutPi(provider: string): Promise<void>;
   addListener(
     event: "onAgentTool",
     listener: (state: AgentToolState & { readonly id: AgentToolId }) => void,

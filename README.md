@@ -81,8 +81,10 @@ An open-source coding agent that works without an account.
 A lightweight coding agent, a good fit for phones with less memory.
 
 1. In **Settings > This phone > Agents**, tap **Install Pi**. The Pi provider is turned on for you.
-2. Open the Linux shell, run `pi`, and type `/login` to connect a subscription or API key.
+2. Tap **Sign in to Pi**. Sign in with Claude, ChatGPT or GitHub Copilot, or paste an API key. You can skip this and use only the phone's own models.
 3. Pick **Pi** in a thread's model picker.
+
+- Phone GPU and Ollama models appear in Pi as **Phone GPU** and **Ollama on this phone**.
 
 ### Phone GPU models
 
