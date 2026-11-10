@@ -1,153 +1,88 @@
-# T3 Code
+# t9 code
 
-T3 Code is an "agent harness control surface". It enables control of the agents on your machine with a best-in-class mobile app ([iOS](https://apps.apple.com/us/app/t3-code-remote-claude-more/id6787819824), [Android](https://play.google.com/store/apps/details?id=com.t3tools.t3code)), [web app](https://app.t3.codes) and [Electron-based desktop app](https://t3.codes).
+t9 code is an Android app that runs coding agents on the phone itself. It is a fork of [T3 Code](https://github.com/pingdotgg/t3code) that adds a built-in T3 server, a full Linux environment and on-device models, so Claude Code and OpenCode can work on your projects with no computer, Termux setup or USB connection. On the phone, the app is named **T3² code**.
 
-Works with your subscriptions on Claude Code, Codex, Cursor, Grok Build, OpenCode, Google Antigravity, and fx. If they're set up on your computer, T3 Code can control them.
+The app can still connect to T3 Code servers on other machines, like the upstream mobile app.
 
-## "Wait, what are you selling me?"
+> t9 code is an independent project. It is not affiliated with or supported by T3 Tools Inc. or the T3 Code maintainers. Report problems with this app here, not upstream.
 
-Nothing. We built T3 Code because we wanted the best possible development experience with agents. We were inspired by existing solutions like the Codex desktop app, Conductor, Claude Desktop and Cursor Glass, but none met our bar.
+## Features
 
-We wanted something performant, remote-ready, and truly open. If we ever go the wrong direction, we want you to have everything you need to fork and build the editor that you want.
+- **Built-in server.** Runs a T3 server on the phone, in an Ubuntu 24.04 environment with Node.js. The server listens only on the phone and can keep running in the background.
+- **Coding agents.** Install Claude Code and OpenCode from the app. You can update or remove each one independently.
+- **On-device models.** Ollama runs open models on the CPU. Phone GPU runs Google's Gemma 4 models on the graphics processor. Both models work with Claude Code and OpenCode.
+- **Linux shell.** A root terminal with tabs, `apt`, clickable links and copy and paste.
+- **File explorer.** Browse, view and edit files in Linux and in phone storage, with syntax highlighting and a text editor.
+- **Git and GitHub.** Set your commit identity, create an SSH key and add it to GitHub from the app.
+- **Web servers.** Development servers started in Linux are detected and can be opened in the phone's browser.
+- **USB devices.** `adb`, `fastboot`, `openocd`, `dfu-util` and other libusb tools can use devices that are plugged into the phone.
+- **Backup and restore.** Save the whole Linux environment to one file, restore it, or reset Linux and keep your projects and sign-ins.
+- **Android integration.** Home screen widgets, a Quick Settings tile, launcher shortcuts and notifications.
+- **Automatic updates.** The app checks this repository for new builds and installs them through the Android installer.
+
+## Requirements
+
+- Android 7.0 or later on a 64-bit ARM (arm64-v8a) device.
+- An internet connection for the first setup. Setup downloads about 500 MB, and the environment takes about 1 GB of storage before you add agents, models or projects.
+- Enough free memory for the agents and models you use. Local models need at least their download size in free memory, plus a few GB.
 
 ## Installation
 
-> [!WARNING]
-> T3 Code currently supports Codex, Claude, Cursor, Grok Build, OpenCode, Antigravity, and fx. Install and authenticate at least one provider before use:
->
-> - Codex: install [Codex CLI](https://developers.openai.com/codex/cli) and run `codex login`
-> - Claude: install [Claude Code](https://claude.com/product/claude-code) and run `claude auth login`
-> - Cursor: install [Cursor CLI](https://cursor.com/cli) and run `agent login`
-> - Grok Build: install [Grok Build CLI](https://x.ai/cli) and run `grok login`
-> - OpenCode: install [OpenCode](https://opencode.ai) and run `opencode auth login`
-> - Antigravity: enable it in Settings, then use **Install Antigravity** and **Sign in with Google**. No CLI is required.
-> - fx: install [fx](https://fx.sh) and run `fx login` on the machine running the T3 Code server ([setup guide](./docs/user/providers-fx.md))
+1. Download `t9-code.apk` from the [latest release](https://github.com/0-IceMan3D-0/t9-code/releases/latest).
+2. Open the file on the phone. If Android asks, allow installs from the app that opened it.
+3. Open the app, go to **Settings > This phone** and tap **Set up**.
+4. Install **Claude Code** or **OpenCode**, then sign in or choose a model.
+5. Start a new thread on **This phone**.
 
-### Command line
+## Updates
 
-```bash
-curl -fsSL https://t3.codes/install.sh | sh
-```
+Every change to `main` produces a new signed release. The app checks for a newer release once a day when it opens. You can also go to **Settings > About > Check for updates**. To install an update, tap **Update** and confirm the install. The first time, Android asks you to allow installs from T3² code.
 
-On Windows, in PowerShell:
+Builds made before automatic updates were added were signed with a different key, so Android won't install the new builds over them. To move to the new builds:
 
-```powershell
-irm https://t3.codes/install.ps1 | iex
-```
+1. Back up Linux in **Settings > This phone > Maintenance**.
+2. Uninstall the app.
+3. Install the latest release.
+4. Restore the backup.
 
-Then run `t3` to start the server and open the local web app. `t3 service install` keeps it running in the background, `t3 update` moves to a newer release, and `t3 --help` has the full reference.
-
-To try it once without installing, run `npx t3@latest` instead.
-
-### Desktop app
-
-Install the latest version of the desktop app from [GitHub Releases](https://github.com/pingdotgg/t3code/releases), or from your favorite package registry:
-
-#### Windows (`winget`)
-
-```bash
-winget install T3Tools.T3Code
-```
-
-#### Windows (`scoop`)
-
-```bash
-scoop install extras/t3code
-```
-
-#### macOS (Homebrew)
-
-```bash
-brew install --cask t3-code
-```
-
-#### Debian, Ubuntu (`.deb`)
-
-Download the `.deb` from [GitHub Releases](https://github.com/pingdotgg/t3code/releases), then:
-
-```bash
-sudo apt install ./T3-Code-*.deb
-```
-
-#### Arch Linux (AUR)
-
-Stable:
-
-```bash
-yay -S t3code-bin
-```
-
-Nightly:
-
-```bash
-yay -S t3code-nightly-bin
-```
-
-The AUR packaging is maintained in this repository under [`packaging/aur`](./packaging/aur).
-
-#### Nix (nixpkgs)
-
-```bash
-nix profile add github:NixOS/nixpkgs/nixos-unstable#t3code
-```
-
-The package is maintained in [nixpkgs](https://github.com/NixOS/nixpkgs/tree/nixos-unstable/pkgs/by-name/t3/t3code)
-and includes the desktop app (`t3code-desktop`) and the `t3` command.
-See [Nix installation](./docs/user/install.md#nix-nixpkgs) for NixOS configuration and updates.
-
-## Some notes
-
-We are very very early in this project. Expect bugs.
-
-We are (mostly) not accepting contributions yet. Small fixes may be considered. Big features will not be.
+Later updates install over the app and keep your data.
 
 ## Documentation
 
-Full docs live in [docs/](./docs). There's no docs site yet.
-
+- [This phone](./docs/user/this-phone.md): the built-in server, agents, local models, files, backups, USB and updates.
+- [Home screen widgets](./docs/user/home-screen-widgets.md)
+- [Mobile notifications](./docs/user/mobile-notifications.md)
+- [Remote access](./docs/user/remote-access.md): connecting to T3 Code servers on other machines.
 - [FAQ](./docs/user/faq.md)
-- [Install and first run](./docs/user/install.md)
-- [Permission modes](./docs/user/permission-modes.md)
-- [Keyboard shortcuts](./docs/user/keybindings.md)
-- [Project settings](./docs/user/project-settings.md)
-- [Appearance preferences](./docs/user/appearance.md)
-- [Remote access from a phone or another machine](./docs/user/remote-access.md)
-- [Connect Claude Code, Codex, ChatGPT and other agents over MCP](./docs/user/outside-agents.md)
-- [Keeping app and server in sync](./docs/user/updating.md)
-- [Source control integrations](./docs/user/source-control.md)
-- Multiple accounts: [Codex](./docs/user/providers-codex.md) · [Claude](./docs/user/providers-claude.md)
-- [Run T3 Code as a background service](./docs/user/background-service.md)
 
-Building from source? Start at [docs/internals/overview.md](./docs/internals/overview.md).
+Other guides in [docs/user](./docs/user) describe T3 Code features shared with the upstream project.
 
-## If you REALLY want to contribute still.... read this first
+## Security and privacy
 
-### Install `vp`
+- The built-in server listens only on the phone. Other devices cannot reach it or the web servers that run in Linux.
+- Agents run as root inside the app's Linux environment, which is confined to the app's private storage. They can read phone storage only if you grant the app access to all files.
+- Backups contain your agent sign-ins and SSH keys. Store them as you would store a password.
+- Updates are downloaded only from this repository's releases. The app installs an update only if the APK has the app's package name and a newer version number. Android then checks that the update is signed with the same key as the installed app.
 
-T3 Code uses Vite+ so you'll need to install the global `vp` command-line tool.
+## Building from source
 
-#### macOS / Linux
-
-```bash
-curl -fsSL https://vite.plus | bash
-```
-
-#### Windows
-
-```bash
-irm https://vite.plus/ps1 | iex
-```
-
-Checkout their getting started guide for more information: https://viteplus.dev/guide/
-
-### Install dependencies
+The release workflow, [`.github/workflows/t9-android-release.yml`](./.github/workflows/t9-android-release.yml), is the reference build. To build locally, you need [Vite+](https://viteplus.dev/guide/) (`vp`), JDK 17 and the Android SDK.
 
 ```bash
 vp i
+cp .env.example .env
+cd apps/mobile
+APP_VARIANT=development T3CODE_MOBILE_UPDATES_ENABLED=0 npx expo prebuild --clean --platform android
+cd android
+./gradlew app:assembleRelease -PreactNativeArchitectures=arm64-v8a
 ```
 
-Read [CONTRIBUTING.md](./CONTRIBUTING.md) before reporting a bug or opening a PR.
+The APK is written to `apps/mobile/android/app/build/outputs/apk/release/app-release.apk`. Without signing variables, the build is signed with the Android debug key. To sign with a release key, set `T9_KEYSTORE_PATH`, `T9_KEYSTORE_PASSWORD`, `T9_KEY_ALIAS` and `T9_KEY_PASSWORD` before running Gradle. A self-built APK can't update an install of the published release, and the published release can't update a self-built APK, because the two are signed with different keys.
 
-Have a feature request? Start an [Ideas discussion](https://github.com/pingdotgg/t3code/discussions/categories/ideas).
+Before you commit, run `vp run check:changed`. The workspace layout and development conventions are described in [AGENTS.md](./AGENTS.md) and [docs/internals](./docs/internals).
 
-Need support? Join the [Discord](https://discord.gg/jn4EGJjrvv).
+## License
+
+t9 code is released under the [MIT License](./LICENSE). It is based on T3 Code, copyright T3 Tools Inc.
+
+The app includes [PRoot](https://proot-me.github.io/), which is licensed under the GNU General Public License, version 2. During setup, the app downloads Ubuntu Base and Node.js, which have their own licenses. See [open source licenses](./docs/user/open-source-licenses.md) for the other components.
