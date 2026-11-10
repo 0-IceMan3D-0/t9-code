@@ -149,3 +149,9 @@ Every program in the shell and every agent on the built-in server sees allowed d
 ## Download files
 
 In a thread's **Files** view, tap the arrow beside a file, or choose **Download** from a file's actions. On Android 10 and newer the file is saved to `Downloads/T3² code`, and an existing file with the same name is kept. This works with any connected environment. Older Android and iOS open the share sheet.
+
+## App updates
+
+**Settings > About > Check for updates** looks for a newer build on GitHub, and the app also checks once a day when it opens. Tap **Update** to download it; Android asks you to confirm the install. The first time, Android asks you to allow installs from T3² code: turn on **Allow from this source**, come back, and tap **Update** again. **Later** skips that build until a newer one comes out.
+
+Builds signed before updates existed can't update in place. Back up your Linux environment, uninstall the app, install the new build, then restore the backup. Later builds update normally and keep your data.

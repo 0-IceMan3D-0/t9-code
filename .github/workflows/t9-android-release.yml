@@ -1,0 +1,81 @@
+name: t9 Android release
+
+# Builds the signed APK on every push to main and publishes it as the latest
+# release. The app's updater reads the newest release's t9-code.apk asset.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: t9-android-release
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and release APK
+    if: github.repository == '0-IceMan3D-0/t9-code'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    permissions:
+      contents: write
+    env:
+      APP_VARIANT: development
+      T3CODE_MOBILE_UPDATES_ENABLED: "0"
+      EXPO_UPDATES_FINGERPRINT_OVERRIDE: t9-code
+      EXPO_NO_GIT_STATUS: "1"
+    steps:
+      # The native build needs more disk than the runner leaves free.
+      - name: Free disk space
+        run: sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/lib/node_modules /opt/hostedtoolcache/CodeQL
+
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup dependencies
+        uses: ./.github/actions/setup-ci-deps
+
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Generate the Android project
+        working-directory: apps/mobile
+        run: |
+          cp ../../.env.example ../../.env
+          npx expo prebuild --clean --platform android --no-install
+
+      - name: Build
+        working-directory: apps/mobile/android
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          T9_KEYSTORE_PASSWORD: ${{ secrets.T9_KEYSTORE_PASSWORD }}
+          T9_KEY_ALIAS: ${{ secrets.T9_KEY_ALIAS }}
+          T9_KEY_PASSWORD: ${{ secrets.T9_KEY_PASSWORD }}
+        run: |
+          # Without the key the APK would be debug-signed and couldn't update installed apps.
+          test -n "$ANDROID_KEYSTORE_BASE64" || { echo "::error::ANDROID_KEYSTORE_BASE64 is not set"; exit 1; }
+          export T9_KEYSTORE_PATH="$RUNNER_TEMP/t9-release.jks"
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$T9_KEYSTORE_PATH"
+          ./gradlew app:assembleRelease -PreactNativeArchitectures=arm64-v8a --console=plain
+          rm -f "$T9_KEYSTORE_PATH"
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          apk=apps/mobile/android/app/build/outputs/apk/release/app-release.apk
+          aapt2=$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)aapt2
+          version_code=$("$aapt2" dump badging "$apk" | sed -nE "s/.*versionCode='([0-9]+)'.*/\1/p")
+          test -n "$version_code"
+          cp "$apk" t9-code.apk
+          git log -1 --format='%s%n%n%b' > notes.md
+          echo "Commit ${GITHUB_SHA::7}" >> notes.md
+          gh release create "b$version_code" t9-code.apk \
+            --title "Build $version_code" --notes-file notes.md --target "$GITHUB_SHA" --latest

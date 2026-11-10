@@ -442,6 +442,7 @@ const config: ExpoConfig = {
     "./plugins/withAndroidPredictiveBackCompat.cjs",
     "./plugins/withAndroidTabletOrientation.cjs",
     "./plugins/withAndroidAppIcons.cjs",
+    "./plugins/withAndroidReleaseSigning.cjs",
     ...(APP_VARIANT === "development" ? ["./plugins/withAndroidBuildTimeVersionCode.cjs"] : []),
     ...(isIosPersonalTeamBuild ? ["./plugins/withoutIosPersonalTeamCapabilities.cjs"] : []),
   ],
