@@ -78,7 +78,7 @@ When a program in Linux starts a web server, such as an agent running `vite`, `n
 3. In a thread on the built-in server, pick the model under **Ollama** in the model picker to use it with Claude Code, or under **OpenCode** or **Pi** once [OpenCode](#opencode) or [Pi](#pi) is installed.
 
 - Ollama starts and stops with the built-in server.
-- **Expect each turn to take minutes.** The agent sends long instructions with every turn, and a phone's processor reads them slowly. A short reply from `qwen3:1.7b` takes about 13 minutes on a 2020 phone. Ollama keeps a model loaded for 30 minutes after a turn, so the next one starts sooner.
+- **Expect each turn to take minutes.** The agent sends long instructions with every turn, and a phone's processor reads them slowly. Ollama keeps a model loaded for 30 minutes after a turn, so the next one starts sooner.
 - A model needs about as much free memory as its download size plus a few GB for the agent's instructions.
 - Tap a model to delete it. **Remove Ollama** deletes Ollama and every model, and removes the **Ollama** choice from the model picker.
 - Backups leave out downloaded models; download them again after a restore. Ollama's log is `/var/log/ollama.log` in Linux.
@@ -91,11 +91,22 @@ When a program in Linux starts a web server, such as an agent running `vite`, `n
 2. In a thread on the built-in server, pick the model under **Phone GPU** in the model picker to use it with Claude Code, or under **OpenCode** or **Pi** once [OpenCode](#opencode) or [Pi](#pi) is installed.
 
 - The first message in a thread reads the agent's instructions, about 15,000 tokens for Claude Code: a few seconds on a recent flagship phone, about a minute on a phone from 2020. Each later step in the same thread continues from there and takes seconds. Switching between threads reads the instructions again.
-- The model loads with the first message and stays loaded for 30 minutes after the last one. One model runs at a time, and threads take turns.
-- A thread holds 32,000 tokens, or 24,000 on phones whose GPU has less memory; **Phone GPU** shows which. Claude Code and OpenCode summarize older messages when a thread fills up.
+- The model loads with the first message and stays loaded for 30 minutes after the last one. One model runs at a time, and threads take turns. Loading it unloads any Ollama model to free memory.
+- A thread holds 32,000 tokens, or less on phones whose GPU has less memory. The first load tries 32,000, then smaller sizes, and remembers the size that worked. Claude Code, OpenCode and Pi summarize older messages when a thread fills up.
 - Small models make mistakes, such as a tool call the agent cannot read. The agent retries it.
 - Some GPUs cannot load these models. T3² Code tells you when that happens; use Ollama on that phone instead.
 - Models are kept outside Linux, so backups and **Reset Linux** do not touch them. Tap a model to delete it.
+
+### Model settings
+
+**Model settings** in **Settings > This phone > Models** changes how both kinds of local model run. **Auto** picks a value for this phone; **Custom** takes any number.
+
+- **Context size** under **Phone GPU** sets how many tokens a thread holds. A larger one fits longer threads but needs more GPU memory. If the GPU cannot load the size you pick, the model does not load; pick a smaller one. Picking **Auto** again makes the next load start from 32,000 tokens.
+- **Context size** under **Ollama** does the same for Ollama. Auto picks 32,000 tokens on phones with 12 GB of memory or more, and less on others. Claude Code's instructions alone are about 20,000 tokens.
+- **Threads** sets how many processor cores Ollama uses. Auto uses only the fast cores; adding the slow ones makes it much slower.
+- **Keep model loaded** sets how long Ollama keeps a model in memory after a turn.
+
+Changes to Ollama restart it, which stops a reply in progress.
 
 ## OpenCode
 

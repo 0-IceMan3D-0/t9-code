@@ -99,7 +99,7 @@ Runs Google's Gemma 4 models on the phone's graphics processor. This is the fast
 2. In a thread on the built-in server, pick the model under **Phone GPU**, either with Claude Code or with OpenCode.
 
 - The first message in a thread reads the agent's instructions. This takes a few seconds on a recent flagship phone and about a minute on a phone from 2020. Later messages in the same thread take seconds.
-- A thread holds 32,000 tokens, or 24,000 on phones with less GPU memory. Agents summarize older messages when a thread fills up.
+- A thread holds 32,000 tokens, or less on phones with less GPU memory. Agents summarize older messages when a thread fills up.
 - The model stays loaded for 30 minutes after the last message. One model runs at a time.
 
 > [!TIP]
@@ -113,9 +113,11 @@ Runs open models from [ollama.com](https://ollama.com/library) on the phone's pr
 2. With the server running, type a model name and tap **Download model**. Small models that support tools work best, such as `qwen3:1.7b` or `qwen3:4b`.
 3. In a thread on the built-in server, pick the model under **Ollama**.
 
-- Expect each turn to take minutes. A short reply from `qwen3:1.7b` takes about 13 minutes on a 2020 phone.
+- Expect each turn to take minutes.
 - Ollama starts and stops with the built-in server. Its log is `/var/log/ollama.log`.
 - Backups do not include downloaded models; download them again after a restore.
+
+**Model settings**, in **Settings > This phone > Models**, sets the context size of both kinds of model, how many cores Ollama uses and how long it keeps a model loaded.
 
 ---
 

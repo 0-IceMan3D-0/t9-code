@@ -250,6 +250,17 @@ class T3LocalServerModule : Module() {
     Function("downloadPhoneModel") { id: String -> PhoneModels.download(context, id) }
     Function("cancelPhoneModelDownload") { PhoneModels.cancelDownload() }
     Function("deletePhoneModel") { id: String -> PhoneModels.delete(context, id) }
+    Function("localModelSettings") { LocalModelSettings(context).toMap() }
+    AsyncFunction("setLocalModelSettings") { changes: Map<String, Int> ->
+      val settings = LocalModelSettings(context)
+      changes["ollamaContext"]?.let { settings.ollamaContext = it }
+      changes["ollamaThreads"]?.let { settings.ollamaThreads = it }
+      changes["ollamaKeepAliveMinutes"]?.let { settings.ollamaKeepAliveMinutes = it }
+      changes["gpuContext"]?.let { PhoneModels.chooseContext(context, it) }
+      if (changes.keys.any { it.startsWith("ollama") }) Ollama.restartServe(context)
+      Pi.settingsChanged(context)
+      settings.toMap()
+    }
     Function("agentToolState") { id: String -> agentTool(id).refresh(context).toMap() }
     AsyncFunction("installAgentTool") { id: String -> agentTool(id).install(context) }
     AsyncFunction("updateAgentTool") { id: String -> agentTool(id).upgrade(context) }

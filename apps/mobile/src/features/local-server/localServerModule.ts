@@ -25,6 +25,23 @@ export interface LocalServerStatus {
   readonly sharedStorageGranted: boolean;
 }
 
+/** Zero means automatic. */
+export interface LocalModelSettingValues {
+  readonly ollamaContext: number;
+  readonly ollamaThreads: number;
+  readonly ollamaKeepAliveMinutes: number;
+  readonly gpuContext: number;
+}
+
+export interface LocalModelSettings extends LocalModelSettingValues {
+  /** What automatic means on this phone. */
+  readonly autoOllamaContext: number;
+  readonly autoOllamaThreads: number;
+  readonly cores: number;
+  /** The size the GPU loaded with here, or null before it has loaded once. */
+  readonly autoGpuContext: number | null;
+}
+
 /** Agent CLIs the app installs in Linux. */
 export type AgentToolId = "opencode" | "claude" | "pi";
 
@@ -229,6 +246,9 @@ interface LocalServerNativeModule {
   downloadPhoneModel(id: string): void;
   cancelPhoneModelDownload(): void;
   deletePhoneModel(id: string): void;
+  localModelSettings(): LocalModelSettings;
+  /** Ollama changes restart it; a GPU change applies when the next request loads the model. */
+  setLocalModelSettings(changes: Partial<LocalModelSettingValues>): Promise<LocalModelSettings>;
   agentToolState(id: AgentToolId): AgentToolState;
   /** Each resolves once npm is done; progress and errors arrive through onAgentTool. */
   installAgentTool(id: AgentToolId): Promise<void>;

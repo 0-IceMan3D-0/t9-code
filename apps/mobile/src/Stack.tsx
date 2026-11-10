@@ -121,6 +121,7 @@ import { SettingsLocalServerAgentsRouteScreen } from "./features/settings/Settin
 import { SettingsLocalServerGitRouteScreen } from "./features/settings/SettingsLocalServerGitRouteScreen";
 import { SettingsLocalServerLinuxRouteScreen } from "./features/settings/SettingsLocalServerLinuxRouteScreen";
 import { SettingsLocalServerMaintenanceRouteScreen } from "./features/settings/SettingsLocalServerMaintenanceRouteScreen";
+import { SettingsLocalServerModelSettingsRouteScreen } from "./features/settings/SettingsLocalServerModelSettingsRouteScreen";
 import { SettingsLocalServerModelsRouteScreen } from "./features/settings/SettingsLocalServerModelsRouteScreen";
 import { SettingsLocalServerOptionsRouteScreen } from "./features/settings/SettingsLocalServerOptionsRouteScreen";
 import { SettingsLocalServerPiSignInRouteScreen } from "./features/settings/SettingsLocalServerPiSignInRouteScreen";
@@ -222,6 +223,11 @@ const SETTINGS_SCREENS = {
     screen: SettingsLocalServerPiSignInRouteScreen,
     linking: "settings/this-phone/agents/pi",
     options: settingsPage("Sign in to Pi"),
+  }),
+  SettingsLocalServerModelSettings: createNativeStackScreen({
+    screen: SettingsLocalServerModelSettingsRouteScreen,
+    linking: "settings/this-phone/models/settings",
+    options: settingsPage("Model settings"),
   }),
   SettingsLocalServerModels: createNativeStackScreen({
     screen: SettingsLocalServerModelsRouteScreen,

@@ -19,8 +19,9 @@ object Pi : NpmTool("Pi", "@earendil-works/pi-coding-agent", installFlags = list
   // Our own provider ids, so a provider the user set up under another name is never touched.
   private const val OLLAMA_PROVIDER = "phone-ollama"
   private const val GPU_PROVIDER = "phone-gpu"
-  // The smallest context the phone GPU loads with; Pi would otherwise assume 128K and never compact.
-  private const val GPU_CONTEXT_TOKENS = 24 * 1024
+  // Until the GPU has loaded once, Pi is told the usual size; it would otherwise assume 128K and
+  // never compact.
+  private const val DEFAULT_GPU_CONTEXT = 24576
   private const val GPU_MAX_TOKENS = 4096
   private val PROVIDER_ID = Regex("[a-z0-9-]{1,64}")
 
@@ -29,10 +30,13 @@ object Pi : NpmTool("Pi", "@earendil-works/pi-coding-agent", installFlags = list
     syncLocalModels(context)
   }
 
+  /** After [LocalModelSettings] change, so Pi plans with the new context sizes. */
+  fun settingsChanged(context: Context) = syncLocalModels(context)
+
   // ---- local models --------------------------------------------------------------------------
 
   @Volatile
-  private var lastModels: Pair<List<String>?, List<String>>? = null
+  private var lastModels: List<Any?>? = null
 
   @Volatile
   private var watching = false
@@ -62,8 +66,12 @@ object Pi : NpmTool("Pi", "@earendil-works/pi-coding-agent", installFlags = list
       else -> null
     }
     val gpuModels = PhoneModels.state.installed
-    if (lastModels == ollamaModels to gpuModels) return
-    lastModels = ollamaModels to gpuModels
+    val settings = LocalModelSettings(context)
+    val ollamaContext = settings.effectiveOllamaContext()
+    val gpuContext = settings.gpuContext.takeIf { it > 0 } ?: PhoneModels.workingContext(context) ?: DEFAULT_GPU_CONTEXT
+    val current = listOf(ollamaModels, gpuModels, ollamaContext, gpuContext)
+    if (lastModels == current) return
+    lastModels = current
     val file = agentFile(context, "models.json")
     try {
       val config = if (file.isFile) JSONObject(file.readText()) else JSONObject().put("\$schema", "https://pi.dev/schemas/models.schema.json")
@@ -74,14 +82,14 @@ object Pi : NpmTool("Pi", "@earendil-works/pi-coding-agent", installFlags = list
           .put("name", "Ollama on this phone")
           .put("baseUrl", "${Ollama.BASE_URL}/v1")
           .put("api", "openai-completions")
-          .put("apiKey", "ollama")) { it }
+          .put("apiKey", "ollama")) { it.put("contextWindow", ollamaContext) }
       }
       setProvider(providers, GPU_PROVIDER, gpuModels, JSONObject()
         .put("name", "Phone GPU")
         .put("baseUrl", "http://127.0.0.1:${PhoneModelEndpoint.PORT}")
         .put("api", "anthropic-messages")
         .put("apiKey", "local")) { model ->
-        model.put("contextWindow", GPU_CONTEXT_TOKENS).put("maxTokens", GPU_MAX_TOKENS)
+        model.put("contextWindow", gpuContext).put("maxTokens", GPU_MAX_TOKENS)
       }
       if (providers.length() == 0) config.remove("providers") else config.put("providers", providers)
       if (config.toString() == before) return

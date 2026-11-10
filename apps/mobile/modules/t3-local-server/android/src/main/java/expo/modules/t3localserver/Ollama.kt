@@ -21,8 +21,6 @@ object Ollama {
   const val PORT = 11434
   const val BASE_URL = "http://127.0.0.1:$PORT"
   private const val RELEASE_URL = "https://github.com/ollama/ollama/releases/latest/download/ollama-linux-arm64.tar.zst"
-  // Claude Code's instructions alone are about 20K tokens; Ollama's default context would cut them off.
-  private const val CONTEXT_LENGTH = 32768
   private const val PROGRESS_STEP = 0.005
 
   data class Model(val name: String, val size: Long)
@@ -62,6 +60,10 @@ object Ollama {
   private var serveProcess: Process? = null
   @Volatile
   private var serving = false
+
+  /** Bumped on each start, so a stopped serve loop never starts another `ollama serve`. */
+  @Volatile
+  private var serveGeneration = 0
 
   fun addListener(listener: (State) -> Unit) = listeners.add(listener)
 
@@ -180,17 +182,24 @@ object Ollama {
     val guest = GuestRuntime(context)
     if (serving || !binary(guest).isFile) return
     serving = true
+    val generation = ++serveGeneration
+    val settings = LocalModelSettings(context)
     thread(name = "t3-ollama-serve") {
       // Inside Linux, so the person or an agent can read why a request failed.
       ServerLog(File(guest.rootfs, LOG_PATH.removePrefix("/")).apply { parentFile?.mkdirs() }).use { log ->
-        while (serving) {
+        while (serving && generation == serveGeneration) {
           val process = guest.process(
             listOf(
               "env",
               "OLLAMA_HOST=127.0.0.1:$PORT",
-              "OLLAMA_CONTEXT_LENGTH=$CONTEXT_LENGTH",
+              "OLLAMA_CONTEXT_LENGTH=${settings.effectiveOllamaContext()}",
+              // An 8-bit cache needs flash attention and halves the memory the context takes.
+              "OLLAMA_FLASH_ATTENTION=1",
+              "OLLAMA_KV_CACHE_TYPE=q8_0",
+              // Ollama passes this to llama-server, which would otherwise use every core.
+              "LLAMA_ARG_THREADS=${settings.effectiveOllamaThreads()}",
               // Ollama reuses the cached instructions while the model stays loaded, so later turns start fast.
-              "OLLAMA_KEEP_ALIVE=30m",
+              "OLLAMA_KEEP_ALIVE=${settings.ollamaKeepAliveMinutes}m",
               "ollama",
               "serve",
             ),
@@ -200,9 +209,32 @@ object Ollama {
           runCatching { process.inputStream.bufferedReader().forEachLine { log.write(it) } }
           process.waitFor()
           update { it.copy(running = false) }
-          if (serving) Thread.sleep(3_000)
+          if (serving && generation == serveGeneration) Thread.sleep(3_000)
         }
       }
+    }
+  }
+
+  /** Picks up changed [LocalModelSettings]; does nothing while Ollama is not serving. */
+  @Synchronized
+  fun restartServe(context: Context) {
+    if (!serving) return
+    stopServe()
+    startServe(context)
+  }
+
+  /** Frees the memory Ollama's loaded models hold, so the phone GPU has room to load. */
+  fun unloadModels() {
+    if (!state.running) return
+    val loaded = runCatching { JSONObject(request("GET", "/api/ps")).optJSONArray("models") }.getOrNull() ?: return
+    for (index in 0 until loaded.length()) {
+      val name = loaded.optJSONObject(index)?.optString("name")?.ifEmpty { null } ?: continue
+      runCatching {
+        val connection = open("POST", "/api/generate")
+        connection.outputStream.use { it.write(JSONObject().put("model", name).put("keep_alive", 0).toString().toByteArray()) }
+        connection.responseCode
+        connection.disconnect()
+      }.onFailure { Log.w(TAG, "Could not unload $name", it) }
     }
   }
 
