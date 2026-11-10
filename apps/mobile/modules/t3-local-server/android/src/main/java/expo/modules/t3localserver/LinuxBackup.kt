@@ -427,6 +427,8 @@ object KeptFiles {
     "root/projects", "root/.ssh", "root/.gitconfig", "root/.config/git", "root/.android", "root/.t3",
     // OpenCode's settings, sign-ins and sessions; OpenCode itself is installed again from the app.
     "root/.config/opencode", "root/.local/share/opencode",
+    // Pi's settings, sign-ins and sessions.
+    "root/.pi",
   )
   private val DROPPED = listOf("root/.t3/runtime", "root/.t3/caches")
 

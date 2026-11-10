@@ -117,6 +117,7 @@ const SETTINGS_SEARCH_TERMS = {
     "sign in",
     "linux",
     "opencode",
+    "pi agent",
     "ollama",
     "phone gpu",
     "models",

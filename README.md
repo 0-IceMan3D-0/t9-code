@@ -18,7 +18,7 @@ T3² Code is a fork of [T3 Code](https://github.com/pingdotgg/t3code) for Androi
 ## Contents
 
 - [Requirements](#requirements)
-- **Agents and models:** [Built-in server](#built-in-server) · [Claude Code](#claude-code) · [OpenCode](#opencode) · [Phone GPU models](#phone-gpu-models) · [Ollama models](#ollama-models)
+- **Agents and models:** [Built-in server](#built-in-server) · [Claude Code](#claude-code) · [OpenCode](#opencode) · [Pi](#pi) · [Phone GPU models](#phone-gpu-models) · [Ollama models](#ollama-models)
 - **Developer tools:** [Linux shell](#linux-shell) · [File explorer](#file-explorer) · [Git and GitHub](#git-and-github) · [Web servers](#web-servers) · [USB devices](#usb-devices)
 - **Keeping it running:** [Backup, restore and reset](#backup-restore-and-reset) · [Running in the background](#running-in-the-background) · [Health](#health)
 - **Phone integration:** [Notifications](#notifications) · [Widgets, tile and shortcuts](#widgets-tile-and-shortcuts) · [Thread links](#opening-thread-links) · [App updates](#app-updates) · [Other machines](#connecting-to-other-machines)
@@ -75,6 +75,14 @@ An open-source coding agent that works without an account.
 - OpenCode's free models need no sign-in.
 - To add your own providers, run `opencode auth login` in the Linux shell.
 - Phone GPU and Ollama models appear in OpenCode as **Phone GPU** and **Ollama on this phone**.
+
+### Pi
+
+A lightweight coding agent, a good fit for phones with less memory.
+
+1. In **Settings > This phone > Agents**, tap **Install Pi**. The Pi provider is turned on for you.
+2. Open the Linux shell, run `pi`, and type `/login` to connect a subscription or API key.
+3. Pick **Pi** in a thread's model picker.
 
 ### Phone GPU models
 

@@ -17,6 +17,7 @@ import { useLocalConnection } from "../local-server/useLocalConnection";
 const PROVIDERS: Record<AgentToolId, { readonly instanceId: string; readonly driver: string }> = {
   opencode: { instanceId: "opencode", driver: "opencode" },
   claude: { instanceId: "claudeAgent", driver: "claudeAgent" },
+  pi: { instanceId: "pi", driver: "pi" },
 };
 
 export function agentToolSummary(tool: AgentToolState): string {
@@ -49,7 +50,7 @@ export function AgentToolRows(props: {
     await refresh({ environmentId, input: { instanceId, refreshModels: true } });
   };
 
-  // OpenCode is off on a new server, so installing a tool from here turns its provider on too.
+  // OpenCode and Pi are off on a new server, so installing a tool from here turns its provider on too.
   const install = async () => {
     await server.installAgentTool(id);
     if (environmentId === null || !server.agentToolState(id).installed) return;

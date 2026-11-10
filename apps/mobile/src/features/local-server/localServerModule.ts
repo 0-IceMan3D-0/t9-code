@@ -26,7 +26,7 @@ export interface LocalServerStatus {
 }
 
 /** Agent CLIs the app installs in Linux. */
-export type AgentToolId = "opencode" | "claude";
+export type AgentToolId = "opencode" | "claude" | "pi";
 
 export interface AgentToolState {
   readonly installed: boolean;
@@ -363,6 +363,7 @@ export function usePhoneModels(): PhoneModelsState | null {
 const agentTools: Record<AgentToolId, AgentToolState | null> = {
   opencode: localServer?.agentToolState("opencode") ?? null,
   claude: localServer?.agentToolState("claude") ?? null,
+  pi: localServer?.agentToolState("pi") ?? null,
 };
 
 function subscribeAgentTools(onChange: () => void) {

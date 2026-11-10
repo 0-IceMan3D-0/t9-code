@@ -1,12 +1,12 @@
 # This phone (Android)
 
-Android builds can run T3 and coding agents such as Claude Code and OpenCode on the phone itself, with no other machine. Open **Settings > This phone**. It shows the server and its health, and opens **Agents**, **Models**, **Linux**, **Options** and **Maintenance** on their own pages.
+Android builds can run T3 and coding agents such as Claude Code, OpenCode and Pi on the phone itself, with no other machine. Open **Settings > This phone**. It shows the server and its health, and opens **Agents**, **Models**, **Linux**, **Options** and **Maintenance** on their own pages.
 
 ## Built-in server
 
 **Set up** downloads Linux, Node and T3, about 500 MB, and starts the server. The app connects to it by itself. The server keeps running in the background behind a notification, and it only listens on the phone.
 
-Then install Claude Code or OpenCode under **Agents**; a new environment has neither.
+Then install Claude Code, OpenCode or Pi under **Agents**; a new environment has none of them.
 
 **Claude Code** in **Settings > This phone > Agents**:
 
@@ -105,6 +105,12 @@ When a program in Linux starts a web server, such as an agent running `vite`, `n
 - Models from Ollama and Phone GPU on this phone show up in OpenCode as **Ollama on this phone** and **Phone GPU**.
 - **Update OpenCode** installs the newest release.
 
+## Pi
+
+**Pi** in **Settings > This phone > Agents** installs the Pi coding agent in Linux and turns it on for the built-in server. It uses less memory than Claude Code or OpenCode. To sign in, run `pi` in a Linux shell and type `/login`, or run `pi auth login <provider>`. Then pick **Pi** in a thread's model picker.
+
+- **Remove Pi** keeps its settings and sign-ins in `~/.pi`, so installing it again picks them up.
+
 ## Health
 
 **Health** in **Settings > This phone** graphs how much memory and CPU the built-in environment uses (the server, shells and agents in Linux), how much memory the phone has free, and how much storage Linux and private projects take. It updates every few seconds while the screen is open.
@@ -117,7 +123,7 @@ When the phone runs low on memory, or Linux uses a large share of it, Android ma
 
 - **Back up Linux** saves one `.tar.gz` file with Linux and its installed packages, private projects, threads on This phone, and Claude Code's sign-in and settings. Choose **Save to Downloads** (it goes to `Downloads/T3² Code`) or **Choose location**. Caches that refill themselves are left out: `/tmp`, apt's downloaded packages, npm's download cache and `/root/.cache`. Projects in the shared folder are not included. The backup keeps running in the background behind a notification, and you can cancel it.
 - **Restore from backup** checks the file you pick, shows when and by which app version it was made, and asks before it replaces the current environment. It unpacks next to the current environment and switches over only when the whole file checked out, so a damaged file or a cancel leaves everything as it was. Restoring needs free space for both copies until it finishes.
-- **Reset Linux** downloads a fresh Linux, about 500 MB, and sets it up again, like the first setup. It keeps private projects, Claude Code's sign-in and settings (`~/.claude` and `~/.claude.json`), threads on This phone, git settings (`~/.gitconfig`), SSH keys (`~/.ssh`), adb keys (`~/.android`) and OpenCode's settings and sign-ins. Claude Code and OpenCode are installed again if they were installed before (Claude Code at the tested version). Other packages you installed and other files in Linux are lost. Use it when Linux is broken.
+- **Reset Linux** downloads a fresh Linux, about 500 MB, and sets it up again, like the first setup. It keeps private projects, Claude Code's sign-in and settings (`~/.claude` and `~/.claude.json`), threads on This phone, git settings (`~/.gitconfig`), SSH keys (`~/.ssh`), adb keys (`~/.android`), and the settings and sign-ins of OpenCode and Pi. Claude Code, OpenCode and Pi are installed again if they were installed before (Claude Code at the tested version). Other packages you installed and other files in Linux are lost. Use it when Linux is broken.
 
 **Keep backups private.** A backup holds your Claude sign-in and any SSH keys, so anyone with the file can use your Claude account. A backup is also a normal tar archive: on a computer, `tar -xzf` unpacks `t3-backup.json` and the Linux files under `rootfs/`.
 

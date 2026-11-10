@@ -13,6 +13,7 @@ open class NpmTool(
   val title: String,
   private val packageName: String,
   private val installVersion: String = "latest",
+  private val installFlags: List<String> = emptyList(),
 ) {
   data class State(
     val installed: Boolean = false,
@@ -57,9 +58,9 @@ open class NpmTool(
   }
 
   /** Each of these blocks until npm is done. */
-  fun install(context: Context) = npm(context, "Installing", listOf("npm", "install", "-g", "$packageName@$installVersion"))
+  fun install(context: Context) = npm(context, "Installing", listOf("npm", "install", "-g") + installFlags + "$packageName@$installVersion")
 
-  fun upgrade(context: Context) = npm(context, "Updating", listOf("npm", "install", "-g", "$packageName@latest"))
+  fun upgrade(context: Context) = npm(context, "Updating", listOf("npm", "install", "-g") + installFlags + "$packageName@latest")
 
   fun remove(context: Context) = npm(context, "Removing", listOf("npm", "uninstall", "-g", packageName))
 
@@ -87,8 +88,11 @@ open class NpmTool(
  */
 object ClaudeCode : NpmTool("Claude Code", "@anthropic-ai/claude-code", "2.1.319")
 
+/** T3's Pi provider installs it without npm scripts; its settings and sign-ins in ~/.pi stay when it is removed. */
+object Pi : NpmTool("Pi", "@earendil-works/pi-coding-agent", installFlags = listOf("--ignore-scripts"))
+
 /** Agent CLIs the app installs in Linux, by the id the app uses for them. */
-internal val AGENT_TOOLS: Map<String, NpmTool> = mapOf("opencode" to OpenCode, "claude" to ClaudeCode)
+internal val AGENT_TOOLS: Map<String, NpmTool> = mapOf("opencode" to OpenCode, "claude" to ClaudeCode, "pi" to Pi)
 
 /** Reset Linux removes installed agents with the rest of Linux; this puts them back afterwards. */
 internal object AgentReinstall {

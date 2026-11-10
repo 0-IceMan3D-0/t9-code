@@ -3,8 +3,8 @@ import { View } from "react-native";
 import { AppText as Text } from "../../components/ui/AppText";
 import { useLinuxMaintenance } from "../local-server/linuxMaintenance";
 import { SettingsSection } from "./components/SettingsSection";
+import { LocalServerAgentSection } from "./LocalServerAgentSection";
 import { LocalServerClaudeSection } from "./LocalServerClaudeSection";
-import { LocalServerOpenCodeSection } from "./LocalServerOpenCodeSection";
 import { isSetUp, LocalServerPage } from "./LocalServerPage";
 
 export function SettingsLocalServerAgentsRouteScreen() {
@@ -25,7 +25,18 @@ export function SettingsLocalServerAgentsRouteScreen() {
                 </View>
               </SettingsSection>
             )}
-            <LocalServerOpenCodeSection />
+            <LocalServerAgentSection
+              id="opencode"
+              name="OpenCode"
+              footer="Free models work without an account; to add your own providers, run opencode auth login in the Linux shell."
+              removeMessage="Its settings and sign-ins stay, so installing it again picks them up."
+            />
+            <LocalServerAgentSection
+              id="pi"
+              name="Pi"
+              footer="A lighter agent for phones with less memory; to sign in, run pi in the Linux shell and type /login."
+              removeMessage="Its settings and sign-ins stay, so installing it again picks them up."
+            />
           </>
         )
       }

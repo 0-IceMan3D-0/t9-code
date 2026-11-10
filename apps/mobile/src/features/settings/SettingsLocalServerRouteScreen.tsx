@@ -56,6 +56,7 @@ export function SettingsLocalServerRouteScreen() {
   const [pairingError, setPairingError] = useState<string | null>(null);
   const claude = useAgentTool("claude");
   const openCode = useAgentTool("opencode");
+  const pi = useAgentTool("pi");
   const phone = usePhoneModels();
   const ollama = useOllama();
 
@@ -76,6 +77,7 @@ export function SettingsLocalServerRouteScreen() {
   const agents = [
     claude?.installed ? "Claude Code" : null,
     openCode?.installed ? "OpenCode" : null,
+    pi?.installed ? "Pi" : null,
   ].filter((name) => name !== null);
   const models = (phone?.installed.length ?? 0) + (ollama?.models.length ?? 0);
 
@@ -134,7 +136,9 @@ export function SettingsLocalServerRouteScreen() {
                   <ListRow
                     icon="sparkles"
                     label="Agents"
-                    description={agents.length > 0 ? agents.join(", ") : "Claude Code and OpenCode"}
+                    description={
+                      agents.length > 0 ? agents.join(", ") : "Claude Code, OpenCode and Pi"
+                    }
                     onPress={() => navigation.navigate("SettingsLocalServerAgents")}
                   />
                   <ListRow

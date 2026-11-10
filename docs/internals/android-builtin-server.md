@@ -16,7 +16,7 @@ flowchart LR
   end
   subgraph Linux["Ubuntu 24.04 under PRoot"]
     T3["t3 server, 127.0.0.1:3783"]
-    Agents["Claude Code / OpenCode"]
+    Agents["Claude Code / OpenCode / Pi"]
     Ollama["ollama serve, :11434"]
     Shell["Linux shells"]
   end
@@ -35,7 +35,7 @@ The app connects to the built-in server like any other T3 environment. Everythin
 - **PRoot instead of root.** Apps that target API 29 or later cannot execute files from their data directory. PRoot and its loader therefore ship as native libraries (`libproot.so`, `libproot_loader.so` in `jniLibs`), and every guest binary is loaded through them. See [`GuestRuntime.kt`](../../apps/mobile/modules/t3-local-server/android/src/main/java/expo/modules/t3localserver/GuestRuntime.kt).
 - **First run downloads, it does not bundle.** [`RuntimeInstaller.kt`](../../apps/mobile/modules/t3-local-server/android/src/main/java/expo/modules/t3localserver/RuntimeInstaller.kt) downloads Ubuntu Base and Node.js from pinned URLs and verifies them, then runs `npm install -g t3@<version>`. This keeps the APK small and lets Linux be reset without reinstalling the app.
 - **The phone runs the published `t3` package, not this repository's server.** Changes to `apps/server` or `packages/*` do not reach the phone until a matching `t3` release is published and `T3_VERSION` is bumped. Fix phone-side behavior in the mobile app or the native module.
-- **Agents are optional.** Linux setup installs only base tools and `t3`. Claude Code and OpenCode are installed on demand through [`NpmTool.kt`](../../apps/mobile/modules/t3-local-server/android/src/main/java/expo/modules/t3localserver/NpmTool.kt). Never assume `claude` or `opencode` exists in Linux.
+- **Agents are optional.** Linux setup installs only base tools and `t3`. Claude Code, OpenCode and Pi are installed on demand through [`NpmTool.kt`](../../apps/mobile/modules/t3-local-server/android/src/main/java/expo/modules/t3localserver/NpmTool.kt). Never assume `claude`, `opencode` or `pi` exists in Linux. Pi is installed with `--ignore-scripts`, as T3's Pi provider does.
 - **The rootfs format is versioned.** `GuestRuntime.RUNTIME_VERSION` marks a finished install. Bump it only when an existing rootfs can no longer work.
 
 ## Built-in server
