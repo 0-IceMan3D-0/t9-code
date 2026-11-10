@@ -45,7 +45,7 @@ class ThreadNotificationActionReceiver : BroadcastReceiver() {
     try {
       context.startService(task)
     } catch (_: IllegalStateException) {
-      ThreadNotifications.showResult(context, tag, "Open T3² code to respond.", false)
+      ThreadNotifications.showResult(context, tag, "Open T3² Code to respond.", false)
     }
   }
 }

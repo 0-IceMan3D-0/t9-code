@@ -18,7 +18,7 @@ export function LocalServerBatterySection() {
   if (!battery) return null;
   const footer = guide
     ? BATTERY_REASON
-    : `${BATTERY_REASON} Some phones have extra battery settings of their own. Look for T3² code under Battery in Android settings.`;
+    : `${BATTERY_REASON} Some phones have extra battery settings of their own. Look for T3² Code under Battery in Android settings.`;
   return (
     <SettingsSection title="Running in the background" footer={footer}>
       <SettingsActionRow

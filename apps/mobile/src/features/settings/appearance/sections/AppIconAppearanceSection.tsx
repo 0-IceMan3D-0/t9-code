@@ -155,7 +155,7 @@ export function AppIconAppearanceSection() {
         title="Your own picture"
         footer={
           state.pinSupported
-            ? "Android does not let apps use any picture as their real icon, so this adds a home screen shortcut that opens T3² code. Some launchers add a small app badge to it. The app drawer keeps the icon chosen above."
+            ? "Android does not let apps use any picture as their real icon, so this adds a home screen shortcut that opens T3² Code. Some launchers add a small app badge to it. The app drawer keeps the icon chosen above."
             : "Your launcher does not let apps add home screen shortcuts, so a picture of your own cannot be used."
         }
       >

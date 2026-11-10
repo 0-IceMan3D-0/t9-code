@@ -239,18 +239,18 @@ object LinuxBackup {
   private fun gunzip(input: InputStream) = try {
     GZIPInputStream(BufferedInputStream(input, 1 shl 16), 1 shl 16)
   } catch (error: IOException) {
-    throw IOException("This is not a T3² code Linux backup.", error)
+    throw IOException("This is not a T3² Code Linux backup.", error)
   }
 
   private fun manifestFrom(reader: TarReader): JSONObject {
     val entry = try {
       reader.next()
     } catch (error: IOException) {
-      throw IOException("This is not a T3² code Linux backup.", error)
+      throw IOException("This is not a T3² Code Linux backup.", error)
     }
-    if (entry?.name != MANIFEST_NAME || !entry.isFile) throw IOException("This is not a T3² code Linux backup.")
+    if (entry?.name != MANIFEST_NAME || !entry.isFile) throw IOException("This is not a T3² Code Linux backup.")
     val manifest = JSONObject(reader.text())
-    if (manifest.optString("format") != FORMAT) throw IOException("This is not a T3² code Linux backup.")
+    if (manifest.optString("format") != FORMAT) throw IOException("This is not a T3² Code Linux backup.")
     if (manifest.optInt("formatVersion") > FORMAT_VERSION) {
       throw IOException("This backup was made by a newer version of the app. Update the app to restore it.")
     }

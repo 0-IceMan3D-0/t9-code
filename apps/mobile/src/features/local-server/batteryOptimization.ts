@@ -41,7 +41,7 @@ export function openBatterySettings(): void {
   if (opened === "none") {
     Dialog.alert(
       "Couldn't open battery settings",
-      "Open Android Settings, then Battery, and allow T3² code to run in the background.",
+      "Open Android Settings, then Battery, and allow T3² Code to run in the background.",
     );
   }
 }
@@ -61,7 +61,7 @@ export function offerBatteryExemption(): void {
   if (!shouldOfferBatteryHint(snapshot)) return;
   Dialog.alert(
     "Keep agents running in the background?",
-    `${BATTERY_REASON} Allow T3² code to ignore battery optimisation so the built-in server and notifications keep working while the app is closed. You can change this later in Settings > This phone.`,
+    `${BATTERY_REASON} Allow T3² Code to ignore battery optimisation so the built-in server and notifications keep working while the app is closed. You can change this later in Settings > This phone.`,
     [
       { text: "Not now", style: "cancel", onPress: dismissHint },
       {

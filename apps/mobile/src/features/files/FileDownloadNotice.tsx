@@ -29,7 +29,7 @@ export function FileDownloadNotice() {
         <Toast
           tone="success"
           message="Saved to Downloads"
-          description={`T3² code/${notice.name}`}
+          description={`T3² Code/${notice.name}`}
           onDismiss={dismissFileDownloadNotice}
         />
       ) : (

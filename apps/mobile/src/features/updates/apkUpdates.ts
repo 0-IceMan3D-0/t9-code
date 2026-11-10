@@ -67,7 +67,7 @@ export async function findApkUpdate(): Promise<ApkRelease | null> {
 
 /**
  * Opens Android's installer for the release. Returns false when Android first needs permission
- * to install apps from T3² code; its settings page is opened instead.
+ * to install apps from T3² Code; its settings page is opened instead.
  */
 export async function installApkUpdate(release: ApkRelease): Promise<boolean> {
   if (!appUpdate) return false;

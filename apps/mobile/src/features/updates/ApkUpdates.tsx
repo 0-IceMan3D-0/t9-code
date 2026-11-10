@@ -16,7 +16,7 @@ async function install(release: ApkRelease) {
     if (!opened) {
       Dialog.alert(
         "Allow installing updates",
-        "Turn on “Allow from this source” for T3² code, then come back and tap Update again in Settings > About.",
+        "Turn on “Allow from this source” for T3² Code, then come back and tap Update again in Settings > About.",
       );
     }
   } catch (cause) {

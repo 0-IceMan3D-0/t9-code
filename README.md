@@ -1,6 +1,6 @@
 <div align="center">
 
-# T9 Code
+# T3² Code
 
 **Run Claude Code and OpenCode on your Android phone. No computer needed.**
 
@@ -10,10 +10,10 @@
 
 ---
 
-T9 Code is a fork of [T3 Code](https://github.com/pingdotgg/t3code) for Android. It puts a complete coding setup on your phone: a T3 server, a Linux environment, coding agents and local AI models. You can still connect to T3 Code servers on your other machines, just like with the original app.
+T3² Code is a fork of [T3 Code](https://github.com/pingdotgg/t3code) for Android, developed in the **t9-code** repository. It puts a complete coding setup on your phone: a T3 server, a Linux environment, coding agents and local AI models. You can still connect to T3 Code servers on your other machines, just like with the original app.
 
 > [!NOTE]
-> T9 Code is an independent project. It is not affiliated with T3 Tools Inc. or the T3 Code team.
+> T3² Code is an independent project. It is not affiliated with T3 Tools Inc. or the T3 Code team.
 
 ## Contents
 
@@ -21,7 +21,7 @@ T9 Code is a fork of [T3 Code](https://github.com/pingdotgg/t3code) for Android.
 - **Agents and models:** [Built-in server](#built-in-server) · [Claude Code](#claude-code) · [OpenCode](#opencode) · [Phone GPU models](#phone-gpu-models) · [Ollama models](#ollama-models)
 - **Developer tools:** [Linux shell](#linux-shell) · [File explorer](#file-explorer) · [Git and GitHub](#git-and-github) · [Web servers](#web-servers) · [USB devices](#usb-devices)
 - **Keeping it running:** [Backup, restore and reset](#backup-restore-and-reset) · [Running in the background](#running-in-the-background) · [Health](#health)
-- **Phone integration:** [Notifications](#notifications) · [Widgets, tile and shortcuts](#widgets-tile-and-shortcuts) · [App updates](#app-updates) · [Other machines](#connecting-to-other-machines)
+- **Phone integration:** [Notifications](#notifications) · [Widgets, tile and shortcuts](#widgets-tile-and-shortcuts) · [Thread links](#opening-thread-links) · [App updates](#app-updates) · [Other machines](#connecting-to-other-machines)
 - [For developers](#for-developers) · [License](#license)
 
 ## Requirements
@@ -57,7 +57,7 @@ The built-in server runs T3 inside a private Ubuntu 24.04 environment on the pho
 
 Anthropic's coding agent, installed into the phone's Linux environment.
 
-1. In **Settings > This phone**, tap **Install Claude Code**. This installs the version tested with T9 Code.
+1. In **Settings > This phone**, tap **Install Claude Code**. This installs the version tested with T3² Code.
 2. Tap **Sign in to Claude**, finish in the browser, and paste the code if one appears.
 3. Start a thread on **This phone** and pick a Claude model.
 
@@ -177,7 +177,7 @@ All three tools are in **Settings > This phone > Maintenance**.
 
 | Tool                    | What it does                                                                                                                                           |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Back up Linux**       | Saves Linux, installed packages, private projects, threads and agent sign-ins as one `.tar.gz` file, to `Downloads/T3² code` or a location you choose. |
+| **Back up Linux**       | Saves Linux, installed packages, private projects, threads and agent sign-ins as one `.tar.gz` file, to `Downloads/T3² Code` or a location you choose. |
 | **Restore from backup** | Checks the file, shows when it was made, and replaces the current environment only if the whole file is valid.                                         |
 | **Reset Linux**         | Installs a fresh Linux and keeps projects, threads, sign-ins, git settings and SSH keys. Agents you had installed are installed again.                 |
 
@@ -213,15 +213,25 @@ Turn them on in **Settings > Notifications > Agent notifications**. No account i
 
 ### Widgets, tile and shortcuts
 
-**Home screen widgets.** Long-press the home screen, choose **Widgets** and find **T3² code**. There are ten widgets: Working threads, Recent threads, This phone's server, Quick actions, Usage today, New thread bar, Gauges, Status line, Limits and Tokens today. See [Home screen widgets](./docs/user/home-screen-widgets.md) for details.
+**Home screen widgets.** Long-press the home screen, choose **Widgets** and find **T3² Code**. There are ten widgets: Working threads, Recent threads, This phone's server, Quick actions, Usage today, New thread bar, Gauges, Status line, Limits and Tokens today. See [Home screen widgets](./docs/user/home-screen-widgets.md) for details.
 
 **Quick Settings tile.** Add the **T3² server** tile from the Quick Settings edit screen. Tap it to start or stop the server, and long-press it to open **This phone**.
 
 **Launcher shortcuts.** Long-press the app icon for **New thread**, **Start server** or **Stop server**, **Linux shell** and your recent threads.
 
+### Opening thread links
+
+Thread links, such as `https://app.t3.codes/threads/...`, open in the browser until you allow the app to open them. Do this once on each phone, on Android 12 or newer:
+
+1. Open Android **Settings > Apps > T3² Code > Open by default**.
+2. Turn on **Open supported links**.
+3. Tap **Add link**, tick `app.t3.codes`, and tap **Add**.
+
+If your phone's menus are named differently, search Android settings for **Open by default**.
+
 ### App updates
 
-T9 Code checks this repository for a new build once a day when it opens. To check now, open **Settings > About > Check for updates**.
+T3² Code checks this repository for a new build once a day when it opens. To check now, open **Settings > About > Check for updates**.
 
 1. Tap **Update**. The app downloads the new build.
 2. Confirm the install in Android's prompt.
@@ -231,7 +241,7 @@ T9 Code checks this repository for a new build once a day when it opens. To chec
 
 ### Connecting to other machines
 
-T9 Code is still a full T3 Code client. To control agents on your computer or a server from your phone, see [Remote access](./docs/user/remote-access.md).
+T3² Code is still a full T3 Code client. To control agents on your computer or a server from your phone, see [Remote access](./docs/user/remote-access.md).
 
 ---
 
@@ -243,4 +253,4 @@ Architecture, build and release details are in the [technical notes](./docs/inte
 
 [MIT](./LICENSE). Based on T3 Code by T3 Tools Inc.
 
-T9 Code includes [PRoot](https://proot-me.github.io/) (GPL-2.0). During setup it downloads Ubuntu Base and Node.js, which come with their own licenses.
+T3² Code includes [PRoot](https://proot-me.github.io/) (GPL-2.0). During setup it downloads Ubuntu Base and Node.js, which come with their own licenses.

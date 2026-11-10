@@ -45,7 +45,7 @@ async function allowNotifications() {
   if (!native?.threadOpenSettings(null)) {
     Dialog.alert(
       "Couldn't open Settings",
-      "Open Android Settings, select T3² code, then Notifications.",
+      "Open Android Settings, select T3² Code, then Notifications.",
     );
   }
 }

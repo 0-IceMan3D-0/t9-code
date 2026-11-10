@@ -115,7 +115,7 @@ When the phone runs low on memory, or Linux uses a large share of it, Android ma
 
 **Settings > This phone > Maintenance** has three tools. Each one stops the server first if it is running, after asking.
 
-- **Back up Linux** saves one `.tar.gz` file with Linux and its installed packages, private projects, threads on This phone, and Claude Code's sign-in and settings. Choose **Save to Downloads** (it goes to `Downloads/T3² code`) or **Choose location**. Caches that refill themselves are left out: `/tmp`, apt's downloaded packages, npm's download cache and `/root/.cache`. Projects in the shared folder are not included. The backup keeps running in the background behind a notification, and you can cancel it.
+- **Back up Linux** saves one `.tar.gz` file with Linux and its installed packages, private projects, threads on This phone, and Claude Code's sign-in and settings. Choose **Save to Downloads** (it goes to `Downloads/T3² Code`) or **Choose location**. Caches that refill themselves are left out: `/tmp`, apt's downloaded packages, npm's download cache and `/root/.cache`. Projects in the shared folder are not included. The backup keeps running in the background behind a notification, and you can cancel it.
 - **Restore from backup** checks the file you pick, shows when and by which app version it was made, and asks before it replaces the current environment. It unpacks next to the current environment and switches over only when the whole file checked out, so a damaged file or a cancel leaves everything as it was. Restoring needs free space for both copies until it finishes.
 - **Reset Linux** downloads a fresh Linux, about 500 MB, and sets it up again, like the first setup. It keeps private projects, Claude Code's sign-in and settings (`~/.claude` and `~/.claude.json`), threads on This phone, git settings (`~/.gitconfig`), SSH keys (`~/.ssh`), adb keys (`~/.android`) and OpenCode's settings and sign-ins. Claude Code and OpenCode are installed again if they were installed before (Claude Code at the tested version). Other packages you installed and other files in Linux are lost. Use it when Linux is broken.
 
@@ -148,10 +148,20 @@ Every program in the shell and every agent on the built-in server sees allowed d
 
 ## Download files
 
-In a thread's **Files** view, tap the arrow beside a file, or choose **Download** from a file's actions. On Android 10 and newer the file is saved to `Downloads/T3² code`, and an existing file with the same name is kept. This works with any connected environment. Older Android and iOS open the share sheet.
+In a thread's **Files** view, tap the arrow beside a file, or choose **Download** from a file's actions. On Android 10 and newer the file is saved to `Downloads/T3² Code`, and an existing file with the same name is kept. This works with any connected environment. Older Android and iOS open the share sheet.
+
+## Opening thread links
+
+Links to threads, such as `https://app.t3.codes/threads/...`, open in the browser until you allow the app to open them. This takes one step per phone, on Android 12 or newer:
+
+1. Open Android **Settings > Apps > T3² Code > Open by default**.
+2. Turn on **Open supported links**.
+3. Tap **Add link**, tick `app.t3.codes`, and tap **Add**.
+
+The menu names differ slightly between phone makers. If the steps don't match, search Android settings for **Open by default**. On Android 11 and older, choose T3² Code when Android asks which app should open the link.
 
 ## App updates
 
-**Settings > About > Check for updates** looks for a newer build on GitHub, and the app also checks once a day when it opens. Tap **Update** to download it; Android asks you to confirm the install. The first time, Android asks you to allow installs from T3² code: turn on **Allow from this source**, come back, and tap **Update** again. **Later** skips that build until a newer one comes out.
+**Settings > About > Check for updates** looks for a newer build on GitHub, and the app also checks once a day when it opens. Tap **Update** to download it; Android asks you to confirm the install. The first time, Android asks you to allow installs from T3² Code: turn on **Allow from this source**, come back, and tap **Update** again. **Later** skips that build until a newer one comes out.
 
-Builds signed before updates existed can't update in place. Back up your Linux environment, uninstall the app, install the new build, then restore the backup. Later builds update normally and keep your data.
+Builds made before updates existed are a separate app and can't update. The new build installs next to the old one. To move over, back up Linux in the old app, restore the backup in the new one, then uninstall the old app. Later builds update in place and keep your data.

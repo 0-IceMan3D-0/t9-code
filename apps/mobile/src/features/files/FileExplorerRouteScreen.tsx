@@ -564,7 +564,7 @@ function FileExplorer(props: {
     });
     setBusy(null);
     if (typeof saved === "string")
-      Dialog.alert("Saved to Downloads", `Downloads/T3² code/${saved}`);
+      Dialog.alert("Saved to Downloads", `Downloads/T3² Code/${saved}`);
   };
 
   const showInfo = async (entry: FilesystemDirectoryEntry, path: string) => {

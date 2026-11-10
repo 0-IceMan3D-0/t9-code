@@ -54,10 +54,10 @@ export function PullRequestToolbar(props: {
   }, [searching, closeSearch, navigation, isTabActive]);
   return (
     <AppBar
-      title="T3² code"
+      title="T3² Code"
       titleContent={
         <WorkspaceBrandTitle
-          accessibilityLabel="T3² code, Pull requests"
+          accessibilityLabel="T3² Code, Pull requests"
           onOpenEnvironments={() => openSettings(navigation, "SettingsEnvironments")}
         />
       }

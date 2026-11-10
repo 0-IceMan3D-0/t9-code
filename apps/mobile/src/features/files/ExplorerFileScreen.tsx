@@ -309,7 +309,7 @@ export function ExplorerFileScreen(props: ExplorerFileScreenProps) {
         void backend.download(path).then(
           (saved) => {
             if (typeof saved === "string")
-              Dialog.alert("Saved to Downloads", `Downloads/T3² code/${saved}`);
+              Dialog.alert("Saved to Downloads", `Downloads/T3² Code/${saved}`);
           },
           (cause: unknown) => Dialog.alert("Could not save to Downloads", errorMessage(cause)),
         ),

@@ -392,7 +392,7 @@ function maybeAskPermission(): void {
   updateThreadNotificationSettings(() => ({ permissionAsked: true }));
   Dialog.alert(
     "Get notified about your agents",
-    "T3² code can tell you when an agent finishes, fails, needs an approval or asks a question, and let you answer from the notification. This works without an account. You can change it in Settings → Notifications.",
+    "T3² Code can tell you when an agent finishes, fails, needs an approval or asks a question, and let you answer from the notification. This works without an account. You can change it in Settings → Notifications.",
     [
       { text: "Not now", style: "cancel", onPress: () => (askingPermission = false) },
       {
@@ -543,12 +543,12 @@ export function postTestThreadNotification(): void {
   post({
     tag: threadNotificationTag("test", "test"),
     group: "t3-project:test",
-    groupTitle: "T3² code",
+    groupTitle: "T3² Code",
     channel: "t3-finished",
     title: "Test notification",
     text: "Finished · Agent notifications work on this phone.",
     bigText: "Finished · Agent notifications work on this phone.",
-    subText: "T3² code",
+    subText: "T3² Code",
     summaryLine: "Test notification",
     when: Date.now(),
     deepLink: "/",

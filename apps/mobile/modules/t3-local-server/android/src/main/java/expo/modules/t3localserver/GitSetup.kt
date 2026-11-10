@@ -117,7 +117,7 @@ class GitSetup(private val guest: GuestRuntime) {
     }
     sshDir.mkdirs()
     run(listOf("chmod", "700", "/root/.ssh"))
-    val comment = "T3² code on ${deviceName()}"
+    val comment = "T3² Code on ${deviceName()}"
     val result = run(listOf("ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-C", comment, "-f", "/root/.ssh/$KEY_NAME"))
     if (result.exitCode != 0 || !publicKey.isFile) {
       throw IllegalStateException("ssh-keygen failed (${result.exitCode})")

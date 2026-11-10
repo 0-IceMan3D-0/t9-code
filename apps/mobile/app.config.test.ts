@@ -25,9 +25,14 @@ it.each(["prod", ""])("rejects APP_VARIANT=%j before selecting production IDs", 
   );
 });
 
+// app.t3.codes lists only upstream's apps, so T9's own ID gets no verified thread links.
+it("gives the development build T9's own Android package", async () => {
+  const config = await loadConfig("development");
+  expect(config.android?.package).toBe("io.github.iceman3d.t9code");
+});
+
 it.each([
   [undefined, "com.t3tools.t3code"],
-  ["development", "com.t3tools.t3code.dev"],
   ["preview", "com.t3tools.t3code.preview"],
   ["production", "com.t3tools.t3code"],
 ])("keeps the iOS and Android identifiers for APP_VARIANT=%j", async (value, identifier) => {

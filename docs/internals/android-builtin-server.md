@@ -1,6 +1,6 @@
-# T9 Code on Android: technical notes
+# T3² Code on Android: technical notes
 
-These notes describe what T9 Code adds to the upstream T3 Code mobile app: the built-in server, the Linux environment, local models, and the release and update pipeline. They focus on decisions and traps the source does not make obvious. User-facing behavior is documented in [This phone](../user/this-phone.md).
+These notes describe what T3² Code, developed in the t9-code repository, adds to the upstream T3 Code mobile app: the built-in server, the Linux environment, local models, and the release and update pipeline. They focus on decisions and traps the source does not make obvious. User-facing behavior is documented in [This phone](../user/this-phone.md).
 
 Most of the native code lives in [`apps/mobile/modules/t3-local-server`](../../apps/mobile/modules/t3-local-server). The React side is under [`apps/mobile/src/features/local-server`](../../apps/mobile/src/features/local-server) and [`apps/mobile/src/features/settings`](../../apps/mobile/src/features/settings).
 
@@ -79,11 +79,15 @@ Apps cannot open `/dev/bus/usb`. [`UsbBridge.kt`](../../apps/mobile/modules/t3-l
 
 Every push to `main` runs [`t9-android-release.yml`](../../.github/workflows/t9-android-release.yml):
 
-1. It generates the Android project with `expo prebuild` using `APP_VARIANT=development` (package `com.t3tools.t3code.dev`) and `T3CODE_MOBILE_UPDATES_ENABLED=0`, so Expo's over-the-air updates are disabled.
+1. It generates the Android project with `expo prebuild` using `APP_VARIANT=development` (package `io.github.iceman3d.t9code`) and `T3CODE_MOBILE_UPDATES_ENABLED=0`, so Expo's over-the-air updates are disabled.
 2. It builds `app:assembleRelease` for `arm64-v8a` only.
 3. It publishes a GitHub release tagged `b<versionCode>` with the asset `t9-code.apk`.
 
 The `versionCode` is the build time in minutes since the Unix epoch ([`withAndroidBuildTimeVersionCode.cjs`](../../apps/mobile/plugins/withAndroidBuildTimeVersionCode.cjs)), so every build is newer than the last. All upstream workflows are disabled on this repository; most of them assume upstream runners and secrets.
+
+### Package ID
+
+The built app is `io.github.iceman3d.t9code`, not upstream's `com.t3tools.t3code.dev`. Only the development variant's Android package changed in [`app.config.ts`](../../apps/mobile/app.config.ts). Android ties updates to this ID, so never change it again: installed apps would stop receiving updates. Because app.t3.codes lists only upstream's apps in its asset links, links to `app.t3.codes/threads/...` are not verified for this app. Users approve the domain once in Android's **Open by default** settings; [This phone](../user/this-phone.md#opening-thread-links) has the steps.
 
 ### Signing
 

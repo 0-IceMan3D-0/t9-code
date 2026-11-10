@@ -19,7 +19,7 @@ private const val MAX_NAME_ATTEMPTS = 50
 /** MediaStore needs no storage permission for an app's own Downloads, and it uniquifies the name. */
 @RequiresApi(Build.VERSION_CODES.Q)
 object PublicDownloads {
-  const val FOLDER = "T3² code"
+  const val FOLDER = "T3² Code"
 
   fun save(
     context: Context,
