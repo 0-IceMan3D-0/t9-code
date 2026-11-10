@@ -103,6 +103,7 @@ class LocalServerService : Service() {
     RuntimeInstaller(guest) { detail, progress ->
       publish(LocalServerState.INSTALLING, detail, progress)
     }.install()
+    AgentReinstall.run(this) { detail -> publish(LocalServerState.INSTALLING, detail, 0.98) }
   }
 
   private fun serve() {

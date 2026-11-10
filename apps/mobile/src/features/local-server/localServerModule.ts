@@ -25,7 +25,10 @@ export interface LocalServerStatus {
   readonly sharedStorageGranted: boolean;
 }
 
-export interface OpenCodeState {
+/** Agent CLIs the app installs in Linux. */
+export type AgentToolId = "opencode" | "claude";
+
+export interface AgentToolState {
   readonly installed: boolean;
   readonly version: string | null;
   readonly busy: string | null;
@@ -226,11 +229,15 @@ interface LocalServerNativeModule {
   downloadPhoneModel(id: string): void;
   cancelPhoneModelDownload(): void;
   deletePhoneModel(id: string): void;
-  openCodeState(): OpenCodeState;
-  /** Installs OpenCode or updates it, resolving once npm is done. */
-  installOpenCode(): Promise<void>;
-  removeOpenCode(): Promise<void>;
-  addListener(event: "onOpenCode", listener: (state: OpenCodeState) => void): EventSubscription;
+  agentToolState(id: AgentToolId): AgentToolState;
+  /** Each resolves once npm is done; progress and errors arrive through onAgentTool. */
+  installAgentTool(id: AgentToolId): Promise<void>;
+  updateAgentTool(id: AgentToolId): Promise<void>;
+  removeAgentTool(id: AgentToolId): Promise<void>;
+  addListener(
+    event: "onAgentTool",
+    listener: (state: AgentToolState & { readonly id: AgentToolId }) => void,
+  ): EventSubscription;
   addListener(event: "onOllama", listener: (state: OllamaState) => void): EventSubscription;
   addListener(
     event: "onPhoneModels",
@@ -353,16 +360,19 @@ export function usePhoneModels(): PhoneModelsState | null {
   return useSyncExternalStore(subscribePhoneModels, () => phoneModels);
 }
 
-let openCode: OpenCodeState | null = localServer?.openCodeState() ?? null;
+const agentTools: Record<AgentToolId, AgentToolState | null> = {
+  opencode: localServer?.agentToolState("opencode") ?? null,
+  claude: localServer?.agentToolState("claude") ?? null,
+};
 
-function subscribeOpenCode(onChange: () => void) {
-  const subscription = localServer?.addListener("onOpenCode", (next) => {
-    openCode = next;
+function subscribeAgentTools(onChange: () => void) {
+  const subscription = localServer?.addListener("onAgentTool", ({ id, ...state }) => {
+    agentTools[id] = state;
     onChange();
   });
   return () => subscription?.remove();
 }
 
-export function useOpenCode(): OpenCodeState | null {
-  return useSyncExternalStore(subscribeOpenCode, () => openCode);
+export function useAgentTool(id: AgentToolId): AgentToolState | null {
+  return useSyncExternalStore(subscribeAgentTools, () => agentTools[id]);
 }

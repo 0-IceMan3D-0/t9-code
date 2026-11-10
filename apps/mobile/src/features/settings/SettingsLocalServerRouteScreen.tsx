@@ -16,12 +16,14 @@ import {
   useLocalServerStatus,
   useUsbDevices,
   type LocalServerStatus,
+  useAgentTool,
 } from "../local-server/localServerModule";
 import { useLocalConnection } from "../local-server/useLocalConnection";
 import { pairEnvironment } from "../../state/use-remote-environment-registry";
 import { SettingsScreen } from "./components/SettingsScreen";
 import { SettingsSection } from "./components/SettingsSection";
 import { SettingsSwitchRow } from "./components/SettingsSwitchRow";
+import { AgentToolRows, agentToolSummary } from "./LocalServerAgentTool";
 import { LocalServerBatterySection } from "./LocalServerBatterySection";
 import { LocalServerDevServersSection } from "./LocalServerDevServersSection";
 import { LocalServerGitSection } from "./LocalServerGitSection";
@@ -59,6 +61,8 @@ const signInErrorMessage = (cause: unknown) =>
   cause instanceof Error ? cause.message : "Sign-in failed.";
 
 function ClaudeSection() {
+  const claude = useAgentTool("claude");
+  const installed = claude?.installed === true;
   const [signedIn, setSignedIn] = useState<boolean | null>(null);
   const [signingIn, setSigningIn] = useState(false);
   const [code, setCode] = useState("");
@@ -68,7 +72,9 @@ function ClaudeSection() {
     void localServer?.claudeLoggedIn().then(setSignedIn);
   };
   // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- Sign-in state lives in the guest environment.
-  useEffect(check, []);
+  useEffect(() => {
+    if (installed) void localServer?.claudeLoggedIn().then(setSignedIn);
+  }, [installed]);
 
   const start = async () => {
     const server = localServer;
@@ -100,19 +106,33 @@ function ClaudeSection() {
     setCode("");
   };
 
+  const signIn = signedIn === null ? "checking sign-in" : signedIn ? "signed in" : "not signed in";
+  const summary =
+    claude === null
+      ? "Not installed"
+      : installed && claude.busy === null
+        ? `${agentToolSummary(claude)} · ${signIn}`
+        : agentToolSummary(claude);
+
   return (
-    <SettingsSection title="Claude Code">
+    <SettingsSection
+      title="Claude Code"
+      footer="Pick Claude in a thread's model picker. Ollama and Phone GPU models run through Claude Code too."
+    >
       <View className="gap-1 p-4">
-        <Text className="text-base text-foreground">
-          {signedIn === null ? "Checking…" : signedIn ? "Signed in" : "Not signed in"}
-        </Text>
+        <Text className="text-base text-foreground">{summary}</Text>
+        {claude?.error ? (
+          <Text selectable accessibilityRole="alert" className="text-sm text-danger-foreground">
+            {claude.error}
+          </Text>
+        ) : null}
         {error ? (
           <Text selectable accessibilityRole="alert" className="text-sm text-danger-foreground">
             {error}
           </Text>
         ) : null}
       </View>
-      {signingIn ? (
+      {installed && signingIn ? (
         <View className="gap-2 px-4 pb-4">
           <Text className="text-sm text-foreground-muted">
             Finish in your browser. If it shows a code, paste it here.
@@ -127,7 +147,7 @@ function ClaudeSection() {
           />
         </View>
       ) : null}
-      {signingIn ? (
+      {!installed ? null : signingIn ? (
         <>
           <SettingsActionRow
             icon="checkmark"
@@ -148,6 +168,14 @@ function ClaudeSection() {
           onPress={() => void start()}
         />
       )}
+      {claude ? (
+        <AgentToolRows
+          id="claude"
+          name="Claude Code"
+          tool={claude}
+          removeMessage="Your Claude sign-in and settings stay, so installing it again picks them up. Ollama and Phone GPU models need Claude Code."
+        />
+      ) : null}
     </SettingsSection>
   );
 }

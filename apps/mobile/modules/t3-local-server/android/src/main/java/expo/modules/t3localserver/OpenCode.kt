@@ -4,79 +4,17 @@ import android.content.Context
 import android.util.Log
 import org.json.JSONObject
 import java.io.File
-import java.util.concurrent.CopyOnWriteArraySet
 import kotlin.concurrent.thread
 
-/**
- * OpenCode in the Linux environment, installed with npm so T3's OpenCode provider finds it on
- * PATH. Its config also lists the phone's Ollama and GPU models.
- */
-object OpenCode {
+/** OpenCode's config also lists the phone's Ollama and GPU models. */
+object OpenCode : NpmTool("OpenCode", "opencode-ai") {
   private const val TAG = "T3OpenCode"
-  private const val PACKAGE = "opencode-ai"
   private const val CONFIG_PATH = "root/.config/opencode/opencode.json"
   // Our own provider ids, so a provider the user set up under another name is never touched.
   private const val OLLAMA_PROVIDER = "phone-ollama"
   private const val GPU_PROVIDER = "phone-gpu"
 
-  data class State(
-    val installed: Boolean = false,
-    val version: String? = null,
-    val busy: String? = null,
-    val detail: String? = null,
-    val error: String? = null,
-  ) {
-    fun toMap() = mapOf(
-      "installed" to installed,
-      "version" to version,
-      "busy" to busy,
-      "detail" to detail,
-      "error" to error,
-    )
-  }
-
-  @Volatile
-  var state = State()
-    private set
-  private val listeners = CopyOnWriteArraySet<(State) -> Unit>()
-
-  fun addListener(listener: (State) -> Unit) = listeners.add(listener)
-
-  fun removeListener(listener: (State) -> Unit) = listeners.remove(listener)
-
-  @Synchronized
-  private fun update(change: (State) -> State) {
-    val next = change(state)
-    if (next == state) return
-    state = next
-    listeners.forEach { it(next) }
-  }
-
-  private fun packageJson(guest: GuestRuntime) = File(guest.rootfs, "opt/node/lib/node_modules/$PACKAGE/package.json")
-
-  fun refresh(context: Context): State {
-    val manifest = packageJson(GuestRuntime(context))
-    val version = runCatching { JSONObject(manifest.readText()).optString("version") }.getOrNull()?.ifEmpty { null }
-    update { it.copy(installed = manifest.isFile, version = version) }
-    return state
-  }
-
-  /** Installs OpenCode, or updates it to the newest release. Blocks until npm is done. */
-  fun install(context: Context) = npm(context, "Installing", listOf("npm", "install", "-g", "$PACKAGE@latest"))
-
-  fun remove(context: Context) = npm(context, "Removing", listOf("npm", "uninstall", "-g", PACKAGE))
-
-  private fun npm(context: Context, label: String, command: List<String>) {
-    synchronized(this) {
-      if (state.busy != null) return
-      update { it.copy(busy = label, detail = null, error = null) }
-    }
-    val result = GitSetup(GuestRuntime(context)).run(command, timeoutSeconds = 900) { line ->
-      line.trim().takeIf { it.isNotEmpty() }?.let { detail -> update { it.copy(detail = detail.take(80)) } }
-    }
-    val error = if (result.exitCode == 0) null else "$label OpenCode failed: ${result.output.lines().lastOrNull { it.isNotBlank() } ?: "exit ${result.exitCode}"}"
-    update { it.copy(busy = null, detail = null, error = error) }
-    refresh(context)
+  override fun changed(context: Context) {
     lastModels = null
     syncLocalModels(context)
   }

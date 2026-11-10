@@ -28,7 +28,7 @@ private const val DEV_SERVERS_EVENT = "onDevServers"
 private const val GIT_SETUP_EVENT = "onGitSetup"
 private const val OLLAMA_EVENT = "onOllama"
 private const val PHONE_MODELS_EVENT = "onPhoneModels"
-private const val OPENCODE_EVENT = "onOpenCode"
+private const val AGENT_TOOL_EVENT = "onAgentTool"
 private const val CREATE_BACKUP_REQUEST = 7461
 private const val OPEN_BACKUP_REQUEST = 7462
 
@@ -50,7 +50,9 @@ class T3LocalServerModule : Module() {
   private val maintenanceListener: (Map<String, Any?>) -> Unit = { sendEvent(MAINTENANCE_EVENT, it) }
   private val ollamaListener: (Ollama.State) -> Unit = { sendEvent(OLLAMA_EVENT, it.toMap()) }
   private val phoneModelsListener: (PhoneModels.State) -> Unit = { sendEvent(PHONE_MODELS_EVENT, it.toMap()) }
-  private val openCodeListener: (OpenCode.State) -> Unit = { sendEvent(OPENCODE_EVENT, it.toMap()) }
+  private val agentToolListeners = AGENT_TOOLS.mapValues { (id, _) ->
+    { state: NpmTool.State -> sendEvent(AGENT_TOOL_EVENT, state.toMap() + ("id" to id)) }
+  }
   private val devServersListener: (List<DevServers.Server>) -> Unit = { servers ->
     sendEvent(DEV_SERVERS_EVENT, mapOf("servers" to servers.map { it.toMap() }))
   }
@@ -175,7 +177,7 @@ class T3LocalServerModule : Module() {
       GIT_SETUP_EVENT,
       OLLAMA_EVENT,
       PHONE_MODELS_EVENT,
-      OPENCODE_EVENT,
+      AGENT_TOOL_EVENT,
     )
 
     OnCreate {
@@ -195,7 +197,7 @@ class T3LocalServerModule : Module() {
       DevServers.addListener(devServersListener)
       Ollama.addListener(ollamaListener)
       PhoneModels.addListener(phoneModelsListener)
-      OpenCode.addListener(openCodeListener)
+      agentToolListeners.forEach { (id, listener) -> AGENT_TOOLS.getValue(id).addListener(listener) }
       removeRetiredTermux()
     }
     OnDestroy {
@@ -206,7 +208,7 @@ class T3LocalServerModule : Module() {
       DevServers.removeListener(devServersListener)
       Ollama.removeListener(ollamaListener)
       PhoneModels.removeListener(phoneModelsListener)
-      OpenCode.removeListener(openCodeListener)
+      agentToolListeners.forEach { (id, listener) -> AGENT_TOOLS.getValue(id).removeListener(listener) }
       AutoStop.forgetThreads()
     }
 
@@ -247,9 +249,10 @@ class T3LocalServerModule : Module() {
     Function("downloadPhoneModel") { id: String -> PhoneModels.download(context, id) }
     Function("cancelPhoneModelDownload") { PhoneModels.cancelDownload() }
     Function("deletePhoneModel") { id: String -> PhoneModels.delete(context, id) }
-    Function("openCodeState") { OpenCode.refresh(context).toMap() }
-    AsyncFunction("installOpenCode") { OpenCode.install(context) }
-    AsyncFunction("removeOpenCode") { OpenCode.remove(context) }
+    Function("agentToolState") { id: String -> agentTool(id).refresh(context).toMap() }
+    AsyncFunction("installAgentTool") { id: String -> agentTool(id).install(context) }
+    AsyncFunction("updateAgentTool") { id: String -> agentTool(id).upgrade(context) }
+    AsyncFunction("removeAgentTool") { id: String -> agentTool(id).remove(context) }
     Function("reportThreadWork") { json: String -> AutoStop.reportThreads(json) }
     Function("setSharedStorage") { value: Boolean -> options.sharedStorage = value }
     Function("serverSwitchTarget") {
@@ -341,6 +344,7 @@ class T3LocalServerModule : Module() {
         KeptFiles.restore(guest)
         throw error
       }
+      AgentReinstall.remember(context)
       File(guest.root, GuestRuntime.INSTALLED_MARKER).delete()
       RuntimeInstaller.removeTree(guest.rootfs)
       LocalServerService.start(context)
@@ -520,4 +524,7 @@ class T3LocalServerModule : Module() {
       login = null
     }
   }
+
+  private fun agentTool(id: String) =
+    AGENT_TOOLS[id] ?: throw CodedException("ERR_UNKNOWN_TOOL", "No agent tool named $id", null)
 }

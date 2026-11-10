@@ -19,7 +19,6 @@ private val NODE = PinnedDownload(
   "node.tar.gz",
 )
 private const val T3_VERSION = "0.1.7"
-private const val CLAUDE_CODE_VERSION = "2.1.319"
 
 private val GUEST_SETUP = """
   set -e
@@ -27,7 +26,7 @@ private val GUEST_SETUP = """
   apt-get update
   apt-get install -y --no-install-recommends ca-certificates curl git openssh-client procps \
     python3 ripgrep unzip xz-utils less nano
-  npm install -g t3@$T3_VERSION @anthropic-ai/claude-code@$CLAUDE_CODE_VERSION
+  npm install -g t3@$T3_VERSION
   mkdir -p /root/projects
 """.trimIndent()
 
@@ -53,7 +52,7 @@ class RuntimeInstaller(
     extract(node, nodeRoot, stripComponents = 1)
 
     configure()
-    report("Installing tools and Claude Code", 0.35)
+    report("Installing tools", 0.35)
     val process = guest.process(listOf("/bin/sh", "-c", GUEST_SETUP)).start()
     val log = File(guest.root, "install.log")
     var lines = 0

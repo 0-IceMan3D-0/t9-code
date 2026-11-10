@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useEnvironmentServerConfig } from "../../state/entities";
 import { serverEnvironment } from "../../state/server";
 import { useAtomCommand } from "../../state/use-atom-command";
-import { useLocalServerStatus, useOllama, usePhoneModels } from "./localServerModule";
+import { useAgentTool, useLocalServerStatus, useOllama, usePhoneModels } from "./localServerModule";
 import {
   claudeModelsToHide,
   installedPhoneModels,
@@ -152,14 +152,21 @@ export function LocalModelsCoordinator() {
   const status = useLocalServerStatus();
   const ollama = useOllama();
   const phone = usePhoneModels();
+  // Both instances run Claude Code, so they only exist while it is installed in Linux.
+  const claudeInstalled = useAgentTool("claude")?.installed ?? false;
   const connection = useLocalConnection(status?.state === "running" ? status.port : undefined);
   const environmentId = connection?.environmentId ?? null;
   const phoneModels = phone === null ? undefined : installedPhoneModels(phone);
-  useLocalInstanceSync(OLLAMA_PROVIDER, environmentId, ollama?.installed ?? false, ollama?.models);
+  useLocalInstanceSync(
+    OLLAMA_PROVIDER,
+    environmentId,
+    claudeInstalled && (ollama?.installed ?? false),
+    ollama?.models,
+  );
   useLocalInstanceSync(
     PHONE_GPU_PROVIDER,
     environmentId,
-    (phoneModels?.length ?? 0) > 0,
+    claudeInstalled && (phoneModels?.length ?? 0) > 0,
     phoneModels,
   );
   useTextGenerationFallback(environmentId);
