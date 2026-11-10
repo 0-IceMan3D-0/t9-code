@@ -3,11 +3,11 @@
   android:id="@+id/t3w_root"
   android:layout_width="match_parent"
   android:layout_height="match_parent"
-  android:background="@drawable/t3w_row_bg"
+  android:background="@drawable/t3w_bg"
   android:gravity="center_vertical"
   android:orientation="horizontal"
-  android:paddingStart="8dp"
-  android:paddingEnd="8dp">
+  android:paddingStart="12dp"
+  android:paddingEnd="16dp">
   <FrameLayout
     android:layout_width="64dp"
     android:layout_height="72dp">

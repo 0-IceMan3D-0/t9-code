@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <color name="t3w_surface">#FF1C1C1E</color>
+  <color name="t3w_text">#FFF2F2F7</color>
+  <color name="t3w_text_secondary">#FF98989F</color>
+  <color name="t3w_control">#FF2C2C2E</color>
+  <color name="t3w_control_pressed">#FF3A3A3C</color>
+  <color name="t3w_pressed">#1FFFFFFF</color>
+  <color name="t3w_needs_text">#FFFBBF24</color>
+</resources>

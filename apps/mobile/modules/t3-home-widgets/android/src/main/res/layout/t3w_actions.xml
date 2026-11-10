@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
   android:id="@+id/t3w_root"
+  android:background="@drawable/t3w_bg"
   android:layout_width="match_parent"
   android:layout_height="match_parent"
-    android:gravity="center_vertical"
+  android:gravity="center_vertical"
   android:orientation="horizontal"
   android:padding="6dp">
   <LinearLayout

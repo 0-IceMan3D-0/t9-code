@@ -73,6 +73,12 @@ Apps cannot open `/dev/bus/usb`. [`UsbBridge.kt`](../../apps/mobile/modules/t3-l
 - Restore unpacks next to the current environment and swaps it in with renames, so an interrupted restore can be finished or undone.
 - Reset Linux keeps the paths in the `KEPT` list in [`LinuxBackup.kt`](../../apps/mobile/modules/t3-local-server/android/src/main/java/expo/modules/t3localserver/LinuxBackup.kt). When you add a user configuration directory, add it there too.
 
+## Home screen widgets
+
+The widgets live in [`t3-home-widgets`](../../apps/mobile/modules/t3-home-widgets). Their colors come from resources: `values-night` handles dark mode and `values-v31` uses the system's neutral palette and widget corner radius. The launcher inflates layouts in its own configuration, so XML colors follow the phone's light or dark mode. Gauge arcs, however, are bitmaps drawn in the app process, whose configuration can differ. Their track therefore uses one translucent grey (`t3w_track`) that reads on both cards. Never draw a theme color into a bitmap.
+
+Transparent widgets use `t3w_clear_*` layouts that the module's [`build.gradle`](../../apps/mobile/modules/t3-home-widgets/android/build.gradle) generates from the card layouts by swapping styles, colors and backgrounds. Edit only the card layouts. A new style, color or background that a card layout uses needs a clear counterpart (`<Style>.Clear`) or a rule in that task.
+
 ## Releases and updates
 
 ### Build pipeline

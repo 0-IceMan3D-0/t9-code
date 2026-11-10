@@ -1,11 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <!-- Uppercase like the date on One UI's clock widgets. -->
   <style name="T3wHeader">
     <item name="android:textSize">14sp</item>
     <item name="android:textColor">@color/t3w_text</item>
-    <item name="android:textAllCaps">true</item>
-    <item name="android:letterSpacing">0.04</item>
+    <item name="android:fontFamily">sans-serif-medium</item>
     <item name="android:singleLine">true</item>
     <item name="android:ellipsize">end</item>
   </style>
@@ -28,7 +26,7 @@
   </style>
   <style name="T3wBadge">
     <item name="android:textSize">11sp</item>
-    <item name="android:textColor">@color/t3w_needs</item>
+    <item name="android:textColor">@color/t3w_needs_text</item>
     <item name="android:fontFamily">sans-serif-medium</item>
     <item name="android:background">@drawable/t3w_badge_bg</item>
     <item name="android:paddingStart">7dp</item>
@@ -77,5 +75,66 @@
     <item name="android:textColor">@color/t3w_text</item>
     <item name="android:singleLine">true</item>
     <item name="android:ellipsize">end</item>
+  </style>
+
+  <!-- Transparent widgets: white text with a soft shadow, readable on any wallpaper. -->
+  <style name="T3wHeader.Clear">
+    <item name="android:textColor">@color/t3w_clear_text</item>
+    <item name="android:shadowColor">@color/t3w_clear_shadow</item>
+    <item name="android:shadowRadius">4</item>
+    <item name="android:shadowDy">1</item>
+  </style>
+  <style name="T3wTitle.Clear">
+    <item name="android:textColor">@color/t3w_clear_text</item>
+    <item name="android:shadowColor">@color/t3w_clear_shadow</item>
+    <item name="android:shadowRadius">4</item>
+    <item name="android:shadowDy">1</item>
+  </style>
+  <style name="T3wSecondary.Clear">
+    <item name="android:textColor">@color/t3w_clear_text_secondary</item>
+    <item name="android:shadowColor">@color/t3w_clear_shadow</item>
+    <item name="android:shadowRadius">4</item>
+    <item name="android:shadowDy">1</item>
+  </style>
+  <style name="T3wStamp.Clear">
+    <item name="android:textColor">@color/t3w_clear_text_secondary</item>
+    <item name="android:shadowColor">@color/t3w_clear_shadow</item>
+    <item name="android:shadowRadius">4</item>
+    <item name="android:shadowDy">1</item>
+  </style>
+  <style name="T3wBig.Clear">
+    <item name="android:textColor">@color/t3w_clear_text</item>
+    <item name="android:shadowColor">@color/t3w_clear_shadow</item>
+    <item name="android:shadowRadius">4</item>
+    <item name="android:shadowDy">1</item>
+  </style>
+  <style name="T3wGaugeLabel.Clear">
+    <item name="android:textColor">@color/t3w_clear_text</item>
+    <item name="android:shadowColor">@color/t3w_clear_shadow</item>
+    <item name="android:shadowRadius">4</item>
+    <item name="android:shadowDy">1</item>
+  </style>
+  <style name="T3wGaugeTag.Clear">
+    <item name="android:textColor">@color/t3w_clear_text_secondary</item>
+    <item name="android:shadowColor">@color/t3w_clear_shadow</item>
+    <item name="android:shadowRadius">4</item>
+    <item name="android:shadowDy">1</item>
+  </style>
+  <style name="T3wLine.Clear">
+    <item name="android:textColor">@color/t3w_clear_text</item>
+    <item name="android:shadowColor">@color/t3w_clear_shadow</item>
+    <item name="android:shadowRadius">4</item>
+    <item name="android:shadowDy">1</item>
+  </style>
+  <style name="T3wBadge.Clear">
+    <item name="android:textColor">@color/t3w_needs</item>
+  </style>
+  <style name="T3wButton.Primary.Clear">
+    <item name="android:textColor">@color/t3w_clear_on_primary</item>
+    <item name="android:background">@drawable/t3w_clear_primary_bg</item>
+  </style>
+  <style name="T3wButton.Plain.Clear">
+    <item name="android:textColor">@color/t3w_clear_text</item>
+    <item name="android:background">@drawable/t3w_clear_control_bg</item>
   </style>
 </resources>

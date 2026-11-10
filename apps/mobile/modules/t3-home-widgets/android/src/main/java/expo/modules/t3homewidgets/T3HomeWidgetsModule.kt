@@ -39,6 +39,8 @@ class T3HomeWidgetsModule : Module() {
     Function("placed") { HomeWidgets.placed(context).map { it.id } }
     Function("publish") { key: String, json: String -> HomeWidgets.publish(context, key, json) }
     Function("read") { key: String -> HomeWidgets.readRaw(context, key) }
+    Function("clearBackgrounds") { WidgetBackground.clearKinds(context) }
+    Function("setClearBackground") { kind: String, clear: Boolean -> WidgetBackground.setClear(context, kind, clear) }
   }
 
   companion object {

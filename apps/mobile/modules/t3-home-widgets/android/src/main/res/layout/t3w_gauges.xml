@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Arc gauges in the style of One UI's battery widget. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
   android:id="@+id/t3w_root"
+  android:background="@drawable/t3w_bg"
   android:layout_width="match_parent"
   android:layout_height="match_parent"
   android:gravity="center"
@@ -13,7 +13,6 @@
     android:layout_height="match_parent"
     android:layout_weight="1"
     android:background="@drawable/t3w_row_bg">
-    <!-- The value sits in the arc's opening, as on One UI's battery gauges. -->
     <FrameLayout
       android:layout_width="64dp"
       android:layout_height="72dp"
@@ -45,7 +44,6 @@
     android:layout_height="match_parent"
     android:layout_weight="1"
     android:background="@drawable/t3w_row_bg">
-    <!-- The value sits in the arc's opening, as on One UI's battery gauges. -->
     <FrameLayout
       android:layout_width="64dp"
       android:layout_height="72dp"

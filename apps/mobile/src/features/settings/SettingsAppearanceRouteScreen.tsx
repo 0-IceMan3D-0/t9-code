@@ -1,6 +1,7 @@
 import { Platform } from "react-native";
 import { AndroidNavigationAppearanceSection } from "./appearance/sections/AndroidNavigationAppearanceSection";
 import { AppIconAppearanceSection } from "./appearance/sections/AppIconAppearanceSection";
+import { WidgetAppearanceSection } from "./appearance/sections/WidgetAppearanceSection";
 import { ScreenScrollView as ScrollView } from "../../components/ui/ScreenScrollView";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -27,6 +28,7 @@ export function SettingsAppearanceRouteScreen() {
         <ThemeAppearanceSection />
         {Platform.OS === "android" ? <AndroidNavigationAppearanceSection /> : null}
         {Platform.OS === "android" ? <AppIconAppearanceSection /> : null}
+        {Platform.OS === "android" ? <WidgetAppearanceSection /> : null}
         <TextAppearanceSection />
         <TerminalAppearanceSection />
         <CodeAppearanceSection />

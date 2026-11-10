@@ -20,6 +20,9 @@ interface HomeWidgetsNativeModule {
   /** JSON, because expo record-list arguments crash this app's module at startup. */
   publish(key: HomeWidgetDataKey, json: string): void;
   read(key: HomeWidgetDataKey): string | null;
+  /** Widgets drawn without their card, chosen in Settings > Appearance. */
+  clearBackgrounds(): ReadonlyArray<HomeWidgetKind>;
+  setClearBackground(kind: HomeWidgetKind, clear: boolean): void;
   addListener(event: "onPlacedChanged", listener: () => void): EventSubscription;
 }
 

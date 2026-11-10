@@ -172,6 +172,7 @@ object HomeWidgets {
   fun render(context: Context, kind: WidgetKind, ids: IntArray, force: Boolean) {
     if (ids.isEmpty()) return
     val manager = AppWidgetManager.getInstance(context)
+    val clear = WidgetBackground.isClear(context, kind)
     for (id in ids) {
       val size = WidgetSize.of(context, manager.getAppWidgetOptions(id))
       val model: WidgetModel = when (kind) {
@@ -185,9 +186,10 @@ object HomeWidgets {
         WidgetKind.LIMITS -> LimitsWidgetModel.from(context, size)
         WidgetKind.TOKENS -> TokensWidgetModel.from(context)
       }
-      if (!force && shown[id] == model) continue
-      manager.updateAppWidget(id, model.views(context))
-      shown[id] = model
+      val drawn = model to clear
+      if (!force && shown[id] == drawn) continue
+      manager.updateAppWidget(id, model.views(context, clear))
+      shown[id] = drawn
     }
     if (kind in WidgetKind.SERVER_STATE) ServerWidgetWatcher.afterRender(context)
   }
@@ -252,7 +254,33 @@ object HomeWidgets {
 
 /** A widget's content; equal models draw the same views, so redundant updates are skipped. */
 interface WidgetModel {
-  fun views(context: Context): RemoteViews
+  fun views(context: Context, clear: Boolean): RemoteViews
+}
+
+/**
+ * Card or transparent background, chosen per widget in Settings > Appearance. Each transparent
+ * layout `t3w_clear_*` is generated from its card layout at build time (see build.gradle).
+ */
+object WidgetBackground {
+  private const val PREFS = "t3_home_widget_backgrounds"
+
+  private fun prefs(context: Context) = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+
+  fun isClear(context: Context, kind: WidgetKind) = prefs(context).getBoolean(kind.id, false)
+
+  fun clearKinds(context: Context) = WidgetKind.entries.filter { isClear(context, it) }.map { it.id }
+
+  fun setClear(context: Context, kindId: String, clear: Boolean) {
+    val kind = WidgetKind.entries.firstOrNull { it.id == kindId } ?: return
+    prefs(context).edit().putBoolean(kind.id, clear).apply()
+    HomeWidgets.refresh(context, kind)
+  }
+
+  fun layout(context: Context, clear: Boolean, card: Int): Int {
+    if (!clear) return card
+    val name = context.resources.getResourceEntryName(card).replaceFirst("t3w_", "t3w_clear_")
+    return context.resources.getIdentifier(name, "layout", context.packageName).takeIf { it != 0 } ?: card
+  }
 }
 
 /** The chosen launcher icon preset, for widgets that show the app icon. */

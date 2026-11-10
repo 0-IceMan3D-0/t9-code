@@ -3,7 +3,7 @@
   <item android:state_pressed="true">
     <shape android:shape="rectangle">
       <solid android:color="@color/t3w_pressed" />
-      <corners android:radius="14dp" />
+      <corners android:radius="@dimen/t3w_inner_radius" />
     </shape>
   </item>
   <item android:drawable="@android:color/transparent" />

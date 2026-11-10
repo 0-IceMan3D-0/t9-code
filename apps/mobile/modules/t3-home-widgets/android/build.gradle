@@ -20,3 +20,25 @@ dependencies {
   implementation project(':t3-app-icon')
   testImplementation 'junit:junit:4.13.2'
 }
+
+// Transparent widgets: each card layout is copied as t3w_clear_* with clear styles, colors and
+// backgrounds, so the two variants can't drift apart. Edit only the card layouts.
+def clearWidgetRes = layout.buildDirectory.dir("generated/t3w-clear-res")
+def generateClearWidgetLayouts = tasks.register("generateClearWidgetLayouts", Copy) {
+  from("src/main/res/layout") { include "t3w_*.xml" }
+  into(clearWidgetRes.map { it.dir("layout") })
+  rename { name -> name.replaceFirst("t3w_", "t3w_clear_") }
+  filter { String line ->
+    line
+      .replaceAll(/style="@style\/(T3w[\w.]+)"/, 'style="@style/$1.Clear"')
+      .replace('@drawable/t3w_bg"', '@android:color/transparent"')
+      .replace('@drawable/t3w_pill_bg"', '@drawable/t3w_clear_control_bg"')
+      .replace('@drawable/t3w_action_bg"', '@drawable/t3w_clear_action_bg"')
+      .replace('@color/t3w_text"', '@color/t3w_clear_text"')
+      .replace('@color/t3w_text_secondary"', '@color/t3w_clear_text_secondary"')
+      .replace('android:src="@drawable/t3w_ic_', 'android:tint="@color/t3w_clear_text" android:src="@drawable/t3w_ic_')
+  }
+}
+android.libraryVariants.configureEach { variant ->
+  variant.registerGeneratedResFolders(project.files(clearWidgetRes).builtBy(generateClearWidgetLayouts))
+}

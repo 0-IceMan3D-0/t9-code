@@ -48,8 +48,8 @@ data class ThreadsWidgetModel(
   val stamp: String?,
   val compact: Boolean,
 ) : WidgetModel {
-  override fun views(context: Context): RemoteViews {
-    val views = RemoteViews(context.packageName, R.layout.t3w_threads)
+  override fun views(context: Context, clear: Boolean): RemoteViews {
+    val views = RemoteViews(context.packageName, WidgetBackground.layout(context, clear, R.layout.t3w_threads))
     val home = HomeWidgets.openApp(context, "/")
     views.show(R.id.t3w_header, !compact)
     views.setImageViewResource(R.id.t3w_icon, icon)
@@ -138,8 +138,8 @@ data class ServerWidgetModel(
   val webLabel: String?,
   val webUrl: String?,
 ) : WidgetModel {
-  override fun views(context: Context): RemoteViews {
-    val views = RemoteViews(context.packageName, if (compact) R.layout.t3w_server_small else R.layout.t3w_server)
+  override fun views(context: Context, clear: Boolean): RemoteViews {
+    val views = RemoteViews(context.packageName, WidgetBackground.layout(context, clear, if (compact) R.layout.t3w_server_small else R.layout.t3w_server))
     val thisPhone = HomeWidgets.openApp(context, THIS_PHONE_PATH)
     views.setOnClickPendingIntent(R.id.t3w_root, thisPhone)
     views.setImageViewResource(R.id.t3w_icon, icon)
@@ -308,8 +308,8 @@ object ServerWidgetWatcher {
 // ---- Quick actions -------------------------------------------------------------------------
 
 data class ActionsWidgetModel(val icon: Int, val labels: Boolean, val webUrl: String?, val webLabel: String?) : WidgetModel {
-  override fun views(context: Context): RemoteViews {
-    val views = RemoteViews(context.packageName, R.layout.t3w_actions)
+  override fun views(context: Context, clear: Boolean): RemoteViews {
+    val views = RemoteViews(context.packageName, WidgetBackground.layout(context, clear, R.layout.t3w_actions))
     views.setImageViewResource(R.id.t3w_new_icon, icon)
     views.setOnClickPendingIntent(R.id.t3w_new, HomeWidgets.openApp(context, "/new"))
     views.setOnClickPendingIntent(R.id.t3w_shell, HomeWidgets.openApp(context, "/settings/this-phone/shell"))
@@ -347,8 +347,8 @@ data class UsageWidgetModel(
   val stamp: String?,
   val path: String,
 ) : WidgetModel {
-  override fun views(context: Context): RemoteViews {
-    val views = RemoteViews(context.packageName, if (compact) R.layout.t3w_usage_small else R.layout.t3w_usage)
+  override fun views(context: Context, clear: Boolean): RemoteViews {
+    val views = RemoteViews(context.packageName, WidgetBackground.layout(context, clear, if (compact) R.layout.t3w_usage_small else R.layout.t3w_usage))
     views.setImageViewResource(R.id.t3w_icon, icon)
     views.setOnClickPendingIntent(R.id.t3w_root, HomeWidgets.openApp(context, path))
     if (compact) {
@@ -388,8 +388,8 @@ data class UsageWidgetModel(
 // ---- New thread bar ------------------------------------------------------------------------
 
 data class PromptWidgetModel(val icon: Int, val webUrl: String?, val webLabel: String?) : WidgetModel {
-  override fun views(context: Context): RemoteViews {
-    val views = RemoteViews(context.packageName, R.layout.t3w_prompt)
+  override fun views(context: Context, clear: Boolean): RemoteViews {
+    val views = RemoteViews(context.packageName, WidgetBackground.layout(context, clear, R.layout.t3w_prompt))
     views.setImageViewResource(R.id.t3w_icon, icon)
     views.setOnClickPendingIntent(R.id.t3w_new, HomeWidgets.openApp(context, "/new"))
     views.setOnClickPendingIntent(R.id.t3w_shell, HomeWidgets.openApp(context, "/settings/this-phone/shell"))
@@ -445,7 +445,7 @@ data class ServerLine(val label: String, val tone: String, val memory: String?, 
   }
 }
 
-/** Arcs like One UI's battery gauges: a dark track open at the bottom, filled clockwise. */
+/** Arc gauges: a grey track open at the bottom, filled clockwise. */
 object Gauge {
   private const val START = 140f
   private const val SWEEP = 260f
@@ -477,8 +477,8 @@ object Gauge {
 }
 
 data class GaugesWidgetModel(val server: ServerLine, val threads: ActiveThreads?) : WidgetModel {
-  override fun views(context: Context): RemoteViews {
-    val views = RemoteViews(context.packageName, R.layout.t3w_gauges)
+  override fun views(context: Context, clear: Boolean): RemoteViews {
+    val views = RemoteViews(context.packageName, WidgetBackground.layout(context, clear, R.layout.t3w_gauges))
     val share = server.share
     val memoryColor = when {
       share == null || share < 0.6f -> R.color.t3w_done
@@ -513,8 +513,8 @@ data class GaugesWidgetModel(val server: ServerLine, val threads: ActiveThreads?
 }
 
 data class StatusWidgetModel(val server: ServerLine, val threads: ActiveThreads?) : WidgetModel {
-  override fun views(context: Context): RemoteViews {
-    val views = RemoteViews(context.packageName, R.layout.t3w_status)
+  override fun views(context: Context, clear: Boolean): RemoteViews {
+    val views = RemoteViews(context.packageName, WidgetBackground.layout(context, clear, R.layout.t3w_status))
     val tone = when {
       threads == null -> "idle"
       threads.needs > 0 -> "needs"
@@ -555,8 +555,8 @@ private fun remainingColor(remaining: Int) = when {
 data class LimitGauge(val tag: String, val name: String, val remaining: Int)
 
 data class LimitsWidgetModel(val gauges: List<LimitGauge>, val empty: String?, val path: String) : WidgetModel {
-  override fun views(context: Context): RemoteViews {
-    val views = RemoteViews(context.packageName, R.layout.t3w_limits)
+  override fun views(context: Context, clear: Boolean): RemoteViews {
+    val views = RemoteViews(context.packageName, WidgetBackground.layout(context, clear, R.layout.t3w_limits))
     views.setOnClickPendingIntent(R.id.t3w_root, HomeWidgets.openApp(context, path))
     views.show(R.id.t3w_empty, empty != null)
     views.setTextViewText(R.id.t3w_empty, empty ?: "")
@@ -615,8 +615,8 @@ data class TokensWidgetModel(
   val detail: String,
   val path: String,
 ) : WidgetModel {
-  override fun views(context: Context): RemoteViews {
-    val views = RemoteViews(context.packageName, R.layout.t3w_tokens)
+  override fun views(context: Context, clear: Boolean): RemoteViews {
+    val views = RemoteViews(context.packageName, WidgetBackground.layout(context, clear, R.layout.t3w_tokens))
     // Under the average stays green, up to half again is orange, beyond that red.
     val color = when {
       ratio == null || ratio < 1f -> R.color.t3w_done
