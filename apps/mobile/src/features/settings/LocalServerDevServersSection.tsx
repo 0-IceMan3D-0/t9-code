@@ -43,7 +43,7 @@ export function LocalServerDevServersSection() {
   return (
     <SettingsSection
       title="Running web servers"
-      footer="Web servers started in Linux, by you or an agent. Links work only on this phone."
+      footer="Started in Linux by you or an agent; links work only on this phone."
     >
       {servers.length === 0 ? (
         <View className="p-4">

@@ -1,26 +1,26 @@
 # This phone (Android)
 
-Android builds can run T3 and coding agents such as Claude Code and OpenCode on the phone itself, with no other machine. Open **Settings > This phone**.
+Android builds can run T3 and coding agents such as Claude Code and OpenCode on the phone itself, with no other machine. Open **Settings > This phone**. It shows the server and its health, and opens **Agents**, **Models**, **Linux**, **Options** and **Maintenance** on their own pages.
 
 ## Built-in server
 
 **Set up** downloads Linux, Node and T3, about 500 MB, and starts the server. The app connects to it by itself. The server keeps running in the background behind a notification, and it only listens on the phone.
 
-Then install an agent under **Claude Code** or **OpenCode**; a new environment has neither.
+Then install Claude Code or OpenCode under **Agents**; a new environment has neither.
 
-**Claude Code** in **Settings > This phone**:
+**Claude Code** in **Settings > This phone > Agents**:
 
 - **Install Claude Code** installs the version tested with this app. **Update Claude Code** installs the newest release; if that one misbehaves, remove it and install again to go back.
 - After installing, use **Sign in to Claude**. Finish in the browser, and paste the code if one appears.
 - **Remove Claude Code** keeps your Claude sign-in and settings, so installing it again picks them up. Ollama and Phone GPU models run through Claude Code, so they leave the model picker while it is removed.
 
 - Private projects live in `/root/projects`.
-- **Shared project folder** adds `T3Projects` in phone storage as `/root/shared-projects`. Restart the server after changing it.
-- **Start when the app opens** starts the server each time the app launches, so you do not need to tap **Start**. It is off by default. It does not start the server after the phone restarts: open the app once. If you stop the server, it stays stopped until the app is closed and opened again.
-- **Stop when I leave the app** stops the server after you leave the app, to save battery. It is off by default. Leaving includes going home, switching apps and locking the screen. It waits 2 minutes first, so a quick trip to the browser, the share sheet or a photo picker does not stop it; coming back cancels it. To change the wait, pick a time under **Stop after**, or **Custom** for any number of minutes up to 4 hours. After that it waits while anything still uses the server: a thread that is working or waiting for your approval or answer, a Linux shell tab with a program running, a web server running in Linux, or a backup or restore. It stops 30 seconds after the last of these ends. The server's notification shows the countdown or what it is waiting for, with **Keep running** (until you next leave the app) and **Stop now**. With **Start when the app opens** also on, the server starts again when you come back. Scheduled tasks on the built-in server do not run while it is stopped.
-- **Delete environment** removes Linux, the Claude sign-in and every private project. Its dialog offers **Back up first**.
+- **Shared project folder**, in **Options**, adds `T3Projects` in phone storage as `/root/shared-projects`. Restart the server after changing it.
+- **Start when the app opens**, in **Options**, starts the server each time the app launches, so you do not need to tap **Start**. It is off by default. It does not start the server after the phone restarts: open the app once. If you stop the server, it stays stopped until the app is closed and opened again.
+- **Stop when I leave the app**, in **Options**, stops the server after you leave the app, to save battery. It is off by default. Leaving includes going home, switching apps and locking the screen. It waits 2 minutes first, so a quick trip to the browser, the share sheet or a photo picker does not stop it; coming back cancels it. To change the wait, pick a time under **Stop after**, or **Custom** for any number of minutes up to 4 hours. After that it waits while anything still uses the server: a thread that is working or waiting for your approval or answer, a Linux shell tab with a program running, a web server running in Linux, or a backup or restore. It stops 30 seconds after the last of these ends. The server's notification shows the countdown or what it is waiting for, with **Keep running** (until you next leave the app) and **Stop now**. With **Start when the app opens** also on, the server starts again when you come back. Scheduled tasks on the built-in server do not run while it is stopped.
+- **Delete environment**, in **Maintenance**, removes Linux, the Claude sign-in and every private project. Its dialog offers **Back up first**.
 
-**Open Linux shell** gives a root shell in the same environment. `apt` works there. It does not need the server, but without the server Android may pause it while the app is in the background.
+**Open Linux shell**, in **Linux**, gives a root shell in the same environment. `apt` works there. It does not need the server, but without the server Android may pause it while the app is in the background.
 
 - **Tabs**: tap **+** for up to 8 shells. Each tab shows the program running in it, or its folder. Shells keep running when you switch tabs or leave the screen. Closing a tab ends everything started in it, and asks first if a program is still running.
 - **Text size**: pinch the terminal, or use **Larger text** and **Smaller text** in the **⋮** menu. The size is shared with thread terminals.
@@ -29,7 +29,7 @@ Then install an agent under **Claude Code** or **OpenCode**; a new environment h
 
 ## Files
 
-**Browse files** in **Settings > This phone** opens a file explorer that works on the phone directly, even while the server is stopped. **Linux** shows Linux's files, starting in `/root`. **Phone storage** shows the phone's shared storage once you allow "manage all files". To browse another computer, open **Settings > Environments**, pick the environment, then **Browse files**.
+**Browse files** in **Settings > This phone > Linux** opens a file explorer that works on the phone directly, even while the server is stopped. **Linux** shows Linux's files, starting in `/root`. **Phone storage** shows the phone's shared storage once you allow "manage all files". To browse another computer, open **Settings > Environments**, pick the environment, then **Browse files**.
 
 - Tap a folder to open it and a file to view it. Long-press for **Edit**, **Open with…**, **Share…**, **Save to Downloads**, **Rename**, **Duplicate**, **Copy**, **Move**, **Copy path**, **Info** and **Delete**. **Info** on a folder adds up its size.
 - The **⋮** menu has **New folder**, **New file**, **Import from phone**, **Go to path…**, sorting and **Show hidden files**. **Select** picks several items to copy, move or delete together.
@@ -40,7 +40,7 @@ Then install an agent under **Claude Code** or **OpenCode**; a new environment h
 
 ## Git and GitHub
 
-**Git and GitHub** in **Settings > This phone** sets up git for Linux. The built-in server's agents run as the same root user, so they commit with this identity and push with this key.
+**Git and GitHub** in **Settings > This phone > Linux** sets up git for Linux. The built-in server's agents run as the same root user, so they commit with this identity and push with this key.
 
 1. If git or SSH is missing, tap **Install git and SSH**.
 2. Type a name and email for your commits and tap **Save identity**. Clear both and save to remove them.
@@ -62,7 +62,7 @@ Long-press the app icon for **New thread**, **Start server** (or **Stop server**
 
 ## Web servers in Linux
 
-When a program in Linux starts a web server, such as an agent running `vite`, `next dev` or `python3 -m http.server`, it shows under **Running web servers** in **Settings > This phone**. Tap a server to open it in your browser, or copy its link. Threads on the built-in server show the same links above the composer: tap one to open it, long-press to copy it. While the server runs, its notification also names the newest web server and has an **Open** button.
+When a program in Linux starts a web server, such as an agent running `vite`, `next dev` or `python3 -m http.server`, it shows under **Running web servers** in **Settings > This phone > Linux**. Tap a server to open it in your browser, or copy its link. Threads on the built-in server show the same links above the composer: tap one to open it, long-press to copy it. While the server runs, its notification also names the newest web server and has an **Open** button.
 
 - Links point at `127.0.0.1` and work only on this phone. Other devices cannot reach these servers.
 - A server leaves the list when it stops listening.
@@ -71,7 +71,7 @@ When a program in Linux starts a web server, such as an agent running `vite`, `n
 
 ## Local models with Ollama
 
-**Ollama** in **Settings > This phone** runs open models on the phone's processor, so Claude Code or OpenCode can work with your code staying on the phone.
+**Ollama** in **Settings > This phone > Models** runs open models on the phone's processor, so Claude Code or OpenCode can work with your code staying on the phone.
 
 1. Tap **Install Ollama**. It downloads 1.6 GB once and keeps about 60 MB.
 2. With the server running, type a model name from [ollama.com](https://ollama.com/library) and tap **Download model**. Small models that use tools work best, such as `qwen3:1.7b` or `qwen3:4b`.
@@ -85,7 +85,7 @@ When a program in Linux starts a web server, such as an agent running `vite`, `n
 
 ## Local models on the GPU
 
-**Phone GPU** in **Settings > This phone** runs Google's Gemma 4 models on the phone's graphics processor, much faster than Ollama.
+**Phone GPU** in **Settings > This phone > Models** runs Google's Gemma 4 models on the phone's graphics processor, much faster than Ollama.
 
 1. Tap **Download Gemma 4 E2B** (2.6 GB, fastest) or **Download Gemma 4 E4B** (3.7 GB, writes better). A dropped download continues where it stopped.
 2. In a thread on the built-in server, pick the model under **Phone GPU** in the model picker to use it with Claude Code, or under **OpenCode** once [OpenCode](#opencode) is installed.
@@ -99,7 +99,7 @@ When a program in Linux starts a web server, such as an agent running `vite`, `n
 
 ## OpenCode
 
-**OpenCode** in **Settings > This phone** installs OpenCode in Linux and turns it on for the built-in server. Pick **OpenCode** in a thread's model picker to use it.
+**OpenCode** in **Settings > This phone > Agents** installs OpenCode in Linux and turns it on for the built-in server. Pick **OpenCode** in a thread's model picker to use it.
 
 - OpenCode's free models work without an account. To use your own providers, run `opencode auth login` in a Linux shell.
 - Models from Ollama and Phone GPU on this phone show up in OpenCode as **Ollama on this phone** and **Phone GPU**.
@@ -107,7 +107,7 @@ When a program in Linux starts a web server, such as an agent running `vite`, `n
 
 ## Health
 
-**Health** in **Settings > This phone** shows how much memory and CPU the built-in environment uses (the server, shells and agents in Linux), how much memory the phone has free, and how much storage Linux and private projects take. It updates every few seconds while the screen is open.
+**Health** in **Settings > This phone** graphs how much memory and CPU the built-in environment uses (the server, shells and agents in Linux), how much memory the phone has free, and how much storage Linux and private projects take. It updates every few seconds while the screen is open.
 
 When the phone runs low on memory, or Linux uses a large share of it, Android may stop the server and its agents. A warning then shows on This phone. If the server runs while the app is in the background, a notification says so, at most every 30 minutes. You can turn it off under the **Built-in server warnings** category in Android's notification settings for the app.
 
@@ -123,7 +123,7 @@ When the phone runs low on memory, or Linux uses a large share of it, Android ma
 
 ## Running in the background
 
-Android's battery optimisation lets OnePlus and other phones stop an app's background work, even while its notification shows. Agents then stop in the middle of a run. **Running in the background** in **Settings > This phone** shows whether the app is optimised. **Allow background use** opens Android's prompt, or its battery optimisation list on phones without the prompt. The row updates when you come back.
+Android's battery optimisation lets OnePlus and other phones stop an app's background work, even while its notification shows. Agents then stop in the middle of a run. **Running in the background** in **Settings > This phone > Options** shows whether the app is optimised. **Allow background use** opens Android's prompt, or its battery optimisation list on phones without the prompt. The row updates when you come back.
 
 The app also asks once, the first time you start the server or turn on **Stay connected** in **Settings > Notifications** while it is optimised. If you choose **Not now**, it does not ask again.
 
@@ -133,7 +133,7 @@ Some phones have their own battery settings on top of Android's. For several mak
 
 The Linux environment can use USB devices plugged into the phone with a USB OTG adapter or cable, for example another phone for `adb` and `fastboot`, or a board for `openocd` or `dfu-util`.
 
-1. Plug the device in. It appears under **USB devices** in **Settings > This phone**.
+1. Plug the device in. It appears under **USB devices** in **Settings > This phone > Linux**.
 2. Tap the device and allow access in Android's prompt. `t3-usb allow` in **Open Linux shell** asks the same thing for every attached device.
 3. Use your tool as usual, for example `apt install adb fastboot usbutils`, then `adb devices` or `lsusb`.
 

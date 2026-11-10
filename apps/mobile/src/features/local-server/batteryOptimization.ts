@@ -61,7 +61,7 @@ export function offerBatteryExemption(): void {
   if (!shouldOfferBatteryHint(snapshot)) return;
   Dialog.alert(
     "Keep agents running in the background?",
-    `${BATTERY_REASON} Allow T3² Code to ignore battery optimisation so the built-in server and notifications keep working while the app is closed. You can change this later in Settings > This phone.`,
+    `${BATTERY_REASON} Allow T3² Code to ignore battery optimisation so the built-in server and notifications keep working while the app is closed. You can change this later in Settings > This phone > Options.`,
     [
       { text: "Not now", style: "cancel", onPress: dismissHint },
       {

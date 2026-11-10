@@ -157,7 +157,7 @@ export function LocalServerGitSection() {
   return (
     <SettingsSection
       title="Git and GitHub"
-      footer="The built-in server's agents use this identity and key too. Prefer the GitHub CLI? In the Linux shell, run apt install gh, then gh auth login."
+      footer="Agents use this identity and key too; for the GitHub CLI, run apt install gh in the Linux shell."
     >
       <View className="gap-1 p-4">
         <Text className="text-base text-foreground">

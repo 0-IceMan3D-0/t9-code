@@ -11,7 +11,7 @@ export function LocalServerOpenCodeSection() {
   return (
     <SettingsSection
       title="OpenCode"
-      footer="Pick OpenCode in a thread's model picker. Its free models work without an account; to add your own providers, run opencode auth login in the Linux shell. The phone's Ollama and GPU models are listed in OpenCode too."
+      footer="Free models work without an account; to add your own providers, run opencode auth login in the Linux shell."
     >
       <View className="gap-1 p-4">
         <Text className="text-base text-foreground">{agentToolSummary(openCode)}</Text>

@@ -1,7 +1,7 @@
 import { Platform } from "react-native";
 
 import { ListActionRow as SettingsActionRow } from "../../components/ui/ListActionRow";
-import { BATTERY_REASON, vendorGuideUrl, vendorName } from "../local-server/batteryGuidance";
+import { vendorGuideUrl, vendorName } from "../local-server/batteryGuidance";
 import {
   openBatterySettings,
   openVendorGuide,
@@ -16,11 +16,15 @@ const guide = vendorGuideUrl(manufacturer);
 export function LocalServerBatterySection() {
   const battery = useBatteryState();
   if (!battery) return null;
-  const footer = guide
-    ? BATTERY_REASON
-    : `${BATTERY_REASON} Some phones have extra battery settings of their own. Look for T3² Code under Battery in Android settings.`;
   return (
-    <SettingsSection title="Running in the background" footer={footer}>
+    <SettingsSection
+      title="Running in the background"
+      footer={
+        guide
+          ? undefined
+          : "Some phones have their own battery settings too; look for T3² Code under Battery."
+      }
+    >
       <SettingsActionRow
         icon="bolt.circle"
         label={battery.optimized ? "Allow background use" : "Background use allowed"}

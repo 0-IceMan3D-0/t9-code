@@ -116,6 +116,12 @@ const SETTINGS_SEARCH_TERMS = {
     "claude code",
     "sign in",
     "linux",
+    "opencode",
+    "ollama",
+    "phone gpu",
+    "models",
+    "git",
+    "backup",
   ],
   SettingsLabs: [
     "legacy",

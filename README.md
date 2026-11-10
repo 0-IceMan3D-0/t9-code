@@ -41,7 +41,7 @@ T3² Code is a fork of [T3 Code](https://github.com/pingdotgg/t3code) for Androi
 
 The built-in server runs T3 inside a private Ubuntu 24.04 environment on the phone, with Node.js. The app connects to it by itself, and it keeps running in the background behind a notification.
 
-**Get started:** open **Settings > This phone** and tap **Set up**. The first setup downloads about 500 MB.
+**Get started:** open **Settings > This phone** and tap **Set up**. The first setup downloads about 500 MB. These options are in **Settings > This phone > Options**:
 
 | Option                        | What it does                                                                                                                                                        |
 | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -57,7 +57,7 @@ The built-in server runs T3 inside a private Ubuntu 24.04 environment on the pho
 
 Anthropic's coding agent, installed into the phone's Linux environment.
 
-1. In **Settings > This phone**, tap **Install Claude Code**. This installs the version tested with T3² Code.
+1. In **Settings > This phone > Agents**, tap **Install Claude Code**. This installs the version tested with T3² Code.
 2. Tap **Sign in to Claude**, finish in the browser, and paste the code if one appears.
 3. Start a thread on **This phone** and pick a Claude model.
 
@@ -69,7 +69,7 @@ Anthropic's coding agent, installed into the phone's Linux environment.
 
 An open-source coding agent that works without an account.
 
-1. In **Settings > This phone**, tap **Install OpenCode**. The OpenCode provider is turned on for you.
+1. In **Settings > This phone > Agents**, tap **Install OpenCode**. The OpenCode provider is turned on for you.
 2. Pick **OpenCode** in a thread's model picker.
 
 - OpenCode's free models need no sign-in.
@@ -85,7 +85,7 @@ Runs Google's Gemma 4 models on the phone's graphics processor. This is the fast
 | Gemma 4 E2B | 2.6 GB   | Speed          |
 | Gemma 4 E4B | 3.7 GB   | Better writing |
 
-1. In **Settings > This phone > Phone GPU**, download a model. If the download stops, it continues from where it left off.
+1. In **Settings > This phone > Models**, download a Phone GPU model. If the download stops, it continues from where it left off.
 2. In a thread on the built-in server, pick the model under **Phone GPU**, either with Claude Code or with OpenCode.
 
 - The first message in a thread reads the agent's instructions. This takes a few seconds on a recent flagship phone and about a minute on a phone from 2020. Later messages in the same thread take seconds.
@@ -99,7 +99,7 @@ Runs Google's Gemma 4 models on the phone's graphics processor. This is the fast
 
 Runs open models from [ollama.com](https://ollama.com/library) on the phone's processor. It works on any phone, but much more slowly than Phone GPU.
 
-1. In **Settings > This phone**, tap **Install Ollama**. It downloads 1.6 GB once and keeps about 60 MB.
+1. In **Settings > This phone > Models**, tap **Install Ollama**. It downloads 1.6 GB once and keeps about 60 MB.
 2. With the server running, type a model name and tap **Download model**. Small models that support tools work best, such as `qwen3:1.7b` or `qwen3:4b`.
 3. In a thread on the built-in server, pick the model under **Ollama**.
 
@@ -113,7 +113,7 @@ Runs open models from [ollama.com](https://ollama.com/library) on the phone's pr
 
 ### Linux shell
 
-**Settings > This phone > Open Linux shell** gives you a root shell in the same environment the agents use. `apt` works, so you can install any Ubuntu package.
+**Settings > This phone > Linux > Open Linux shell** gives you a root shell in the same environment the agents use. `apt` works, so you can install any Ubuntu package.
 
 | Feature            | How to use it                                                                                                    |
 | ------------------ | ---------------------------------------------------------------------------------------------------------------- |
@@ -124,7 +124,7 @@ Runs open models from [ollama.com](https://ollama.com/library) on the phone's pr
 
 ### File explorer
 
-**Settings > This phone > Browse files** works even while the server is stopped. It shows **Linux** (starting in `/root`) and **Phone storage**, once you allow access to all files.
+**Settings > This phone > Linux > Browse files** works even while the server is stopped. It shows **Linux** (starting in `/root`) and **Phone storage**, once you allow access to all files.
 
 - **Manage files:** long-press for edit, share, rename, duplicate, copy, move, info and delete. **Select** works on several items at once. You can copy and move between Linux and phone storage.
 - **View files:** code with syntax highlighting, Markdown and CSV previews, images, video, audio and a hex view.
@@ -135,7 +135,7 @@ You can also browse another computer's files from **Settings > Environments**.
 
 ### Git and GitHub
 
-**Settings > This phone > Git and GitHub** sets up git for Linux. Agents commit with this identity and push with this key.
+**Settings > This phone > Linux > Git and GitHub** sets up git for Linux. Agents commit with this identity and push with this key.
 
 1. Tap **Install git and SSH** if they are missing.
 2. Enter a name and email, then tap **Save identity**.
@@ -147,7 +147,7 @@ You can also browse another computer's files from **Settings > Environments**.
 
 ### Web servers
 
-When an agent or the shell starts a web server, such as `vite`, `next dev` or `python3 -m http.server`, it appears under **Running web servers** in **Settings > This phone**.
+When an agent or the shell starts a web server, such as `vite`, `next dev` or `python3 -m http.server`, it appears under **Running web servers** in **Settings > This phone > Linux**.
 
 - Tap a server to open it in your browser, or copy its link.
 - Threads on the built-in server show the same links above the message box.
@@ -158,7 +158,7 @@ When an agent or the shell starts a web server, such as `vite`, `next dev` or `p
 
 Plug in a device with a USB OTG adapter, such as another phone or a development board, and use it from Linux.
 
-1. The device appears under **USB devices** in **Settings > This phone**.
+1. The device appears under **USB devices** in **Settings > This phone > Linux**.
 2. Tap it and allow access. `t3-usb allow` in the shell does the same for every attached device.
 3. Use your tools as usual, for example `apt install adb fastboot usbutils`, then `adb devices`.
 
@@ -188,11 +188,11 @@ All three tools are in **Settings > This phone > Maintenance**.
 
 Some phones, including OnePlus, Samsung and Xiaomi models, stop background apps even while they show a notification. That stops agents in the middle of their work.
 
-**Settings > This phone > Running in the background** shows whether Android optimizes the app's battery use. **Allow background use** turns that optimization off. For phones with their own battery settings, the section links to that maker's page on [dontkillmyapp.com](https://dontkillmyapp.com).
+**Settings > This phone > Options > Running in the background** shows whether Android optimizes the app's battery use. **Allow background use** turns that optimization off. For phones with their own battery settings, the section links to that maker's page on [dontkillmyapp.com](https://dontkillmyapp.com).
 
 ### Health
 
-**Settings > This phone > Health** shows how much memory and CPU the environment uses, how much memory the phone has free, and how much storage Linux and projects take. When memory runs low, Android may stop the server; the app warns you when this is likely.
+**Settings > This phone > Health** graphs how much memory and CPU the environment uses, how much memory the phone has free, and how much storage Linux and projects take. When memory runs low, Android may stop the server; the app warns you when this is likely.
 
 ---
 

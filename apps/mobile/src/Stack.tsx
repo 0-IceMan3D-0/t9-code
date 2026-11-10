@@ -117,6 +117,12 @@ import {
 } from "./features/settings/ScheduledTaskPickerScreens";
 import { SettingsKeyboardRouteScreen } from "./features/settings/SettingsKeyboardRouteScreen";
 import { SettingsLegalRouteScreen } from "./features/settings/SettingsLegalRouteScreen";
+import { SettingsLocalServerAgentsRouteScreen } from "./features/settings/SettingsLocalServerAgentsRouteScreen";
+import { SettingsLocalServerGitRouteScreen } from "./features/settings/SettingsLocalServerGitRouteScreen";
+import { SettingsLocalServerLinuxRouteScreen } from "./features/settings/SettingsLocalServerLinuxRouteScreen";
+import { SettingsLocalServerMaintenanceRouteScreen } from "./features/settings/SettingsLocalServerMaintenanceRouteScreen";
+import { SettingsLocalServerModelsRouteScreen } from "./features/settings/SettingsLocalServerModelsRouteScreen";
+import { SettingsLocalServerOptionsRouteScreen } from "./features/settings/SettingsLocalServerOptionsRouteScreen";
 import { SettingsLocalServerRouteScreen } from "./features/settings/SettingsLocalServerRouteScreen";
 import { SettingsVoiceRouteScreen } from "./features/settings/SettingsVoiceRouteScreen";
 import { SettingsVoiceModelsRouteScreen } from "./features/settings/SettingsVoiceModelsRouteScreen";
@@ -205,6 +211,36 @@ const SETTINGS_SCREENS = {
     screen: SettingsLocalServerRouteScreen,
     linking: "settings/this-phone",
     options: settingsPage("This phone"),
+  }),
+  SettingsLocalServerAgents: createNativeStackScreen({
+    screen: SettingsLocalServerAgentsRouteScreen,
+    linking: "settings/this-phone/agents",
+    options: settingsPage("Agents"),
+  }),
+  SettingsLocalServerModels: createNativeStackScreen({
+    screen: SettingsLocalServerModelsRouteScreen,
+    linking: "settings/this-phone/models",
+    options: settingsPage("Models"),
+  }),
+  SettingsLocalServerLinux: createNativeStackScreen({
+    screen: SettingsLocalServerLinuxRouteScreen,
+    linking: "settings/this-phone/linux",
+    options: settingsPage("Linux"),
+  }),
+  SettingsLocalServerGit: createNativeStackScreen({
+    screen: SettingsLocalServerGitRouteScreen,
+    linking: "settings/this-phone/git",
+    options: settingsPage("Git and GitHub"),
+  }),
+  SettingsLocalServerOptions: createNativeStackScreen({
+    screen: SettingsLocalServerOptionsRouteScreen,
+    linking: "settings/this-phone/options",
+    options: settingsPage("Options"),
+  }),
+  SettingsLocalServerMaintenance: createNativeStackScreen({
+    screen: SettingsLocalServerMaintenanceRouteScreen,
+    linking: "settings/this-phone/maintenance",
+    options: settingsPage("Maintenance"),
   }),
   SettingsLabs: createNativeStackScreen({
     screen: SettingsLabsRouteScreen,
