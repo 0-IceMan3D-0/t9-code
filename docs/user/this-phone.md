@@ -78,7 +78,8 @@ When a program in Linux starts a web server, such as an agent running `vite`, `n
 3. In a thread on the built-in server, pick the model under **Ollama** in the model picker to use it with Claude Code, or under **OpenCode** or **Pi** once [OpenCode](#opencode) or [Pi](#pi) is installed.
 
 - Ollama starts and stops with the built-in server.
-- **Expect each turn to take minutes.** The agent sends long instructions with every turn, and a phone's processor reads them slowly. Ollama keeps a model loaded for 30 minutes after a turn, so the next one starts sooner.
+- **Expect each turn to take minutes.** The agent sends long instructions with every turn, and a phone's processor reads them slowly. Ollama keeps a model loaded for 30 minutes after a turn, so the next one starts sooner. With Claude Code and `qwen3:1.7b`, the first message of a thread took about 12 minutes on a phone from 2020.
+- **Keep the screen on during a turn.** Some phones stop a busy app once the screen is off. **Allow background use** in **Options** may prevent that.
 - A model needs about as much free memory as its download size plus a few GB for the agent's instructions.
 - Tap a model to delete it. **Remove Ollama** deletes Ollama and every model, and removes the **Ollama** choice from the model picker.
 - Backups leave out downloaded models; download them again after a restore. Ollama's log is `/var/log/ollama.log` in Linux.

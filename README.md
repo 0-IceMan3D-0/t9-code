@@ -113,7 +113,8 @@ Runs open models from [ollama.com](https://ollama.com/library) on the phone's pr
 2. With the server running, type a model name and tap **Download model**. Small models that support tools work best, such as `qwen3:1.7b` or `qwen3:4b`.
 3. In a thread on the built-in server, pick the model under **Ollama**.
 
-- Expect each turn to take minutes.
+- Expect each turn to take minutes. With Claude Code and `qwen3:1.7b`, the first message of a thread took about 12 minutes on a phone from 2020.
+- Keep the screen on during a turn. Some phones stop a busy app once the screen is off; [allowing background use](#running-in-the-background) may prevent that.
 - Ollama starts and stops with the built-in server. Its log is `/var/log/ollama.log`.
 - Backups do not include downloaded models; download them again after a restore.
 
