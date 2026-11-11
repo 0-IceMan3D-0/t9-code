@@ -15,7 +15,9 @@ export function LocalServerPhoneGpuSection(props: { readonly serverRunning: bool
   const loaded = phone.catalog.find((model) => model.id === phone.loaded);
   const summary =
     phone.installed.length === 0
-      ? "Download a model to start."
+      ? props.serverRunning || phone.downloading !== null
+        ? "Download a model to start."
+        : "Start the built-in server to download models."
       : !phone.running
         ? props.serverRunning
           ? "Starting"
@@ -59,6 +61,7 @@ export function LocalServerPhoneGpuSection(props: { readonly serverRunning: bool
             />
           );
         }
+        if (!props.serverRunning && !downloading) return null;
         return (
           <SettingsActionRow
             key={model.id}

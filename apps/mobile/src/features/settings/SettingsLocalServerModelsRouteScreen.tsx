@@ -4,16 +4,16 @@ import { ListRow } from "../../components/ui/ListRow";
 import { useLinuxMaintenance } from "../local-server/linuxMaintenance";
 import { SettingsSection } from "./components/SettingsSection";
 import { LocalServerOllamaSection } from "./LocalServerOllamaSection";
-import { isSetUp, LocalServerPage } from "./LocalServerPage";
+import { LocalServerPage } from "./LocalServerPage";
 import { LocalServerPhoneGpuSection } from "./LocalServerPhoneGpuSection";
 
 export function SettingsLocalServerModelsRouteScreen() {
   const navigation = useNavigation();
   const maintaining = useLinuxMaintenance()?.state === "running";
   return (
-    <LocalServerPage title="Models">
+    <LocalServerPage title="Models" needsLinux>
       {(status) =>
-        !isSetUp(status) || maintaining ? null : (
+        maintaining ? null : (
           <>
             <LocalServerPhoneGpuSection serverRunning={status.state === "running"} />
             <LocalServerOllamaSection serverRunning={status.state === "running"} />

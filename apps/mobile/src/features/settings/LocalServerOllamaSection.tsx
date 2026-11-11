@@ -15,6 +15,7 @@ export function LocalServerOllamaSection(props: { readonly serverRunning: boolea
   if (!server || !ollama) return null;
 
   const pulling = ollama.pulling !== null;
+  const canInstall = ollama.installing || props.serverRunning;
   const summary = ollama.installing
     ? (ollama.detail ?? "Installing")
     : !ollama.installed
@@ -45,6 +46,11 @@ export function LocalServerOllamaSection(props: { readonly serverRunning: boolea
             {Math.round(ollama.progress * 100)}%
           </Text>
         ) : null}
+        {!ollama.installed && !canInstall ? (
+          <Text className="text-sm text-foreground-muted">
+            Start the built-in server to install Ollama.
+          </Text>
+        ) : null}
         {ollama.error ? (
           <Text selectable accessibilityRole="alert" className="text-sm text-danger-foreground">
             {ollama.error}
@@ -53,14 +59,16 @@ export function LocalServerOllamaSection(props: { readonly serverRunning: boolea
       </View>
 
       {!ollama.installed ? (
-        <SettingsActionRow
-          icon="arrow.down.circle"
-          label="Install Ollama"
-          description="Downloads 1.6 GB once and keeps about 60 MB"
-          loading={ollama.installing}
-          disabled={ollama.installing}
-          onPress={() => server.installOllama()}
-        />
+        canInstall ? (
+          <SettingsActionRow
+            icon="arrow.down.circle"
+            label="Install Ollama"
+            description="Downloads 1.6 GB once and keeps about 60 MB"
+            loading={ollama.installing}
+            disabled={ollama.installing}
+            onPress={() => server.installOllama()}
+          />
+        ) : null
       ) : (
         <>
           {ollama.models.map((entry) => (

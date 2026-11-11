@@ -48,7 +48,7 @@ The built-in server runs T3 inside a private Ubuntu 24.04 environment on the pho
 | **Start when the app opens**  | Starts the server every time you open the app. Off by default.                                                                                                      |
 | **Stop when I leave the app** | Stops the server after you leave the app, to save battery. It waits 2 minutes by default, and longer while an agent is working or a shell or web server is running. |
 | **Shared project folder**     | Adds `T3Projects` in phone storage as `/root/shared-projects`. Private projects live in `/root/projects`.                                                           |
-| **Delete environment**        | Removes Linux, sign-ins and private projects. It offers to make a backup first.                                                                                     |
+| **Delete environment**        | Removes Linux, sign-ins and private projects. It offers to make a backup first. Phone GPU models are kept unless you choose to delete them.                         |
 
 > [!IMPORTANT]
 > The server only listens on the phone. Other devices cannot connect to it or to anything it runs.
@@ -95,7 +95,7 @@ Runs Google's Gemma 4 models on the phone's graphics processor. This is the fast
 | Gemma 4 E2B | 2.6 GB   | Speed          |
 | Gemma 4 E4B | 3.7 GB   | Better writing |
 
-1. In **Settings > This phone > Models**, download a Phone GPU model. If the download stops, it continues from where it left off.
+1. With the server running, download a Phone GPU model in **Settings > This phone > Models**. If the download stops, it continues from where it left off.
 2. In a thread on the built-in server, pick the model under **Phone GPU**, either with Claude Code or with OpenCode.
 
 - The first message in a thread reads the agent's instructions. This takes a few seconds on a recent flagship phone and about a minute on a phone from 2020. Later messages in the same thread take seconds.
@@ -109,7 +109,7 @@ Runs Google's Gemma 4 models on the phone's graphics processor. This is the fast
 
 Runs open models from [ollama.com](https://ollama.com/library) on the phone's processor. It works on any phone, but much more slowly than Phone GPU.
 
-1. In **Settings > This phone > Models**, tap **Install Ollama**. It downloads 1.6 GB once and keeps about 60 MB.
+1. With the server running, tap **Install Ollama** in **Settings > This phone > Models**. It downloads 1.6 GB once and keeps about 60 MB.
 2. With the server running, type a model name and tap **Download model**. Small models that support tools work best, such as `qwen3:1.7b` or `qwen3:4b`.
 3. In a thread on the built-in server, pick the model under **Ollama**.
 

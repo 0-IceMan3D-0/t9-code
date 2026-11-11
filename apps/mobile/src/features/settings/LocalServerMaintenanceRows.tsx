@@ -12,12 +12,13 @@ import {
   restoreLinux,
   useLinuxMaintenance,
 } from "../local-server/linuxMaintenance";
-import type { LocalServerState } from "../local-server/localServerModule";
+import type { LocalServerStatus } from "../local-server/localServerModule";
+import { isSetUp } from "./LocalServerPage";
 
 /** Backup, restore and reset rows, with the running job's progress in place of the buttons. */
-export function LocalServerMaintenanceRows(props: { readonly state: LocalServerState }) {
+export function LocalServerMaintenanceRows(props: { readonly status: LocalServerStatus }) {
   const job = useLinuxMaintenance();
-  const installed = props.state !== "notInstalled" && props.state !== "installing";
+  const installed = isSetUp(props.status);
   if (job?.state === "running") {
     const progress = maintenanceProgress(job);
     const title = job.operation === "backup" ? "Backing up Linux" : "Restoring Linux";
@@ -64,7 +65,7 @@ export function LocalServerMaintenanceRows(props: { readonly state: LocalServerS
       <SettingsActionRow
         icon="tray.and.arrow.up"
         label="Restore from backup"
-        disabled={props.state === "installing"}
+        disabled={props.status.state === "installing"}
         onPress={() => void restoreLinux()}
       />
       <SettingsActionRow

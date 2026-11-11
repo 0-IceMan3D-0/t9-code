@@ -118,9 +118,7 @@ export function SettingsLocalServerRouteScreen() {
               ) : (
                 <SettingsActionRow
                   icon="arrow.clockwise"
-                  label={
-                    status.state === "notInstalled" ? "Set up (about 500 MB download)" : "Start"
-                  }
+                  label={status.linuxInstalled ? "Start" : "Set up (about 500 MB download)"}
                   disabled={maintenance?.state === "running"}
                   onPress={() => {
                     server.start();

@@ -3,6 +3,7 @@ import type { AlertButton } from "react-native";
 
 import * as Dialog from "../../components/ui/Dialog";
 import { describeBackup, parseBackupManifest } from "./backupManifest";
+import { formatModelSize } from "./localModels";
 import {
   getLocalServerStatus,
   localServer,
@@ -168,7 +169,7 @@ export async function resetLinux(): Promise<void> {
 }
 
 /** Deleting cannot be undone, so the dialog offers a backup first. */
-export async function confirmDeleteEnvironment(onDelete: () => void): Promise<void> {
+export async function confirmDeleteEnvironment(onDelete: () => Promise<void>): Promise<void> {
   const choice = await ask(
     "Delete environment?",
     "This deletes Linux, Claude Code's sign-in, threads on This phone and every project in private storage. A backup lets you restore them later.",
@@ -179,5 +180,32 @@ export async function confirmDeleteEnvironment(onDelete: () => void): Promise<vo
     ],
   );
   if (choice === "Back up first") await backUpLinux();
-  if (choice === "Delete") onDelete();
+  if (choice !== "Delete") return;
+  // Phone GPU models live outside Linux, so deleting the environment alone keeps them.
+  const phone = localServer?.phoneModelsState();
+  const models = phone?.catalog.filter((model) => phone.installed.includes(model.id)) ?? [];
+  const modelChoice =
+    models.length === 0
+      ? "Keep models"
+      : await ask("Delete Phone GPU models too?", phoneModelsMessage(models), [
+          { text: "Cancel", style: "cancel" },
+          { text: "Delete models", style: "destructive" },
+          { text: "Keep models" },
+        ]);
+  if (modelChoice !== "Keep models" && modelChoice !== "Delete models") return;
+  await onDelete();
+  if (modelChoice === "Delete models") {
+    for (const model of models) localServer?.deletePhoneModel(model.id);
+  }
+}
+
+function phoneModelsMessage(
+  models: ReadonlyArray<{ readonly title: string; readonly bytes: number }>,
+) {
+  const list = models.map((model) => `${model.title} (${formatModelSize(model.bytes)})`);
+  if (models.length === 1) {
+    return `${list[0]} is stored outside Linux. Keeping it saves downloading it again.`;
+  }
+  const total = formatModelSize(models.reduce((sum, model) => sum + model.bytes, 0));
+  return `${list.join(" and ")}, ${total} in all, are stored outside Linux. Keeping them saves downloading them again.`;
 }

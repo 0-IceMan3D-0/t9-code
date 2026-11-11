@@ -72,11 +72,14 @@ export function SegmentedControl<Value extends string | number>(
               accessibilityLabel={option.accessibilityLabel ?? option.label}
               accessibilityState={{ selected }}
               onPress={() => props.onSelect(option.value)}
-              className="flex-1 items-center justify-center rounded-full px-2 py-1 active:opacity-70"
+              className="flex-1 items-center justify-center rounded-full px-1 py-1 active:opacity-70"
               style={{ minHeight: minHeight - 6 }}
             >
               <AppText
                 textRole="footnote"
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.8}
                 className={selected ? "font-t3-bold" : "font-t3-medium"}
                 style={{
                   color: selected ? selectedTextColor : mutedColor,

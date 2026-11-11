@@ -141,6 +141,7 @@ class T3LocalServerModule : Module() {
     "state" to status.state.id,
     "detail" to status.detail,
     "progress" to status.progress,
+    "linuxInstalled" to guest.isInstalled,
     "port" to LocalServerService.PORT,
     "startOnAppOpen" to options.startOnAppOpen,
     "stopOnLeave" to options.stopOnLeave,
@@ -350,6 +351,7 @@ class T3LocalServerModule : Module() {
       val app = context
       runMaintenance("restore", promise) {
         LinuxBackup.restore(app, GuestRuntime(app), Uri.parse(uri), it).toString().also {
+          refreshLinuxTools(app)
           LocalServerStatusStore.publish(LocalServerStatus(LocalServerState.STOPPED))
         }
       }
@@ -368,6 +370,7 @@ class T3LocalServerModule : Module() {
       AgentReinstall.remember(context)
       File(guest.root, GuestRuntime.INSTALLED_MARKER).delete()
       RuntimeInstaller.removeTree(guest.rootfs)
+      refreshLinuxTools(context)
       LocalServerService.start(context)
     }
 
@@ -375,6 +378,7 @@ class T3LocalServerModule : Module() {
       requireStopped()
       LinuxShells.closeAll()
       RuntimeInstaller.removeTree(guest.root)
+      refreshLinuxTools(context)
       LocalServerStatusStore.publish(LocalServerStatus(LocalServerState.NOT_INSTALLED))
     }
 

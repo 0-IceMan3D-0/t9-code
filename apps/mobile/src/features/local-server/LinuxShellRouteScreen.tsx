@@ -16,6 +16,7 @@ import { stepTerminalFontSize } from "../../lib/appearancePreferences";
 import { cn } from "../../lib/cn";
 import { tryCopyTextWithHaptic } from "../../lib/copyTextWithHaptic";
 import { useAppearancePreferences } from "../settings/appearance/AppearancePreferencesProvider";
+import { isSetUp, LocalServerSetUpHint } from "../settings/LocalServerPage";
 import { TerminalSurface } from "../terminal/NativeTerminalSurface";
 import {
   encodeTerminalPaste,
@@ -28,7 +29,7 @@ import {
   normalizeTerminalFontSize,
 } from "../terminal/terminalPreferences";
 import { shellTabTitle, tabAfterClose } from "./linuxShellTabs";
-import { localServer, type LinuxShellInfo } from "./localServerModule";
+import { localServer, useLocalServerStatus, type LinuxShellInfo } from "./localServerModule";
 import { appendOutput, EMPTY_OUTPUT } from "./sessionOutput";
 
 // Nine keys share the width, so a large system font size would wrap "Ctrl" and "Esc".
@@ -66,7 +67,23 @@ function confirmCloseRunning(info: LinuxShellInfo, onConfirm: () => void) {
 export type LinuxShellRouteParams = { readonly run?: string } | undefined;
 
 export function LinuxShellRouteScreen(props: StaticScreenProps<LinuxShellRouteParams>) {
-  const run = props.route.params?.run;
+  const status = useLocalServerStatus();
+  const insets = useSafeAreaInsets();
+  if (!status) return null;
+  if (!isSetUp(status)) {
+    return (
+      <View className="flex-1 bg-screen" style={{ paddingTop: insets.top }}>
+        <View className="px-5 pt-4">
+          <LocalServerSetUpHint />
+        </View>
+      </View>
+    );
+  }
+  return <LinuxShell run={props.route.params?.run} />;
+}
+
+function LinuxShell(props: { readonly run: string | undefined }) {
+  const { run } = props;
   const insets = useSafeAreaInsets();
   const keyboardVisible = useKeyboardState((state) => state.isVisible);
   const keyboardHeight = useKeyboardState((state) => state.height);

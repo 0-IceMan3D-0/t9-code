@@ -16,6 +16,8 @@ export interface LocalServerStatus {
   readonly state: LocalServerState;
   readonly detail: string;
   readonly progress: number;
+  /** A failed setup reports "failed" like a failed start, so the state alone cannot tell. */
+  readonly linuxInstalled: boolean;
   readonly port: number;
   readonly startOnAppOpen: boolean;
   readonly stopOnLeave: boolean;

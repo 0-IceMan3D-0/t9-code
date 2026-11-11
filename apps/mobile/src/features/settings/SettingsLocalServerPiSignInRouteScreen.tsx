@@ -39,7 +39,7 @@ export function SettingsLocalServerPiSignInRouteScreen() {
   };
 
   return (
-    <LocalServerPage title="Sign in to Pi">
+    <LocalServerPage title="Sign in to Pi" needsLinux>
       {() => (
         <>
           <SettingsSection

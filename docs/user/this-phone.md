@@ -18,7 +18,7 @@ Then install Claude Code, OpenCode or Pi under **Agents**; a new environment has
 - **Shared project folder**, in **Options**, adds `T3Projects` in phone storage as `/root/shared-projects`. Restart the server after changing it.
 - **Start when the app opens**, in **Options**, starts the server each time the app launches, so you do not need to tap **Start**. It is off by default. It does not start the server after the phone restarts: open the app once. If you stop the server, it stays stopped until the app is closed and opened again.
 - **Stop when I leave the app**, in **Options**, stops the server after you leave the app, to save battery. It is off by default. Leaving includes going home, switching apps and locking the screen. It waits 2 minutes first, so a quick trip to the browser, the share sheet or a photo picker does not stop it; coming back cancels it. To change the wait, pick a time under **Stop after**, or **Custom** for any number of minutes up to 4 hours. After that it waits while anything still uses the server: a thread that is working or waiting for your approval or answer, a Linux shell tab with a program running, a web server running in Linux, or a backup or restore. It stops 30 seconds after the last of these ends. The server's notification shows the countdown or what it is waiting for, with **Keep running** (until you next leave the app) and **Stop now**. With **Start when the app opens** also on, the server starts again when you come back. Scheduled tasks on the built-in server do not run while it is stopped.
-- **Delete environment**, in **Maintenance**, removes Linux, the Claude sign-in and every private project. Its dialog offers **Back up first**.
+- **Delete environment**, in **Maintenance**, removes Linux, the Claude sign-in and every private project. Its dialog offers **Back up first**. Phone GPU models are kept unless you choose **Delete models**.
 
 **Open Linux shell**, in **Linux**, gives a root shell in the same environment. `apt` works there. It does not need the server, but without the server Android may pause it while the app is in the background.
 
@@ -73,7 +73,7 @@ When a program in Linux starts a web server, such as an agent running `vite`, `n
 
 **Ollama** in **Settings > This phone > Models** runs open models on the phone's processor, so Claude Code or OpenCode can work with your code staying on the phone.
 
-1. Tap **Install Ollama**. It downloads 1.6 GB once and keeps about 60 MB.
+1. With the server running, tap **Install Ollama**. It downloads 1.6 GB once and keeps about 60 MB.
 2. With the server running, type a model name from [ollama.com](https://ollama.com/library) and tap **Download model**. Small models that use tools work best, such as `qwen3:1.7b` or `qwen3:4b`.
 3. In a thread on the built-in server, pick the model under **Ollama** in the model picker to use it with Claude Code, or under **OpenCode** or **Pi** once [OpenCode](#opencode) or [Pi](#pi) is installed.
 
@@ -88,7 +88,7 @@ When a program in Linux starts a web server, such as an agent running `vite`, `n
 
 **Phone GPU** in **Settings > This phone > Models** runs Google's Gemma 4 models on the phone's graphics processor, much faster than Ollama.
 
-1. Tap **Download Gemma 4 E2B** (2.6 GB, fastest) or **Download Gemma 4 E4B** (3.7 GB, writes better). A dropped download continues where it stopped.
+1. With the server running, tap **Download Gemma 4 E2B** (2.6 GB, fastest) or **Download Gemma 4 E4B** (3.7 GB, writes better). A dropped download continues where it stopped.
 2. In a thread on the built-in server, pick the model under **Phone GPU** in the model picker to use it with Claude Code, or under **OpenCode** or **Pi** once [OpenCode](#opencode) or [Pi](#pi) is installed.
 
 - The first message in a thread reads the agent's instructions, about 15,000 tokens for Claude Code: a few seconds on a recent flagship phone, about a minute on a phone from 2020. Each later step in the same thread continues from there and takes seconds. Switching between threads reads the instructions again.
@@ -136,7 +136,7 @@ When the phone runs low on memory, or Linux uses a large share of it, Android ma
 
 **Settings > This phone > Maintenance** has three tools. Each one stops the server first if it is running, after asking.
 
-- **Back up Linux** saves one `.tar.gz` file with Linux and its installed packages, private projects, threads on This phone, and Claude Code's sign-in and settings. Choose **Save to Downloads** (it goes to `Downloads/T3² Code`) or **Choose location**. Caches that refill themselves are left out: `/tmp`, apt's downloaded packages, npm's download cache and `/root/.cache`. Projects in the shared folder are not included. The backup keeps running in the background behind a notification, and you can cancel it.
+- **Back up Linux** saves one `.tar.gz` file with Linux and its installed packages, private projects, threads on This phone, and Claude Code's sign-in and settings. Choose **Save to Downloads** (it goes to `Downloads/T3² Code`) or **Choose location**. Caches that refill themselves are left out: `/tmp`, apt's downloaded packages, npm's download cache and `/root/.cache`. Projects in the shared folder and Phone GPU models are not included. The backup keeps running in the background behind a notification, and you can cancel it.
 - **Restore from backup** checks the file you pick, shows when and by which app version it was made, and asks before it replaces the current environment. It unpacks next to the current environment and switches over only when the whole file checked out, so a damaged file or a cancel leaves everything as it was. Restoring needs free space for both copies until it finishes.
 - **Reset Linux** downloads a fresh Linux, about 500 MB, and sets it up again, like the first setup. It keeps private projects, Claude Code's sign-in and settings (`~/.claude` and `~/.claude.json`), threads on This phone, git settings (`~/.gitconfig`), SSH keys (`~/.ssh`), adb keys (`~/.android`), and the settings and sign-ins of OpenCode and Pi. Claude Code, OpenCode and Pi are installed again if they were installed before (Claude Code at the tested version). Other packages you installed and other files in Linux are lost. Use it when Linux is broken.
 

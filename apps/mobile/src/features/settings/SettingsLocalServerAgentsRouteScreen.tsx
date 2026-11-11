@@ -5,15 +5,15 @@ import { useLinuxMaintenance } from "../local-server/linuxMaintenance";
 import { SettingsSection } from "./components/SettingsSection";
 import { LocalServerAgentSection } from "./LocalServerAgentSection";
 import { LocalServerClaudeSection } from "./LocalServerClaudeSection";
-import { isSetUp, LocalServerPage } from "./LocalServerPage";
+import { LocalServerPage } from "./LocalServerPage";
 import { PiSignInRows } from "./LocalServerPiSignIn";
 
 export function SettingsLocalServerAgentsRouteScreen() {
   const maintaining = useLinuxMaintenance()?.state === "running";
   return (
-    <LocalServerPage title="Agents">
+    <LocalServerPage title="Agents" needsLinux>
       {(status) =>
-        !isSetUp(status) || maintaining ? null : (
+        maintaining ? null : (
           <>
             {status.state === "running" ? (
               <LocalServerClaudeSection />

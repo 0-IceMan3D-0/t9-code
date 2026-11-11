@@ -19,11 +19,11 @@ export function SettingsLocalServerMaintenanceRouteScreen() {
   if (!server) return null;
 
   const reset = () =>
-    void confirmDeleteEnvironment(() => {
-      void server.reset().then(() => {
+    void confirmDeleteEnvironment(() =>
+      server.reset().then(() => {
         if (connection) void removeEnvironment(connection.environmentId);
-      });
-    });
+      }),
+    );
 
   return (
     <LocalServerPage title="Maintenance">
@@ -31,7 +31,7 @@ export function SettingsLocalServerMaintenanceRouteScreen() {
         const busy = status.state === "installing" || status.state === "starting";
         return (
           <SettingsSection footer="Keep backups private: they hold sign-ins and SSH keys, but not the shared project folder.">
-            <LocalServerMaintenanceRows state={status.state} />
+            <LocalServerMaintenanceRows status={status} />
             {log !== null ? (
               <Text selectable className="p-4 text-xs text-foreground-muted">
                 {log || "No log yet."}

@@ -81,7 +81,7 @@ object Ollama {
 
   fun refresh(context: Context): State {
     val installed = binary(GuestRuntime(context)).isFile
-    update { it.copy(installed = installed) }
+    update { if (installed) it.copy(installed = true) else it.copy(installed = false, models = emptyList()) }
     if (installed && serving) thread(name = "t3-ollama-models") { loadModels() }
     return state
   }

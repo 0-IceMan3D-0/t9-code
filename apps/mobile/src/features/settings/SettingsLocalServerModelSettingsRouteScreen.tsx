@@ -112,7 +112,7 @@ export function SettingsLocalServerModelSettingsRouteScreen() {
   const threads = [2, 4, 8].filter((count) => count <= settings.cores);
 
   return (
-    <LocalServerPage title="Model settings">
+    <LocalServerPage title="Model settings" needsLinux>
       {() => (
         <>
           {error ? (

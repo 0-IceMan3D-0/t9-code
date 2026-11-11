@@ -65,7 +65,7 @@ open class NpmTool(
   fun remove(context: Context) = npm(context, "Removing", listOf("npm", "uninstall", "-g", packageName))
 
   /** Runs after every install, update or removal, once [state] is current. */
-  protected open fun changed(context: Context) = Unit
+  internal open fun changed(context: Context) = Unit
 
   private fun npm(context: Context, label: String, command: List<String>) {
     synchronized(this) {
@@ -90,6 +90,17 @@ object ClaudeCode : NpmTool("Claude Code", "@anthropic-ai/claude-code", "2.1.319
 
 /** Agent CLIs the app installs in Linux, by the id the app uses for them. */
 internal val AGENT_TOOLS: Map<String, NpmTool> = mapOf("opencode" to OpenCode, "claude" to ClaudeCode, "pi" to Pi)
+
+/**
+ * What is installed in Linux is cached in memory; call this once Linux is deleted, reset, restored
+ * or set up. Agents refresh before Ollama: its change makes any agent still cached as installed
+ * rewrite its config, which would recreate a deleted Linux folder.
+ */
+internal fun refreshLinuxTools(context: Context) {
+  AGENT_TOOLS.values.forEach { it.refresh(context) }
+  Ollama.refresh(context)
+  AGENT_TOOLS.values.forEach { it.changed(context) }
+}
 
 /** Reset Linux removes installed agents with the rest of Linux; this puts them back afterwards. */
 internal object AgentReinstall {

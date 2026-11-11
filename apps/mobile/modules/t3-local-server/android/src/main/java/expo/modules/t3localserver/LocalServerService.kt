@@ -100,10 +100,14 @@ class LocalServerService : Service() {
 
   private fun install() {
     publish(LocalServerState.INSTALLING, "Preparing")
-    RuntimeInstaller(guest) { detail, progress ->
-      publish(LocalServerState.INSTALLING, detail, progress)
-    }.install()
-    AgentReinstall.run(this) { detail -> publish(LocalServerState.INSTALLING, detail, 0.98) }
+    try {
+      RuntimeInstaller(guest) { detail, progress ->
+        publish(LocalServerState.INSTALLING, detail, progress)
+      }.install()
+      AgentReinstall.run(this) { detail -> publish(LocalServerState.INSTALLING, detail, 0.98) }
+    } finally {
+      refreshLinuxTools(this)
+    }
   }
 
   private fun serve() {
