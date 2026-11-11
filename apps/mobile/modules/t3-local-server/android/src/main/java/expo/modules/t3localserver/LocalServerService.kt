@@ -108,6 +108,7 @@ class LocalServerService : Service() {
 
   private fun serve() {
     Ollama.startServe(this)
+    OllamaRelay.start()
     PhoneModelEndpoint.start(this)
     var failures = 0
     while (!stopping) {
@@ -139,6 +140,7 @@ class LocalServerService : Service() {
   // Process.destroy only sends SIGTERM to proot, which ignores it and leaves its guests running.
   private fun stopServer() {
     Ollama.stopServe()
+    OllamaRelay.stop()
     PhoneModelEndpoint.stop()
     val process = server ?: return
     signalServer("TERM")
@@ -178,6 +180,7 @@ class LocalServerService : Service() {
 
   private fun finish(state: LocalServerState, detail: String = "") {
     Ollama.stopServe()
+    OllamaRelay.stop()
     PhoneModelEndpoint.stop()
     handler.removeCallbacks(healthCheck)
     server = null

@@ -1,6 +1,6 @@
 import { useAtomValue } from "@effect/atom-react";
 import { useRoute, type RouteProp } from "@react-navigation/native";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   EnvironmentId,
   ThreadId,
@@ -21,7 +21,7 @@ import * as Option from "effect/Option";
 
 import { scopedThreadKey } from "../lib/scopedEntities";
 import { useProject, useQuietThreadShell } from "./entities";
-import { useEnvironmentThread } from "./threads";
+import { reloadMissedEnvironmentThread, useEnvironmentThread } from "./threads";
 import {
   resolvePendingThreadCreation,
   pendingThreadCreationOutcomesAtom,
@@ -160,6 +160,17 @@ function useResolvedThreadSelection(params: ThreadSelectionRouteParams | undefin
     needsDetail ? (selectedThreadDetailRef?.threadId ?? null) : null,
   );
   const selectedThreadDetail = Option.getOrNull(selectedThreadDetailState.data);
+  const detailMissed =
+    selectedThreadShell !== null &&
+    selectedThreadDetailRef !== null &&
+    selectedThreadDetailState.status === "deleted";
+  const missedEnvironmentId = detailMissed ? selectedThreadDetailRef.environmentId : null;
+  const missedThreadId = detailMissed ? selectedThreadDetailRef.threadId : null;
+  // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- reloads a listed thread whose detail the server reported missing while it was being created
+  useEffect(() => {
+    if (missedEnvironmentId === null || missedThreadId === null) return;
+    reloadMissedEnvironmentThread(missedEnvironmentId, missedThreadId);
+  }, [missedEnvironmentId, missedThreadId]);
   const selectedThread =
     selectedThreadShell ??
     (selectedThreadRef !== null && selectedThreadDetail !== null

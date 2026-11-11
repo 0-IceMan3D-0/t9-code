@@ -4,7 +4,13 @@ import { useEffect, useRef, useState } from "react";
 import { useEnvironmentServerConfig } from "../../state/entities";
 import { serverEnvironment } from "../../state/server";
 import { useAtomCommand } from "../../state/use-atom-command";
-import { useAgentTool, useLocalServerStatus, useOllama, usePhoneModels } from "./localServerModule";
+import {
+  useAgentTool,
+  useLocalModelSettings,
+  useLocalServerStatus,
+  useOllama,
+  usePhoneModels,
+} from "./localServerModule";
 import {
   claudeModelsToHide,
   installedPhoneModels,
@@ -22,6 +28,8 @@ const MAX_ATTEMPTS = 3;
 // The server may still be starting when the app opens, so a failed request is retried for a minute.
 const RETRY_MS = 5_000;
 const MAX_FAILURES = 12;
+// Until the GPU has loaded once, the size most phones load; Pi assumes the same.
+const CONTEXT_FALLBACK = 24_576;
 
 /**
  * Keeps a local model instance on the built-in server in step with the models on the phone, and
@@ -32,6 +40,7 @@ function useLocalInstanceSync(
   environmentId: EnvironmentId | null,
   installed: boolean,
   models: ReadonlyArray<LocalModel> | undefined,
+  contextTokens: number,
 ) {
   const config = useEnvironmentServerConfig(environmentId);
   const mutate = useAtomCommand(serverEnvironment.mutateProviderInstance, {
@@ -49,6 +58,7 @@ function useLocalInstanceSync(
           providerInstances: config.settings.providerInstances,
           installed,
           models,
+          contextTokens,
         });
   const listed =
     config?.providers.find((entry) => entry.instanceId === provider.instanceId)?.models ??
@@ -157,17 +167,22 @@ export function LocalModelsCoordinator() {
   const connection = useLocalConnection(status?.state === "running" ? status.port : undefined);
   const environmentId = connection?.environmentId ?? null;
   const phoneModels = phone === null ? undefined : installedPhoneModels(phone);
+  const settings = useLocalModelSettings();
+  // Not the size the GPU is loaded with: that changes on a thread's first message, mid-turn.
+  const gpuContext = settings?.gpuContext || settings?.autoGpuContext || CONTEXT_FALLBACK;
   useLocalInstanceSync(
     OLLAMA_PROVIDER,
     environmentId,
     claudeInstalled && (ollama?.installed ?? false),
     ollama?.models,
+    settings?.ollamaContext || settings?.autoOllamaContext || CONTEXT_FALLBACK,
   );
   useLocalInstanceSync(
     PHONE_GPU_PROVIDER,
     environmentId,
     claudeInstalled && (phoneModels?.length ?? 0) > 0,
     phoneModels,
+    gpuContext,
   );
   useTextGenerationFallback(environmentId);
   return null;

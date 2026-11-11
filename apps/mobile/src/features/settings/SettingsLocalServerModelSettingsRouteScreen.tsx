@@ -4,10 +4,10 @@ import { TextInput, View } from "react-native";
 import { AppText as Text } from "../../components/ui/AppText";
 import { SegmentedControl } from "../../components/ui/SegmentedControl";
 import {
-  localServer,
+  saveLocalModelSettings,
+  useLocalModelSettings,
   useOllama,
   type LocalModelSettingValues,
-  type LocalModelSettings,
 } from "../local-server/localServerModule";
 import { SettingsSection } from "./components/SettingsSection";
 import { LocalServerPage } from "./LocalServerPage";
@@ -97,21 +97,15 @@ const CONTEXT_CUSTOM: CustomValue = { unit: "thousand tokens", scale: 1024, min:
 
 export function SettingsLocalServerModelSettingsRouteScreen() {
   const ollama = useOllama();
-  const [settings, setSettings] = useState<LocalModelSettings | null>(
-    () => localServer?.localModelSettings() ?? null,
-  );
+  const settings = useLocalModelSettings();
   const [error, setError] = useState<string | null>(null);
   if (!settings) return null;
 
   const change = (changes: Partial<LocalModelSettingValues>) => {
-    setSettings({ ...settings, ...changes });
     setError(null);
-    void localServer
-      ?.setLocalModelSettings(changes)
-      .then(setSettings)
-      .catch((cause: unknown) =>
-        setError(cause instanceof Error ? cause.message : "Could not save the setting."),
-      );
+    saveLocalModelSettings(changes).catch((cause: unknown) =>
+      setError(cause instanceof Error ? cause.message : "Could not save the setting."),
+    );
   };
 
   const pulling = ollama?.pulling != null;

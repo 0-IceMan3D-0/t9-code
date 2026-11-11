@@ -384,6 +384,34 @@ export function usePhoneModels(): PhoneModelsState | null {
   return useSyncExternalStore(subscribePhoneModels, () => phoneModels);
 }
 
+let modelSettings: LocalModelSettings | null = localServer?.localModelSettings() ?? null;
+const modelSettingsListeners = new Set<() => void>();
+
+function publishModelSettings(next: LocalModelSettings | null): void {
+  modelSettings = next;
+  for (const listener of modelSettingsListeners) listener();
+}
+
+function subscribeModelSettings(onChange: () => void) {
+  modelSettingsListeners.add(onChange);
+  return () => {
+    modelSettingsListeners.delete(onChange);
+  };
+}
+
+export function useLocalModelSettings(): LocalModelSettings | null {
+  return useSyncExternalStore(subscribeModelSettings, () => modelSettings);
+}
+
+/** Shows the change at once; the native module answers with what it saved. */
+export async function saveLocalModelSettings(
+  changes: Partial<LocalModelSettingValues>,
+): Promise<void> {
+  if (!localServer || !modelSettings) return;
+  publishModelSettings({ ...modelSettings, ...changes });
+  publishModelSettings(await localServer.setLocalModelSettings(changes));
+}
+
 const agentTools: Record<AgentToolId, AgentToolState | null> = {
   opencode: localServer?.agentToolState("opencode") ?? null,
   claude: localServer?.agentToolState("claude") ?? null,

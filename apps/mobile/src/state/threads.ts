@@ -74,6 +74,24 @@ export function startOpeningEnvironmentThread(environmentId: EnvironmentId, thre
   setTimeout(release, OPENING_THREAD_HOLD_MS);
 }
 
+const MISSED_THREAD_RETRY_MS = 500;
+const missedThreadRetries = new Set<string>();
+
+/**
+ * Loads a thread again after the server reported it missing although it is in the thread list.
+ * A server can list a new thread before it can serve its detail, and that miss is otherwise kept
+ * for as long as anything has the thread open.
+ */
+export function reloadMissedEnvironmentThread(environmentId: EnvironmentId, threadId: ThreadId) {
+  const key = scopedThreadKey(environmentId, threadId);
+  if (missedThreadRetries.has(key)) return;
+  missedThreadRetries.add(key);
+  setTimeout(() => {
+    missedThreadRetries.delete(key);
+    appAtomRegistry.refresh(environmentThreads.stateAtom(environmentId, threadId));
+  }, MISSED_THREAD_RETRY_MS);
+}
+
 const EMPTY_THREAD_STATE_ATOM = Atom.make(AsyncResult.success(EMPTY_ENVIRONMENT_THREAD_STATE)).pipe(
   Atom.withLabel("mobile-environment-thread:empty"),
 );

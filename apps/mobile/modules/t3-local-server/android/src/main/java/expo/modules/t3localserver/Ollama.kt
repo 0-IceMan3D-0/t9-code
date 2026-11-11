@@ -196,9 +196,7 @@ object Ollama {
                 "env",
                 "OLLAMA_HOST=127.0.0.1:$PORT",
                 "OLLAMA_CONTEXT_LENGTH=${settings.effectiveOllamaContext()}",
-                // An 8-bit cache needs flash attention and halves the memory the context takes.
                 "OLLAMA_FLASH_ATTENTION=1",
-                "OLLAMA_KV_CACHE_TYPE=q8_0",
                 // Ollama passes this to llama-server, which would otherwise use every core.
                 "LLAMA_ARG_THREADS=${settings.effectiveOllamaThreads()}",
                 // Ollama reuses the cached instructions while the model stays loaded, so later turns start fast.

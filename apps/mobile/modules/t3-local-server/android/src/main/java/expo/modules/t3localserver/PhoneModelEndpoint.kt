@@ -91,7 +91,7 @@ object PhoneModelEndpoint {
     }
   }
 
-  private fun readLine(input: InputStream): String? {
+  internal fun readLine(input: InputStream): String? {
     val bytes = ByteArrayOutputStream()
     while (true) {
       val b = input.read()
@@ -101,7 +101,7 @@ object PhoneModelEndpoint {
     }
   }
 
-  private fun readBody(input: InputStream, headers: Map<String, String>): String {
+  internal fun readBody(input: InputStream, headers: Map<String, String>): String {
     if (headers["transfer-encoding"]?.contains("chunked") == true) {
       val body = ByteArrayOutputStream()
       while (true) {

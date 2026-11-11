@@ -26,7 +26,8 @@ export interface LocalModelProvider {
 export const OLLAMA_PROVIDER: LocalModelProvider = {
   instanceId: ProviderInstanceId.make("claudeOllama"),
   displayName: "Ollama",
-  baseUrl: "http://127.0.0.1:11434",
+  // The app's relay in front of Ollama; Claude Code drops Ollama's silent prompt reading.
+  baseUrl: "http://127.0.0.1:11436",
   pinBackgroundModels: true,
 };
 
@@ -92,6 +93,7 @@ export function formatModelSize(bytes: number): string {
 function localInstance(
   provider: LocalModelProvider,
   models: ReadonlyArray<LocalModel>,
+  contextTokens: number,
   enabled: boolean,
 ): ProviderInstanceConfig {
   const bySize = [...models].sort((a, b) => a.size - b.size);
@@ -111,6 +113,12 @@ function localInstance(
     ["CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC", "1"],
     // Reading Claude Code's instructions takes a phone's CPU over ten minutes, Claude Code's default timeout.
     ["API_TIMEOUT_MS", "3600000"],
+    // Its default drops a stream that sends only pings for five minutes, less than a phone needs for the prompt.
+    ["CLAUDE_STREAM_IDLE_TIMEOUT_MS", "3600000"],
+    // Claude Code assumes 200K for a model it does not know, and would not summarize in time.
+    ["CLAUDE_CODE_MAX_CONTEXT_TOKENS", String(contextTokens)],
+    // It keeps this much of the context free for the reply; its default of 32K would leave no room for the prompt.
+    ["CLAUDE_CODE_MAX_OUTPUT_TOKENS", "4096"],
   ];
   return {
     driver: CLAUDE_DRIVER,
@@ -132,6 +140,8 @@ export function planLocalInstance(
     readonly providerInstances: ServerSettings["providerInstances"];
     readonly installed: boolean;
     readonly models: ReadonlyArray<LocalModel>;
+    /** How many tokens the model server holds per conversation. */
+    readonly contextTokens: number;
   },
 ): ProviderInstanceMutation | null {
   const current = input.providerInstances[provider.instanceId];
@@ -139,7 +149,7 @@ export function planLocalInstance(
     return current ? { operation: "remove", instanceId: provider.instanceId } : null;
   }
   if (input.models.length === 0) return null;
-  const next = localInstance(provider, input.models, current?.enabled ?? true);
+  const next = localInstance(provider, input.models, input.contextTokens, current?.enabled ?? true);
   if (current && JSON.stringify(ownedFields(current)) === JSON.stringify(ownedFields(next))) {
     return null;
   }

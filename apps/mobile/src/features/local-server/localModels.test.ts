@@ -15,8 +15,11 @@ import {
 } from "./localModels";
 
 const OLLAMA_INSTANCE_ID = OLLAMA_PROVIDER.instanceId;
-const planOllamaInstance = (input: Parameters<typeof planLocalInstance>[1]) =>
-  planLocalInstance(OLLAMA_PROVIDER, input);
+const planOllamaInstance = (
+  input: Omit<Parameters<typeof planLocalInstance>[1], "contextTokens"> & {
+    readonly contextTokens?: number;
+  },
+) => planLocalInstance(OLLAMA_PROVIDER, { contextTokens: 32_768, ...input });
 
 const models = [
   { name: "qwen3:4b", size: 2_500_000_000 },
@@ -32,9 +35,11 @@ describe("planLocalInstance", () => {
       (plan.instance.environment ?? []).map((variable) => [variable.name, variable.value]),
     );
     expect(env).toMatchObject({
-      ANTHROPIC_BASE_URL: "http://127.0.0.1:11434",
+      ANTHROPIC_BASE_URL: "http://127.0.0.1:11436",
       ANTHROPIC_DEFAULT_HAIKU_MODEL: "qwen3:1.7b",
       ANTHROPIC_DEFAULT_SONNET_MODEL: "qwen3:4b",
+      CLAUDE_CODE_MAX_CONTEXT_TOKENS: "32768",
+      CLAUDE_CODE_MAX_OUTPUT_TOKENS: "4096",
     });
     expect(plan.instance.config).toEqual({ customModels: ["qwen3:1.7b", "qwen3:4b"] });
   });
@@ -44,6 +49,7 @@ describe("planLocalInstance", () => {
       providerInstances: {},
       installed: true,
       models,
+      contextTokens: 24_576,
     });
     if (plan?.operation !== "create") throw new Error("expected create");
     const names = (plan.instance.environment ?? []).map((variable) => variable.name);
@@ -58,6 +64,10 @@ describe("planLocalInstance", () => {
       [OLLAMA_INSTANCE_ID]: { ...created.instance, enabled: false },
     };
     expect(planOllamaInstance({ providerInstances, installed: true, models })).toBeNull();
+    expect(
+      planOllamaInstance({ providerInstances, installed: true, models, contextTokens: 16_384 })
+        ?.operation,
+    ).toBe("upsert");
     const updated = planOllamaInstance({
       providerInstances,
       installed: true,
