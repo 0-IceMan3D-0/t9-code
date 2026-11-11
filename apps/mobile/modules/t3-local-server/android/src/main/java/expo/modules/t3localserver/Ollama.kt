@@ -187,29 +187,33 @@ object Ollama {
     thread(name = "t3-ollama-serve") {
       // Inside Linux, so the person or an agent can read why a request failed.
       ServerLog(File(guest.rootfs, LOG_PATH.removePrefix("/")).apply { parentFile?.mkdirs() }).use { log ->
-        while (serving && generation == serveGeneration) {
-          val process = guest.process(
-            listOf(
-              "env",
-              "OLLAMA_HOST=127.0.0.1:$PORT",
-              "OLLAMA_CONTEXT_LENGTH=${settings.effectiveOllamaContext()}",
-              // An 8-bit cache needs flash attention and halves the memory the context takes.
-              "OLLAMA_FLASH_ATTENTION=1",
-              "OLLAMA_KV_CACHE_TYPE=q8_0",
-              // Ollama passes this to llama-server, which would otherwise use every core.
-              "LLAMA_ARG_THREADS=${settings.effectiveOllamaThreads()}",
-              // Ollama reuses the cached instructions while the model stays loaded, so later turns start fast.
-              "OLLAMA_KEEP_ALIVE=${settings.ollamaKeepAliveMinutes}m",
-              "ollama",
-              "serve",
-            ),
-          ).start()
-          serveProcess = process
+        while (true) {
+          // A restart can land before this starts the process; the newer generation owns the port then.
+          val process = synchronized(this) {
+            if (!serving || generation != serveGeneration) return@synchronized null
+            guest.process(
+              listOf(
+                "env",
+                "OLLAMA_HOST=127.0.0.1:$PORT",
+                "OLLAMA_CONTEXT_LENGTH=${settings.effectiveOllamaContext()}",
+                // An 8-bit cache needs flash attention and halves the memory the context takes.
+                "OLLAMA_FLASH_ATTENTION=1",
+                "OLLAMA_KV_CACHE_TYPE=q8_0",
+                // Ollama passes this to llama-server, which would otherwise use every core.
+                "LLAMA_ARG_THREADS=${settings.effectiveOllamaThreads()}",
+                // Ollama reuses the cached instructions while the model stays loaded, so later turns start fast.
+                "OLLAMA_KEEP_ALIVE=${settings.ollamaKeepAliveMinutes}m",
+                "ollama",
+                "serve",
+              ),
+            ).start().also { serveProcess = it }
+          } ?: break
           thread(name = "t3-ollama-ready") { waitUntilReady() }
           runCatching { process.inputStream.bufferedReader().forEachLine { log.write(it) } }
           process.waitFor()
+          if (generation != serveGeneration) break
           update { it.copy(running = false) }
-          if (serving && generation == serveGeneration) Thread.sleep(3_000)
+          if (serving) Thread.sleep(3_000)
         }
       }
     }
